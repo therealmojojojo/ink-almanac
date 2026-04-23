@@ -1,0 +1,18 @@
+{
+  "date": "2026-04-14",
+  "theme": "patience",
+  "gallery": {
+    "flavor": "text",
+    "text": {
+      "form": "haiku",
+      "body": "an old silent pond\na frog leaps into water\nsplash, then silence",
+      "title": "Old pond",
+      "poet": "Bashō",
+      "dates": "1644–1694",
+      "language": "en"
+    }
+  },
+  "night": {
+    "fragment": "the night is long, the moon keeps watch"
+  }
+}

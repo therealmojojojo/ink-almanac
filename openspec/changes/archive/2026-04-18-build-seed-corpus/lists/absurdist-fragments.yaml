@@ -1,0 +1,72 @@
+category: absurdist-fragments
+side: text
+proposed_by: claude
+proposed_at: 2026-04-16
+notes: |
+  The "10% weird" bucket — absurdist and deadpan fragments that hold up on repeat
+  reads. Kharms (d.1942 → PD 2013); Kafka (d.1924 → PD 1995); Ponge (d.1988 →
+  personal_library until 2059); Hedberg (d.2005 → personal_library).
+
+items:
+  - id: kharms-blue-notebook-10
+    title: "Blue Notebook No. 10 ('There was once a red-haired man...')"
+    creator: "Daniil Kharms"
+    year: 1937
+    rights_tier: public_domain
+    source: wikisource
+    form: aphorism
+    language: [en, ru]
+    themes: [solitude, craft-and-play]
+    mood: [deadpan, absurd]
+    register: [wry, absurdist]
+
+  - id: kharms-old-women-falling
+    title: "Incidents ('An old woman, out of excessive curiosity...')"
+    creator: "Daniil Kharms"
+    year: 1936
+    rights_tier: public_domain
+    source: wikisource
+    form: aphorism
+    language: [en, ru]
+    themes: [urban, decay-and-memory]
+    mood: [deadpan, absurd]
+    register: [wry, absurdist]
+
+  - id: kafka-before-the-law
+    title: "Before the Law (Vor dem Gesetz)"
+    creator: "Franz Kafka"
+    year: 1915
+    rights_tier: public_domain
+    source: wikisource
+    form: fragment
+    language: [en, de]
+    themes: [solitude, ritual-and-gathering, decay-and-memory]
+    mood: [grave, surreal]
+    register: [lyrical, absurdist]
+
+  - id: ponge-the-crate
+    title: "The Crate (La cagette)"
+    creator: "Francis Ponge"
+    year: 1942
+    rights_tier: personal_library
+    source: web
+    form: prose
+    language: [en]
+    citation: "Ponge, *The Voice of Things*, trans. Beth Archer Brombert, McGraw-Hill, 1972"
+    themes: [everyday-life, attention-and-listening, craft-and-play]
+    mood: [playful, precise]
+    register: [wry, lyrical]
+
+  - id: hedberg-one-liners
+    title: "Selected one-liners"
+    creator: "Mitch Hedberg"
+    year: 2000
+    rights_tier: personal_library
+    source: web
+    form: aphorism
+    language: [en]
+    citation: "Hedberg, *Mitch All Together* (Comedy Central Records, 2003) — transcribed sets"
+    themes: [everyday-life, craft-and-play]
+    mood: [deadpan, wry]
+    register: [wry, absurdist]
+    operator_pick_expected: true

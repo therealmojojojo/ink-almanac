@@ -1,0 +1,105 @@
+# Forecast sensors — trigger-based template.
+#
+# HA 2024.4+ removed the `forecast` attribute from weather entities; forecasts
+# must now be fetched via the `weather.get_forecasts` action. This package runs
+# that action hourly for both locations and exposes the renderer-facing
+# high/low/rain-prob/5-day-forecast sensors as a trigger-based template.
+#
+# Current conditions (temperature, condition, feels-like) stay in
+# ha/sensors/weather_template.yaml because they remain as live attributes.
+
+template:
+  - trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/30"
+    action:
+      - service: weather.get_forecasts
+        target: { entity_id: weather.${PLACE_A_SLUG}_primary }
+        data: { type: daily }
+        response_variable: buc
+      - service: weather.get_forecasts
+        target: { entity_id: weather.${PLACE_B_SLUG}_primary }
+        data: { type: daily }
+        response_variable: sec
+      - variables:
+          buc_fc: "{{ buc['weather.${PLACE_A_SLUG}_primary'].forecast | default([]) }}"
+          sec_fc: "{{ sec['weather.${PLACE_B_SLUG}_primary'].forecast | default([]) }}"
+    sensor:
+      # --- ${PLACE_A_NAME} ---
+      - name: ${PLACE_A_SLUG}_high_c
+        unique_id: ${PLACE_A_SLUG}_high_c
+        unit_of_measurement: "°C"
+        state: "{{ ((buc_fc[0].temperature if buc_fc else 0) or 0) | round(0) }}"
+
+      - name: ${PLACE_A_SLUG}_low_c
+        unique_id: ${PLACE_A_SLUG}_low_c
+        unit_of_measurement: "°C"
+        state: "{{ ((buc_fc[0].templow if buc_fc else 0) or 0) | round(0) }}"
+
+      - name: ${PLACE_A_SLUG}_rain_prob_pct
+        unique_id: ${PLACE_A_SLUG}_rain_prob_pct
+        unit_of_measurement: "%"
+        state: >-
+          {{ ((buc_fc[0].get('precipitation_probability', 0) if buc_fc else 0) or 0) | round(0) }}
+
+      - name: ${PLACE_A_SLUG}_forecast_5d
+        unique_id: ${PLACE_A_SLUG}_forecast_5d
+        state: "ok"
+        attributes:
+          # Text weather: prefer Open-Meteo's condition per day, fall back to
+          # MET.no's per-day condition when OM is unavailable. Temperatures
+          # stay on MET.no. The two sources may use different day ordering;
+          # we align by index (day 0 = today) since both start at today in
+          # local time.
+          forecast: >-
+            {% set om = state_attr('sensor.${PLACE_A_SLUG}_openmeteo_forecast_5d','forecast') or [] %}
+            {% set ns = namespace(items=[]) %}
+            {% for d in buc_fc[:5] %}
+              {% set i = loop.index0 %}
+              {% set om_cond = om[i].condition if i < om | length and om[i].condition else none %}
+              {% set ns.items = ns.items + [{
+                'day_abbr': (as_timestamp(d.datetime) | timestamp_custom('%a')),
+                'condition': (om_cond if om_cond else d.condition),
+                'high_c': (d.temperature or 0) | round(0),
+                'low_c': (d.templow or 0) | round(0)
+              }] %}
+            {% endfor %}
+            {{ ns.items }}
+
+      # --- ${PLACE_B_NAME} ---
+      - name: ${PLACE_B_SLUG}_high_c
+        unique_id: ${PLACE_B_SLUG}_high_c
+        unit_of_measurement: "°C"
+        state: "{{ ((sec_fc[0].temperature if sec_fc else 0) or 0) | round(0) }}"
+
+      - name: ${PLACE_B_SLUG}_low_c
+        unique_id: ${PLACE_B_SLUG}_low_c
+        unit_of_measurement: "°C"
+        state: "{{ ((sec_fc[0].templow if sec_fc else 0) or 0) | round(0) }}"
+
+      - name: ${PLACE_B_SLUG}_rain_prob_pct
+        unique_id: ${PLACE_B_SLUG}_rain_prob_pct
+        unit_of_measurement: "%"
+        state: >-
+          {{ ((sec_fc[0].get('precipitation_probability', 0) if sec_fc else 0) or 0) | round(0) }}
+
+      - name: ${PLACE_B_SLUG}_forecast_5d
+        unique_id: ${PLACE_B_SLUG}_forecast_5d
+        state: "ok"
+        attributes:
+          forecast: >-
+            {% set om = state_attr('sensor.${PLACE_B_SLUG}_openmeteo_forecast_5d','forecast') or [] %}
+            {% set ns = namespace(items=[]) %}
+            {% for d in sec_fc[:5] %}
+              {% set i = loop.index0 %}
+              {% set om_cond = om[i].condition if i < om | length and om[i].condition else none %}
+              {% set ns.items = ns.items + [{
+                'day_abbr': (as_timestamp(d.datetime) | timestamp_custom('%a')),
+                'condition': (om_cond if om_cond else d.condition),
+                'high_c': (d.temperature or 0) | round(0),
+                'low_c': (d.templow or 0) | round(0)
+              }] %}
+            {% endfor %}
+            {{ ns.items }}

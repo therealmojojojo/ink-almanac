@@ -1,0 +1,9 @@
+# Alias the operator's mobile-app notify service behind a stable name.
+# The HA mobile app registers something like notify.mobile_app_<device_id>;
+# this wrapper keeps all project automations against notify.inkplate_operator.
+
+notify:
+  - name: inkplate_operator
+    platform: group
+    services:
+      - service: !secret operator_notify_service

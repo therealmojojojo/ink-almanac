@@ -1,0 +1,164 @@
+# Curated pool for the Night-mode poetic weather line.
+#
+# The hourly automation (ha/automations/poetic_weather.yaml) computes a bucket
+# from the current weather state and asks generate_poetic_weather_line.sh to
+# render a line.
+#
+# When an Anthropic API key is configured, the script attempts an LLM call
+# first and falls back to this pool on any failure or rejection. When no key
+# is set, the script goes straight to the pool. Bucket-not-in-pool falls back
+# to `cloudy`, then to the hardcoded "Quiet night." safety string.
+#
+# Rules for every line:
+#   * ≤ 32 graphemes (including punctuation)
+#   * ASCII + Romanian diacritics only (ĂÂÎȘȚăâîșț); no emoji, no em-dash, no curly quotes
+#   * End with a period or no punctuation
+#   * House voice: plain, observational, slightly melancholy; avoid clever-clever
+
+# --- clear sky --------------------------------------------------------------
+
+clear_cold:    # clear + ≤ 5°C
+  - "Clear, quiet night."
+  - "Cold, still sky."
+  - "Stars over frost."
+  - "A sharp, hushed dark."
+  - "Ice-quiet night."
+  - "Cold stars, no wind."
+  - "The frost keeps watch."
+  - "Hard cold, clear stars."
+
+clear_mild:    # clear + 6–18°C
+  - "Clear, mild night."
+  - "A soft open sky."
+  - "Calm dark, mild air."
+  - "The night settles easy."
+  - "Stars, little wind."
+  - "A mild, open hour."
+  - "Clear and kind."
+  - "The dark is mild."
+
+clear_warm:    # clear + ≥ 19°C (summer night)
+  - "Warm night, clear stars."
+  - "A summer dark."
+  - "Soft air, bright stars."
+  - "Stars on a warm night."
+  - "The heat has settled."
+  - "Open sky, easy air."
+  - "Warm and starred."
+  - "A loose, warm hour."
+
+# --- clouds -----------------------------------------------------------------
+
+partly_cloudy:
+  - "Stars through scattered cloud."
+  - "A half-lit sky."
+  - "Cloud and star, uneven."
+  - "Passing clouds."
+  - "Patches of dark and bright."
+  - "A half-open sky."
+  - "Broken clouds, quiet air."
+  - "Moving clouds, still street."
+
+cloudy:        # cloudy / overcast + ≥ 6°C
+  - "Heavy sky, quiet street."
+  - "Low cloud, still hour."
+  - "A muffled night."
+  - "Clouds sit on the roof."
+  - "Soft cloud, no stars."
+  - "A closed, quiet night."
+  - "Covered sky."
+  - "The cloud holds."
+
+cloudy_cold:   # cloudy + ≤ 5°C
+  - "Cold cloud, no stars."
+  - "A slate-grey night."
+  - "Night under low cloud."
+  - "Cold, closed sky."
+  - "Thick cloud, sharp air."
+  - "A pressed-down dark."
+  - "Frost under cover."
+  - "Cold and overhung."
+
+# --- reduced visibility / precipitation -------------------------------------
+
+fog:
+  - "Fog at the street lamps."
+  - "A grey, close night."
+  - "Fog along the road."
+  - "The air has thickened."
+  - "Soft grey, soft dark."
+  - "Fog without wind."
+  - "A silent fog."
+  - "The world is nearer."
+
+drizzle:       # light rain; manually-set bucket
+  - "Light rain, steady."
+  - "A fine, wet dark."
+  - "Drizzle on the pane."
+  - "Thin rain, no sound."
+  - "The rain is half-spoken."
+  - "A mild wet night."
+  - "Drizzle, steady breath."
+  - "Small rain, small wind."
+
+rain:          # steady rain
+  - "Rain on the windows."
+  - "Steady rain tonight."
+  - "Rain along the street."
+  - "Night of falling rain."
+  - "Rain, and rain again."
+  - "The rain keeps time."
+  - "A wet, walking night."
+  - "Rain to the eaves."
+
+pouring:       # heavy rain
+  - "Rain by the bucket."
+  - "A loud, wet dark."
+  - "The rain is furious."
+  - "Hard rain on the glass."
+  - "Rain louder than thought."
+  - "A drowned hour."
+  - "Rain without pause."
+  - "The sky is pouring."
+
+thunderstorm:  # lightning, lightning-rainy, hail, exceptional
+  - "Thunder over the city."
+  - "A bright, loud dark."
+  - "Storm on the horizon."
+  - "Thunder and rain."
+  - "A night of weather."
+  - "Lightning to the east."
+  - "The sky is arguing."
+  - "Thunder, then rain."
+
+snow:
+  - "Snow by morning."
+  - "Snow at the sill."
+  - "A slow, white hour."
+  - "Snow under streetlight."
+  - "Quiet snow, quiet dark."
+  - "Snow, nothing else."
+  - "Snow keeps falling."
+  - "Soft snow, no sound."
+
+sleet:         # snowy-rainy
+  - "Rain turning to snow."
+  - "Neither rain nor snow."
+  - "A cold, grey wet."
+  - "Sleet on the pavement."
+  - "Half snow, half rain."
+  - "A sharp wet hour."
+  - "Sleet to the glass."
+  - "Cold has it both ways."
+
+# --- wind-only --------------------------------------------------------------
+
+windy_dry:     # windy / windy-variant, no precipitation
+  - "Wind along the eaves."
+  - "A dry, moving night."
+  - "Wind in the courtyard."
+  - "The night is walking."
+  - "Wind through the wires."
+  - "A restless dark."
+  - "The wind has arrived."
+  - "Dry wind, dark hour."

@@ -1,0 +1,57 @@
+recipe: top-contemporary-pen
+generated: 2026-04-19
+note: |
+  Contemporary pen-and-ink / screentone / ligne-claire canon, assembled
+  after the operator review on 2026-04-19 found that tonal-printmaking
+  anchors (aquatint, crayon lithograph, dense cross-hatched etching)
+  render poorly on 3-bit e-ink. Everything here is native line work —
+  the medium the panel reproduces best.
+
+  All entries route `rights_tier: personal_library` (20th/21st-c work
+  still in copyright). Source is `web` unless a specific foundation /
+  API exists. XKCD uses its dedicated public JSON API.
+
+items:
+
+  # ── Stream 1 — Manga ──────────────────────────────────────────────
+  - { id: osamu-tezuka,       name: "Osamu Tezuka",        years: [1928, 1989], lineage: manga, rights_tier: personal_library, source: web,  in_corpus: 0, canon_weight: core,      note: "Astro Boy; Phoenix; Black Jack; Buddha. The founder; expressive line, clean flats; native 3-bit fidelity." }
+  - { id: akira-toriyama,     name: "Akira Toriyama",       years: [1955, 2024], lineage: manga, rights_tier: personal_library, source: web,  in_corpus: 0, canon_weight: canonical, note: "Dragon Ball; Dr. Slump. Cleanest brush line in postwar manga; household recognition." }
+  - { id: hayao-miyazaki,     name: "Hayao Miyazaki",       years: [1941, null], lineage: manga, rights_tier: personal_library, source: web,  in_corpus: 0, canon_weight: canonical, note: "Nausicaä manga (1982–94); Ghibli concept B&W storyboards. Dense crosshatch; gentle." }
+  - { id: jiro-taniguchi,     name: "Jirō Taniguchi",       years: [1947, 2017], lineage: manga, rights_tier: personal_library, source: web,  in_corpus: 0, canon_weight: canonical, note: "The Walking Man (Aruku Hito); A Distant Neighborhood. Silent architectural precision." }
+  - { id: taiyo-matsumoto,    name: "Taiyō Matsumoto",      years: [1967, null], lineage: manga, rights_tier: personal_library, source: web,  in_corpus: 0, canon_weight: canonical, note: "Tekkonkinkreet; Ping Pong; Sunny. Scratchy kinetic line; kid-protagonist energy." }
+  - { id: naoki-urasawa,      name: "Naoki Urasawa",        years: [1960, null], lineage: manga, rights_tier: personal_library, source: web,  in_corpus: 0, canon_weight: canonical, note: "Monster; 20th Century Boys; Pluto. Cinematic precision." }
+  - { id: fujiko-f-fujio,     name: "Fujiko F. Fujio",      years: [1933, 1996], lineage: manga, rights_tier: personal_library, source: web,  in_corpus: 0, canon_weight: canonical, note: "Doraemon. The little-ones anchor." }
+
+  # ── Stream 1b — de Young "Art of Manga" (2025) additions ─────────
+  # Curator (Nicole Rousmaniere) selected these for drawing skill, not sales.
+  - { id: chiba-tetsuya,      name: "Chiba Tetsuya",        years: [1939, null], lineage: manga, rights_tier: personal_library, source: web,  in_corpus: 0, canon_weight: core,      note: "Ashita no Joe (1968–73). Considered one of the greatest brushmen in manga history." }
+  - { id: eiichiro-oda,       name: "Eiichiro Oda",         years: [1975, null], lineage: manga, rights_tier: personal_library, source: web,  in_corpus: 0, canon_weight: core,      note: "One Piece (1997–). Household-name kid anchor; dense crowd-scene draughtsmanship." }
+  - { id: rumiko-takahashi,   name: "Rumiko Takahashi",     years: [1957, null], lineage: manga, rights_tier: personal_library, source: web,  in_corpus: 0, canon_weight: canonical, note: "Ranma ½; Inuyasha; Urusei Yatsura. Household-name kid anchor; iconic character design." }
+  - { id: hirohiko-araki,     name: "Hirohiko Araki",       years: [1960, null], lineage: manga, rights_tier: personal_library, source: web,  in_corpus: 0, canon_weight: canonical, note: "JoJo's Bizarre Adventure (1987–). Stylised poses; distinctive dense linework." }
+  - { id: kentaro-miura,      name: "Kentaro Miura",        years: [1966, 2021], lineage: manga, rights_tier: personal_library, source: web,  in_corpus: 4, canon_weight: canonical, note: "Berserk (1989–2021). Operator-anchored — favourite of the operator's son; dense cross-hatching, strong black-vs-white tonal range native to e-ink." }
+  - { id: takehiko-inoue,     name: "Takehiko Inoue",       years: [1967, null], lineage: manga, rights_tier: personal_library, source: web,  in_corpus: 1, canon_weight: canonical, note: "Vagabond (1998–); Slam Dunk; Real. Brush-ink sumi-e; one of the finest draughtsmen in manga." }
+  - { id: inio-asano,         name: "Inio Asano",           years: [1980, null], lineage: manga, rights_tier: personal_library, source: web,  in_corpus: 1, canon_weight: canonical, note: "Goodnight Punpun; Solanin; Dead Dead Demon's. Photoreference-dense backgrounds; quiet suburban melancholy." }
+
+  # ── Stream 2 — Western comic-strip / cartoon ─────────────────────
+  - { id: bill-watterson,     name: "Bill Watterson",       years: [1958, null], lineage: comic-strip, rights_tier: personal_library, source: web, in_corpus: 0, canon_weight: core,      note: "Calvin and Hobbes (1985–95). Fluid brushwork; reads beautifully dithered." }
+  - { id: charles-schulz,     name: "Charles Schulz",       years: [1922, 2000], lineage: comic-strip, rights_tier: personal_library, source: web, in_corpus: 0, canon_weight: core,      note: "Peanuts (1950–2000). Minimal ink density; the platonic e-ink comic." }
+  - { id: gary-larson,        name: "Gary Larson",          years: [1950, null], lineage: comic-strip, rights_tier: personal_library, source: web, in_corpus: 0, canon_weight: canonical, note: "The Far Side. Absurd single panels; kid-adjacent deadpan humor." }
+  - { id: scott-adams,        name: "Scott Adams",          years: [1957, null], lineage: comic-strip, rights_tier: personal_library, source: web, in_corpus: 0, canon_weight: canonical, note: "Dilbert (1989–). Flat office-satire line work." }
+  - { id: herge,              name: "Hergé",                years: [1907, 1983], lineage: comic-strip, rights_tier: personal_library, source: web, in_corpus: 0, canon_weight: core,      note: "Tintin. Ligne claire — Platonic ideal of line-art style for e-ink." }
+  - { id: quentin-blake,      name: "Quentin Blake",        years: [1932, null], lineage: comic-strip, rights_tier: personal_library, source: web, in_corpus: 0, canon_weight: canonical, note: "Roald Dahl illustrations (Matilda, BFG, Charlie). Scratchy-line humor; kid anchor." }
+
+  # ── Stream 3 — XKCD ──────────────────────────────────────────────
+  - { id: randall-munroe,     name: "Randall Munroe",       years: [1984, null], lineage: xkcd, rights_tier: personal_library, source: xkcd, in_corpus: 0, canon_weight: canonical, note: "xkcd (2005–). Public JSON API; stick-figure line on white — ideal fidelity. CC-BY-NC 2.5." }
+
+  # ── Stream 4 — Caricature + contemporary ink ─────────────────────
+  - { id: al-hirschfeld,      name: "Al Hirschfeld",        years: [1903, 2003], lineage: caricature, rights_tier: personal_library, source: web, in_corpus: 0, canon_weight: core,      note: "Celebrity line portraits (Gershwin, Bernstein, Nureyev). Single continuous line." }
+  - { id: ronald-searle,      name: "Ronald Searle",        years: [1920, 2011], lineage: caricature, rights_tier: personal_library, source: web, in_corpus: 0, canon_weight: canonical, note: "St Trinian's; Molesworth. Loose acid line." }
+  - { id: sempe,              name: "Jean-Jacques Sempé",   years: [1932, 2022], lineage: caricature, rights_tier: personal_library, source: web, in_corpus: 0, canon_weight: canonical, note: "Petit Nicolas; New Yorker covers. Gentle quiet; kitchen-mood fit." }
+  - { id: david-shrigley,     name: "David Shrigley",       years: [1968, null], lineage: caricature, rights_tier: personal_library, source: web, in_corpus: 0, canon_weight: canonical, note: "Deadpan marker drawings." }
+  - { id: ralph-steadman,     name: "Ralph Steadman",       years: [1936, null], lineage: caricature, rights_tier: personal_library, source: web, in_corpus: 0, canon_weight: canonical, note: "Splatter-ink caricature; Hunter S. Thompson collaborations." }
+  - { id: art-spiegelman,     name: "Art Spiegelman",       years: [1948, null], lineage: caricature, rights_tier: personal_library, source: web, in_corpus: 0, canon_weight: canonical, note: "Maus; In the Shadow of No Towers. Scratchy woodcut-evoking panels." }
+
+# ── Summary ─────────────────────────────────────────────────────────
+# Total: 20 creators across 4 streams
+# Rights-tier: all 20 personal_library
+# Fresh additions (0 items in corpus): all 20

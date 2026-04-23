@@ -1,0 +1,90 @@
+category: vintage-cities
+side: image
+proposed_by: claude
+proposed_at: 2026-04-16
+notes: |
+  Pre-1930 photographs and photogravures of the named cities (Paris, Amsterdam,
+  Istanbul, Venice). All PD via institutional collections (Gallica / Rijksmuseum /
+  LoC / Wikimedia). Atget is the anchor; complemented by early Ottoman-era Istanbul
+  and Venetian etching-tradition city views.
+
+items:
+  - id: atget-rue-st-rustique
+    title: "Rue Saint-Rustique, Montmartre"
+    creator: "Eugène Atget"
+    year: 1922
+    rights_tier: public_domain
+    source: gallica_bnf
+    form: photograph
+    themes: [urban, paris-amsterdam-vintage, solitude]
+    mood: [quiet, melancholic]
+    register: [documentary, lyrical]
+
+  - id: atget-cour-damoye
+    title: "Cour Damoye, Paris"
+    creator: "Eugène Atget"
+    year: 1912
+    rights_tier: public_domain
+    source: gallica_bnf
+    form: photograph
+    themes: [urban, paris-amsterdam-vintage]
+    mood: [quiet, atmospheric]
+    register: [documentary, lyrical]
+
+  - id: atget-parc-saint-cloud
+    title: "Parc de Saint-Cloud"
+    creator: "Eugène Atget"
+    year: 1915
+    rights_tier: public_domain
+    source: gallica_bnf
+    form: photograph
+    themes: [garden-and-grove, paris-amsterdam-vintage, solitude]
+    mood: [serene, melancholic]
+    register: [lyrical, formal]
+
+  - id: abdullah-freres-hagia-sophia
+    title: "Hagia Sophia, Istanbul (albumen print)"
+    creator: "Abdullah Frères"
+    year: 1880
+    rights_tier: public_domain
+    source: loc_pnp
+    form: photograph
+    themes: [architecture-and-structure, travel, ritual-and-gathering]
+    mood: [grand, contemplative]
+    register: [documentary, formal]
+
+  - id: bonfils-athens-acropolis
+    title: "The Acropolis, Athens"
+    creator: "Félix Bonfils"
+    year: 1875
+    rights_tier: public_domain
+    source: loc_pnp
+    form: photograph
+    themes: [architecture-and-structure, travel, decay-and-memory]
+    mood: [grand, wistful]
+    register: [documentary, formal]
+
+  - id: whistler-nocturne-blue-gold
+    title: "Nocturne: Blue and Gold — Old Battersea Bridge"
+    creator: "James Abbott McNeill Whistler"
+    year: 1872
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: painting
+    themes: [urban, night-and-lamplight, water-and-reflection]
+    mood: [serene, mysterious]
+    register: [lyrical, atmospheric]
+    nocturne_candidate: true
+
+  - id: abbott-nyc-changing
+    title: "Changing New York (selected vertical)"
+    creator: "Berenice Abbott"
+    year: 1936
+    rights_tier: personal_library
+    source: web
+    form: photograph
+    citation: "Abbott, *Changing New York*, E. P. Dutton, 1939"
+    themes: [urban, architecture-and-structure]
+    mood: [poised, documentary]
+    register: [documentary, lyrical]
+    notes: "Replaces the Breitner painting — Abbott's 1930s B&W New York photographs render natively in monochrome and extend the urban canon away from color-painting territory."

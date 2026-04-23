@@ -1,0 +1,80 @@
+category: dinescu-selected
+side: text
+proposed_by: claude
+proposed_at: 2026-04-16
+notes: |
+  Mircea Dinescu (b.1950, living). All personal_library. Served in Romanian.
+  Specific poem titles proposed from the major volumes; expect operator swap-ins.
+  Dinescu's pre-1989 volumes are the core; *Moartea citește ziarul* is the
+  canonical samizdat-era collection.
+
+items:
+  - id: dinescu-proprietarul-de-poduri
+    title: "Proprietarul de poduri (titular poem)"
+    creator: "Mircea Dinescu"
+    year: 1976
+    rights_tier: personal_library
+    source: web
+    form: free-verse
+    language: [ro]
+    citation: "Dinescu, *Proprietarul de poduri*, Cartea Românească, 1976"
+    themes: [urban, solitude]
+    mood: [wry, wistful]
+    register: [lyric, wry]
+    operator_pick_expected: true
+
+  - id: dinescu-moartea-citeste-ziarul-fragment
+    title: "Moartea citește ziarul (fragment)"
+    creator: "Mircea Dinescu"
+    year: 1990
+    rights_tier: personal_library
+    source: web
+    form: fragment
+    language: [ro]
+    citation: "Dinescu, *Moartea citește ziarul*, Cartea Românească, 1990"
+    themes: [decay-and-memory, ritual-and-gathering]
+    mood: [ironic, grave]
+    register: [wry, lyric]
+    operator_pick_expected: true
+
+  - id: dinescu-la-dispozitia-dumneavoastra
+    title: "La dispoziția dumneavoastră (titular poem)"
+    creator: "Mircea Dinescu"
+    year: 1979
+    rights_tier: personal_library
+    source: web
+    form: free-verse
+    language: [ro]
+    citation: "Dinescu, *La dispoziția dumneavoastră*, Cartea Românească, 1979"
+    themes: [urban, solitude]
+    mood: [wry, ironic]
+    register: [wry]
+    operator_pick_expected: true
+
+  - id: dinescu-teroarea-bunului-simt
+    title: "Teroarea bunului simț (fragment)"
+    creator: "Mircea Dinescu"
+    year: 1980
+    rights_tier: personal_library
+    source: web
+    form: fragment
+    language: [ro]
+    citation: "Dinescu, *Teroarea bunului simț*, Cartea Românească, 1980"
+    themes: [decay-and-memory, solitude]
+    mood: [ironic, wistful]
+    register: [wry, lyric]
+    operator_pick_expected: true
+
+  - id: dinescu-rimbaud-negustorul
+    title: "Rimbaud negustorul (fragment)"
+    creator: "Mircea Dinescu"
+    year: 1985
+    rights_tier: personal_library
+    source: web
+    form: fragment
+    language: [ro]
+    citation: "Dinescu, *Rimbaud negustorul*, Cartea Românească, 1985"
+    themes: [travel, decay-and-memory]
+    mood: [wry, melancholic]
+    register: [wry, lyric]
+    operator_pick_expected: true

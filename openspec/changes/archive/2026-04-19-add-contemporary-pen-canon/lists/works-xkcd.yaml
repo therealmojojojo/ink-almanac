@@ -1,0 +1,133 @@
+recipe: top-contemporary-pen-works
+lineage: xkcd
+generated: 2026-04-19
+defaults:
+  panel_fidelity: native
+  rights_tier: personal_library
+  form: drawing
+  source: xkcd
+  medium: digital pen-and-ink
+  citation: "Munroe, *xkcd: volume 0*, breadpig, 2009 (CC-BY-NC 2.5)"
+note: |
+  Curated 16 most-referenced xkcd strips. Fetched via the xkcd JSON API
+  at xkcd.com/<num>/info.0.json which returns the direct PNG URL plus
+  title, alt-text, and publication date. No key required.
+
+creators:
+
+  randall-munroe:
+    canon_weight: canonical
+    in_corpus: 0
+    works:
+    - id: xkcd-149-sandwich
+      xkcd_num: 149
+      title: "Sandwich"
+      year: 2006
+      themes: [craft-and-play, everyday-life]
+      mood: [deadpan, wry]
+      register: [deadpan-absurd, wry]
+    - id: xkcd-195-map-of-the-internet
+      xkcd_num: 195
+      title: "Map of the Internet"
+      year: 2006
+      themes: [machines-and-mechanisms, architecture-and-structure]
+      mood: [contemplative, playful]
+      register: [iconic, wry]
+    - id: xkcd-303-compiling
+      xkcd_num: 303
+      title: "Compiling"
+      year: 2007
+      themes: [work-making, machines-and-mechanisms]
+      mood: [wry, deadpan]
+      register: [wry, deadpan-absurd]
+    - id: xkcd-327-exploits-of-a-mom
+      xkcd_num: 327
+      title: "Exploits of a Mom"
+      year: 2007
+      themes: [tender-companionship, machines-and-mechanisms]
+      mood: [wry, playful]
+      register: [wry, deadpan-absurd]
+    - id: xkcd-386-duty-calls
+      xkcd_num: 386
+      title: "Duty Calls"
+      year: 2008
+      themes: [attention-and-listening, solitude]
+      mood: [wry, tense]
+      register: [wry, deadpan-absurd]
+    - id: xkcd-463-voting-machines
+      xkcd_num: 463
+      title: "Voting Machines"
+      year: 2008
+      themes: [machines-and-mechanisms, ritual-and-gathering]
+      mood: [wry, grave]
+      register: [wry, reportorial]
+    - id: xkcd-485-depth
+      xkcd_num: 485
+      title: "Depth"
+      year: 2008
+      themes: [sea-and-sky, journey]
+      mood: [contemplative, mysterious]
+      register: [lyric, iconic]
+    - id: xkcd-627-tech-support-cheat-sheet
+      xkcd_num: 627
+      title: "Tech Support Cheat Sheet"
+      year: 2009
+      themes: [craft-and-play, machines-and-mechanisms]
+      mood: [wry, deadpan]
+      register: [wry, reportorial]
+    - id: xkcd-730-circuit-diagram
+      xkcd_num: 730
+      title: "Circuit Diagram"
+      year: 2010
+      themes: [machines-and-mechanisms, craft-and-play]
+      mood: [playful, wry]
+      register: [wry, absurdist]
+    - id: xkcd-927-standards
+      xkcd_num: 927
+      title: "Standards"
+      year: 2011
+      themes: [craft-and-play, machines-and-mechanisms]
+      mood: [wry, ironic]
+      register: [wry, deadpan-absurd]
+    - id: xkcd-979-wisdom-of-the-ancients
+      xkcd_num: 979
+      title: "Wisdom of the Ancients"
+      year: 2011
+      themes: [decay-and-memory, attention-and-listening]
+      mood: [wry, melancholic]
+      register: [wry, aphoristic]
+    - id: xkcd-1110-click-and-drag
+      xkcd_num: 1110
+      title: "Click and Drag"
+      year: 2012
+      themes: [journey, sea-and-sky]
+      mood: [contemplative, awestruck]
+      register: [iconic, lyric]
+    - id: xkcd-1190-time
+      xkcd_num: 1190
+      title: "Time"
+      year: 2013
+      themes: [seasons-and-time, journey, sea-and-sky]
+      mood: [contemplative, unhurried]
+      register: [iconic, lyric]
+    - id: xkcd-1513-code-quality
+      xkcd_num: 1513
+      title: "Code Quality"
+      year: 2015
+      themes: [work-making, craft-and-play]
+      mood: [wry, deadpan]
+      register: [wry, deadpan-absurd]
+    - id: xkcd-1732-earth-temperature-timeline
+      xkcd_num: 1732
+      title: "Earth Temperature Timeline"
+      year: 2016
+      themes: [seasons-and-time, weather-facing, decay-and-memory]
+      mood: [grave, unflinching]
+      register: [iconic, reportorial]
+    - id: xkcd-2347-dependency
+      xkcd_num: 2347
+      title: "Dependency"
+      year: 2020
+      themes: [machines-and-mechanisms, architecture-and-structure]
+      mood: [wry, ironic]
+      register: [wry, iconic]

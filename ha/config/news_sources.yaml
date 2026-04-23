@@ -1,0 +1,27 @@
+# News sources consumed by the Summary face. Regenerate the sensor list after editing:
+#   python3 ha/scripts/generate_news_sensors.py
+# deploy.sh calls this automatically before rsync.
+#
+# Schema:
+#   name           : sensor-safe identifier (becomes sensor.news_<name>)
+#   url            : feed URL (RSS/Atom) or JSON endpoint
+#   shape          : "rss" (default) or "json"
+#   json_path      : dotted path to the list of items (shape=json only)
+#   max_items      : cap (default 5)
+#   scan_interval  : seconds (default 1800)
+#
+# HN is handled separately via sensor.hn_top_stories (hn.yaml) — the shape is chained
+# so it doesn't fit this loader.
+
+sources:
+  - name: digi24
+    url: https://www.digi24.ro/rss
+    shape: rss
+    max_items: 5
+    scan_interval: 1800
+
+  - name: hotnews
+    url: https://hotnews.ro/feed
+    shape: rss
+    max_items: 5
+    scan_interval: 1800

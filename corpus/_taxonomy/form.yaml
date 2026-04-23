@@ -1,0 +1,26 @@
+# Form vocabulary — text forms and image forms, disjoint groups.
+# Anchor-eligible text forms (subset): haiku, aphorism, fragment, quote, song-chorus, lyric.
+
+haiku: { label: "Haiku", description: "Three-line Japanese form, traditionally 5-7-5 syllables.", anchor_eligible: true }
+tanka: { label: "Tanka", description: "Five-line Japanese form." }
+sonnet: { label: "Sonnet", description: "Fourteen-line rhymed form." }
+free-verse: { label: "Free verse", description: "Unmetered, unrhymed modern poetry." }
+stanzaic: { label: "Stanzaic poem", description: "Poem in regular stanzas but not a fixed form." }
+fragment: { label: "Fragment", description: "Short passage excerpted from a longer work or published as fragment.", anchor_eligible: true }
+aphorism: { label: "Aphorism", description: "Short, pointed statement — Kharms, Ponge, one-liner form.", anchor_eligible: true }
+prose-poem: { label: "Prose poem", description: "Poetry rendered as continuous prose." }
+quote: { label: "Quote", description: "Famous standalone sentence or passage.", anchor_eligible: true }
+song-chorus: { label: "Song chorus", description: "Chorus or refrain of a song, treated as short lyrical text.", anchor_eligible: true }
+lyric: { label: "Lyric", description: "Short standalone lyric excerpt.", anchor_eligible: true }
+
+etching: { label: "Etching", description: "Intaglio print from acid-bitten metal plate." }
+engraving: { label: "Engraving", description: "Incised line print from engraved plate." }
+woodblock: { label: "Woodblock print", description: "Relief print from carved wood block (ukiyo-e, etc.; often colored)." }
+wood-engraving: { label: "Wood engraving", description: "Fine-line relief print from end-grain wood block (Ward, Baskin, Landacre, Gill); always monochrome, engraved with burins." }
+lithograph: { label: "Lithograph", description: "Print from stone or plate using oil-water antagonism." }
+drawing: { label: "Drawing", description: "Graphite, ink, charcoal, conté, or chalk on paper." }
+photograph: { label: "Photograph", description: "Silver gelatin, albumen, digital, platinum, etc." }
+painting: { label: "Painting", description: "Oil, tempera, acrylic, gouache on canvas / panel / paper." }
+ink-wash: { label: "Ink wash / sumi-e", description: "Brushed ink with wash." }
+silverpoint: { label: "Silverpoint", description: "Drawing with silver stylus on prepared surface." }
+poster: { label: "Poster", description: "Graphic poster, typically lithographic or screenprint." }

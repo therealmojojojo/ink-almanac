@@ -1,0 +1,97 @@
+recipe: top-bw-graphic-arts-works
+lineage: japanese-ink
+generated: 2026-04-19
+defaults: {panel_fidelity: native, form: ink-wash, rights_tier: public_domain}
+
+creators:
+
+  sesshu-toyo:
+    canon_weight: canonical
+    in_corpus: 0
+    works:
+    - id: sesshu-winter-landscape
+      title: "Winter Landscape (Shūtō sansui)"
+      year: 1470
+      themes: [winter-and-ice, mountain-and-forest, japan]
+      mood: [austere, stark]
+      register: [iconic, classical]
+      source_hint: tokyo_national_museum
+      status: pending
+    - id: sesshu-haboku-landscape
+      title: "Haboku Landscape (Splashed-Ink Landscape)"
+      year: 1495
+      themes: [mountain-and-forest, atmospheric, japan]
+      mood: [atmospheric, ecstatic]
+      register: [iconic, classical]
+      source_hint: tokyo_national_museum
+      status: pending
+    - id: sesshu-long-landscape-scroll
+      title: "Long Landscape Scroll (Sansui chōkan), detail"
+      year: 1486
+      themes: [mountain-and-forest, water-and-reflection, japan]
+      mood: [grand, unhurried]
+      register: [iconic, classical]
+      source_hint: yamaguchi_prefectural_museum
+      status: pending
+    - id: sesshu-four-seasons-autumn
+      title: "Autumn Landscape (Four Seasons)"
+      year: 1475
+      themes: [seasons-and-time, mountain-and-forest, japan]
+      mood: [atmospheric, contemplative]
+      register: [iconic, classical]
+      source_hint: tokyo_national_museum
+      status: pending
+    - id: sesshu-amanohashidate
+      title: "View of Amanohashidate"
+      year: 1501
+      themes: [sea-and-sky, mountain-and-forest, japan]
+      mood: [grand, atmospheric]
+      register: [iconic, classical]
+      source_hint: kyoto_national_museum
+      status: pending
+
+  hakuin-ekaku:
+    canon_weight: canonical
+    in_corpus: 1
+    works:
+    - {id: hakuin-ekaku-bodhidharma, in_corpus: true}
+    - id: hakuin-one-stroke-daruma
+      title: "One-Stroke Daruma (Ippitsu Daruma)"
+      year: 1750
+      themes: [portrait-and-face, japan, ritual-and-gathering]
+      mood: [sharp, poised]
+      register: [iconic, aphoristic]
+      source_hint: gitter_yelen
+      status: pending
+    - id: hakuin-hotei
+      title: "Hotei"
+      year: 1760
+      themes: [portrait-and-face, japan]
+      mood: [playful, warm]
+      register: [iconic, wry]
+      source_hint: met_open_access
+      status: pending
+    - id: hakuin-blind-men-crossing-log-bridge
+      title: "Blind Men Crossing a Log Bridge"
+      year: 1755
+      themes: [journey, mysterious, japan]
+      mood: [mysterious, tense]
+      register: [iconic, oracular]
+      source_hint: eisei_bunko
+      status: pending
+    - id: hakuin-giant-radish
+      title: "Giant Radish (Daikon)"
+      year: 1760
+      themes: [still-life, japan, food-and-gathering]
+      mood: [playful, deadpan]
+      register: [iconic, wry]
+      source_hint: mfa_boston
+      status: pending
+    - id: hakuin-monkey-grasping-moon
+      title: "Monkey Grasping at the Moon's Reflection"
+      year: 1760
+      themes: [animals, water-and-reflection, japan]
+      mood: [wry, mysterious]
+      register: [iconic, oracular]
+      source_hint: met_open_access
+      status: pending

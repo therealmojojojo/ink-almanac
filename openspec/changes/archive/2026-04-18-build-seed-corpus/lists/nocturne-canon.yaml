@@ -1,0 +1,306 @@
+category: nocturne-canon
+side: image
+proposed_by: claude
+proposed_at: 2026-04-16
+notes: |
+  Night-pool canonical list — vertical / tall-format nocturnal images for the
+  Night face's ~70% tall image zone. Dark tonal range, restful or quietly
+  atmospheric, no high-energy action. Mix of PD and PL tiers.
+  Targets ≥30 items per the corpus-seed floor.
+
+items:
+  # Hiroshige — vertical ōban night prints from One Hundred Famous Views of Edo (PD)
+  - id: hiroshige-fox-fires-oji
+    title: "Fox Fires on New Year's Eve at the Changing Tree, Ōji (Ōji Shōzoku Enoki Ōmisoka no Kitsunebi)"
+    creator: "Utagawa Hiroshige"
+    year: 1857
+    rights_tier: public_domain
+    source: met_open_access
+    form: woodblock
+    themes: [night-and-lamplight, ritual-and-gathering, japan]
+    mood: [mysterious, serene]
+    register: [classical, iconic]
+
+  - id: hiroshige-saruwakamachi-night
+    title: "Night View of Saruwaka-machi (Saruwakamachi Yoru no Kei)"
+    creator: "Utagawa Hiroshige"
+    year: 1856
+    rights_tier: public_domain
+    source: met_open_access
+    form: woodblock
+    themes: [urban, night-and-lamplight, japan]
+    mood: [quiet, atmospheric]
+    register: [classical, lyrical]
+
+  - id: hiroshige-takanawa-autumn-moon
+    title: "Autumn Moon at Takanawa (Takanawa no Meigetsu)"
+    creator: "Utagawa Hiroshige"
+    year: 1856
+    rights_tier: public_domain
+    source: met_open_access
+    form: woodblock
+    themes: [night-and-lamplight, sea-and-sky, travel, japan]
+    mood: [serene, contemplative]
+    register: [classical, lyrical]
+
+  - id: hiroshige-kinryuzan-night-snow
+    title: "Kinryūzan Temple in Asakusa at Night in Snow"
+    creator: "Utagawa Hiroshige"
+    year: 1856
+    rights_tier: public_domain
+    source: met_open_access
+    form: woodblock
+    themes: [architecture-and-structure, night-and-lamplight, winter-and-ice, japan]
+    mood: [quiet, contemplative]
+    register: [classical]
+
+  - id: hiroshige-bikuni-bridge-snow
+    title: "Bikunibashi Bridge in Snow (Bikunibashi Setchū)"
+    creator: "Utagawa Hiroshige"
+    year: 1858
+    rights_tier: public_domain
+    source: met_open_access
+    form: woodblock
+    themes: [urban, winter-and-ice, night-and-lamplight, japan]
+    mood: [quiet, atmospheric]
+    register: [classical]
+
+  # Kobayashi Kiyochika — Meiji-era nocturnes (PD, d.1915)
+  - id: kiyochika-ryogoku-moonlight
+    title: "Moonlight at Ryōgoku"
+    creator: "Kobayashi Kiyochika"
+    year: 1880
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: woodblock
+    themes: [urban, night-and-lamplight, water-and-reflection, japan]
+    mood: [mysterious, serene]
+    register: [lyrical, atmospheric]
+
+  - id: kiyochika-shinbashi-evening
+    title: "Shinbashi Station at Dusk"
+    creator: "Kobayashi Kiyochika"
+    year: 1879
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: woodblock
+    themes: [urban, night-and-lamplight, machines-and-mechanisms, japan]
+    mood: [atmospheric, quiet]
+    register: [lyrical]
+
+  - id: kiyochika-imado-night
+    title: "Imado at Night"
+    creator: "Kobayashi Kiyochika"
+    year: 1881
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: woodblock
+    themes: [urban, night-and-lamplight, water-and-reflection, japan]
+    mood: [quiet, atmospheric]
+    register: [lyrical]
+
+  # Kawase Hasui — shin-hanga nocturnes (PL, d.1957)
+  - id: hasui-zojoji-snow
+    title: "Snow at Zōjōji Temple (Zōjōji no Yuki)"
+    creator: "Kawase Hasui"
+    year: 1922
+    rights_tier: personal_library
+    source: web
+    form: woodblock
+    citation: "Hasui, *Kawase Hasui: The Complete Woodblock Prints*, Hotei Publishing, 2003"
+    themes: [architecture-and-structure, winter-and-ice, night-and-lamplight, japan]
+    mood: [serene, quiet]
+    register: [lyrical, classical]
+
+  - id: hasui-evening-itako
+    title: "Evening at Itako (Itako no Yūgure)"
+    creator: "Kawase Hasui"
+    year: 1932
+    rights_tier: personal_library
+    source: web
+    form: woodblock
+    citation: "Hasui, *Kawase Hasui: The Complete Woodblock Prints*, Hotei Publishing, 2003"
+    themes: [water-and-reflection, night-and-lamplight, japan]
+    mood: [serene, wistful]
+    register: [lyrical]
+
+  - id: hasui-miyajima-snow
+    title: "Snow at Miyajima"
+    creator: "Kawase Hasui"
+    year: 1929
+    rights_tier: personal_library
+    source: web
+    form: woodblock
+    citation: "Hasui, *Kawase Hasui: The Complete Woodblock Prints*, Hotei Publishing, 2003"
+    themes: [architecture-and-structure, winter-and-ice, water-and-reflection, japan]
+    mood: [serene, quiet]
+    register: [lyrical]
+
+  # Atkinson Grimshaw — Victorian nocturnal streets (PD, d.1893)
+  - id: grimshaw-reflections-thames
+    title: "Reflections on the Thames, Westminster"
+    creator: "John Atkinson Grimshaw"
+    year: 1880
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: painting
+    themes: [urban, night-and-lamplight, water-and-reflection]
+    mood: [melancholic, atmospheric]
+    register: [lyrical, iconic]
+
+  - id: grimshaw-park-row-leeds
+    title: "Park Row, Leeds"
+    creator: "John Atkinson Grimshaw"
+    year: 1882
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: painting
+    themes: [urban, night-and-lamplight, weather]
+    mood: [melancholic, quiet]
+    register: [lyrical]
+
+  - id: grimshaw-liverpool-quay-moonlight
+    title: "Liverpool Quay by Moonlight"
+    creator: "John Atkinson Grimshaw"
+    year: 1887
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: painting
+    themes: [urban, night-and-lamplight, sea-and-sky, water-and-reflection]
+    mood: [mysterious, atmospheric]
+    register: [lyrical, iconic]
+
+  # Brassaï additional night Paris (PL, d.1984) — selecting vertical/tall compositions
+  - id: brassai-staircase-montmartre
+    title: "Staircase in Montmartre (Escalier à Montmartre)"
+    creator: "Brassaï (Gyula Halász)"
+    year: 1936
+    rights_tier: personal_library
+    source: web
+    form: photograph
+    citation: "Brassaï, *Paris de Nuit*, Arts et Métiers Graphiques, 1933 / later editions"
+    themes: [urban, night-and-lamplight, paris-amsterdam-vintage]
+    mood: [mysterious, melancholic]
+    register: [iconic, atmospheric]
+
+  - id: brassai-lamp-post-fog
+    title: "Lamp-post in the Fog, Paris"
+    creator: "Brassaï (Gyula Halász)"
+    year: 1934
+    rights_tier: personal_library
+    source: web
+    form: photograph
+    citation: "Brassaï, *Paris de Nuit*, Arts et Métiers Graphiques, 1933"
+    themes: [urban, night-and-lamplight, weather, paris-amsterdam-vintage]
+    mood: [mysterious, solitude]
+    register: [iconic, lyrical]
+
+  # Bill Brandt — English night (PL, d.1983)
+  - id: brandt-london-blackout-doorway
+    title: "Doorway during the Blackout, London"
+    creator: "Bill Brandt"
+    year: 1940
+    rights_tier: personal_library
+    source: web
+    form: photograph
+    citation: "Brandt, *A Night in London*, Country Life Books, 1938 / later editions"
+    themes: [urban, night-and-lamplight, solitude]
+    mood: [stark, mysterious]
+    register: [iconic, atmospheric]
+
+  - id: brandt-moonlight-st-pauls
+    title: "St. Paul's Cathedral by Moonlight"
+    creator: "Bill Brandt"
+    year: 1942
+    rights_tier: personal_library
+    source: web
+    form: photograph
+    citation: "Brandt, *Camera in London*, Focal Press, 1948"
+    themes: [architecture-and-structure, night-and-lamplight, urban]
+    mood: [grand, quiet]
+    register: [iconic, lyrical]
+
+  # Hopper — night etching (PL, d.1967)
+  - id: hopper-night-shadows
+    title: "Night Shadows"
+    creator: "Edward Hopper"
+    year: 1921
+    rights_tier: personal_library
+    source: web
+    form: etching
+    citation: "Hopper, *Edward Hopper: The Complete Prints*, Norton, 1979"
+    themes: [urban, night-and-lamplight, solitude]
+    mood: [mysterious, stark]
+    register: [iconic, lyrical]
+
+  # Magritte — Empire of Light (PL, d.1967)
+  - id: magritte-empire-of-light
+    title: "The Empire of Light (L'Empire des lumières)"
+    creator: "René Magritte"
+    year: 1954
+    rights_tier: personal_library
+    source: web
+    form: painting
+    citation: "Magritte, *Magritte: Catalogue Raisonné*, Menil Foundation, 1992-1994"
+    themes: [night-and-lamplight, interior-and-domestic, solitude]
+    mood: [uncanny, serene]
+    register: [iconic, surreal]
+
+  # Caspar David Friedrich (PD, d.1840)
+  - id: friedrich-man-woman-contemplating-moon
+    title: "Man and Woman Contemplating the Moon"
+    creator: "Caspar David Friedrich"
+    year: 1824
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: painting
+    themes: [night-and-lamplight, tender-companionship, mountain-and-forest]
+    mood: [contemplative, awestruck]
+    register: [classical, lyrical, iconic]
+
+  - id: friedrich-wanderer-mist
+    title: "Wanderer above the Sea of Fog"
+    creator: "Caspar David Friedrich"
+    year: 1818
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: painting
+    themes: [mountain-and-forest, solitude, weather]
+    mood: [awestruck, contemplative]
+    register: [classical, iconic]
+
+  # Whistler nocturnes (PD, d.1903) — selecting vertical ones
+  - id: whistler-nocturne-falling-rocket
+    title: "Nocturne in Black and Gold: The Falling Rocket"
+    creator: "James Abbott McNeill Whistler"
+    year: 1875
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: painting
+    themes: [night-and-lamplight, urban, craft-and-play]
+    mood: [mysterious, dynamic]
+    register: [lyrical, iconic]
+
+  # Romanian nocturnal painting (PD/PL case-by-case)
+  - id: luchian-moartea-unei-flori
+    title: "A Dying Flower (Moartea unei flori)"
+    creator: "Ștefan Luchian"
+    year: 1906
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: painting
+    themes: [still-life-and-stillness, solitude, decay-and-memory]
+    mood: [melancholic, tender]
+    register: [lyrical]
+
+  # Atget — rare dawn/dusk (PD)
+  - id: atget-coin-rue-cardinal-lemoine
+    title: "Coin de la rue du Cardinal-Lemoine à l'aube"
+    creator: "Eugène Atget"
+    year: 1924
+    rights_tier: public_domain
+    source: gallica_bnf
+    form: photograph
+    themes: [urban, night-and-lamplight, paris-amsterdam-vintage, solitude]
+    mood: [quiet, melancholic]
+    register: [documentary, lyrical]

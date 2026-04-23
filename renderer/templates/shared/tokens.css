@@ -1,0 +1,85 @@
+/*
+ * Design tokens. SOURCE OF TRUTH for palette, unit, family stack.
+ * Templates SHALL draw only from these variables.
+ */
+:root {
+  /* Palette — Inkplate 10 greyscale. NO other colors permitted in templates. */
+  --ink: #000;
+  --paper: #ececec;
+  /* EXPERIMENT (improve-text-crispness phase 2): greys for small text fray at
+   * 150 dpi on physical e-paper even after supersample + Lanczos. Collapsing
+   * --mid and --faint onto --ink for text. --rule-faint retained separately
+   * so hairline dividers can stay soft. */
+  --mid: #000;
+  --faint: #000;
+  --rule-faint: #909090;
+
+  /* Base unit: panel is 1200×825; `u` = 1 physical pixel at deviceScaleFactor 1. */
+  --u: 1px;
+
+  /* Family stack. --font-mono-num is reserved for numeric-heavy contexts
+   * (temperatures, H/L, forecast cells) where we want a mono that reads
+   * as tabular data, visually distinct from the Fraunces clock and from
+   * the IBM Plex Mono used for caps labels / captions. */
+  --font-serif: 'Fraunces', 'Times New Roman', serif;
+  --font-mono: 'IBM Plex Mono', 'Menlo', monospace;
+  --font-mono-num: 'JetBrains Mono', 'IBM Plex Mono', 'Menlo', monospace;
+  --font-sans: 'IBM Plex Sans', 'Helvetica Neue', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 1200px;
+  height: 825px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  /* EXPERIMENT (improve-text-crispness phase 2): weight floor 500 (was 300).
+   * On the physical 150 dpi panel, Light weight at 22–32 px strokes was
+   * visually thin even after 2× supersample + Lanczos. 500 reads solid.
+   * Large display type (clock, hero temps) re-assert their own weight. */
+  font-weight: 500;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+  overflow: hidden;
+}
+
+.mode {
+  width: 1200px;
+  height: 825px;
+  position: relative;
+  display: grid;
+}
+
+.mono-caps {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: calc(25 * var(--u));
+  color: var(--mid);
+}
+
+.clock {
+  font-family: var(--font-serif);
+  font-variation-settings: 'opsz' 144, 'wght' 500;
+  font-feature-settings: 'tnum' 1;
+  font-size: calc(144 * var(--u));
+  line-height: 1;
+  color: var(--ink);
+}
+
+.hairline {
+  background: var(--rule-faint);
+  height: 1px;
+}
+
+.hairline-v {
+  background: var(--rule-faint);
+  width: 1px;
+}

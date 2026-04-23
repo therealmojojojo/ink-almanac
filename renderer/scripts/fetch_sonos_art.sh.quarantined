@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+# Fetch Sonos album-art and update the renderer's Now-Playing input.
+#
+# Called from the now_playing_override automation on activation and on
+# track-change. Expects four positional arguments injected by HA:
+#
+#   1. entity_picture URL (may be a relative HA path like /api/media_player_proxy/...)
+#   2. track title
+#   3. artist
+#   4. album
+#   5. source attribute (raw, will be mapped via now_playing_sources.yaml)
+#   6. HA base URL (for resolving the relative entity_picture URL)
+#   7. long-lived access token (for authenticated proxy URL)
+#
+# Writes:
+#   - Album art to STAGING_DIR/current.jpg (absent if fetch fails)
+#   - JSON payload to RENDERER_INPUTS/sonos.json (state=playing, title/artist/album,
+#     art_path, source_indicator)
+#
+# A failed art fetch is not fatal; the JSON is still written (art_path omitted)
+# so the renderer falls back to the placeholder treatment.
+
+set -u
+
+URL="${1:-}"
+TITLE="${2:-}"
+ARTIST="${3:-}"
+ALBUM="${4:-}"
+SOURCE="${5:-}"
+HA_BASE="${6:-http://localhost:8123}"
+HA_TOKEN="${7:-}"
+
+REPO_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
+STAGING_DIR="${INKPLATE_NP_STAGING:-$HOME/inkplate-cache/now-playing}"
+RENDERER_INPUTS="${INKPLATE_RENDERER_INPUTS:-$REPO_DIR/renderer/inputs}"
+SOURCES_YAML="${INKPLATE_SOURCES_YAML:-$REPO_DIR/ha/config/now_playing_sources.yaml}"
+
+mkdir -p "$STAGING_DIR"
+
+ART_PATH="$STAGING_DIR/current.jpg"
+rm -f "$ART_PATH"
+
+if [[ -n "$URL" ]]; then
+  case "$URL" in
+    http*) FULL="$URL" ;;
+    /*)    FULL="${HA_BASE%/}${URL}" ;;
+    *)     FULL="${HA_BASE%/}/$URL" ;;
+  esac
+  CURL_ARGS=(--fail --silent --show-error --max-time 5 --output "$ART_PATH" "$FULL")
+  if [[ -n "$HA_TOKEN" ]]; then
+    CURL_ARGS=(-H "Authorization: Bearer $HA_TOKEN" "${CURL_ARGS[@]}")
+  fi
+  if ! curl "${CURL_ARGS[@]}"; then
+    echo "fetch_sonos_art: fetch failed for $FULL" >&2
+    rm -f "$ART_PATH"
+  fi
+fi
+
+# Map the source attribute to a display label via sources.yaml.
+LABEL=""
+if [[ -n "$SOURCE" && -f "$SOURCES_YAML" ]]; then
+  SRC_LOWER="$(printf '%s' "$SOURCE" | tr '[:upper:]' '[:lower:]')"
+  LABEL="$(
+    python3 - "$SOURCES_YAML" "$SRC_LOWER" <<'PY'
+import sys, yaml
+path, src = sys.argv[1], sys.argv[2]
+with open(path) as fh:
+    cfg = yaml.safe_load(fh) or {}
+for key, label in (cfg.get("sources") or {}).items():
+    if key.lower() in src:
+        print(label)
+        sys.exit(0)
+print(cfg.get("default", ""))
+PY
+  )"
+fi
+
+SOURCE_INDICATOR="SONOS"
+[[ -n "$LABEL" ]] && SOURCE_INDICATOR="SONOS · $LABEL"
+
+mkdir -p "$RENDERER_INPUTS"
+TMP="$(mktemp)"
+python3 - "$TMP" "$TITLE" "$ARTIST" "$ALBUM" "$SOURCE_INDICATOR" "$ART_PATH" <<'PY'
+import json, os, sys
+out, title, artist, album, indicator, art_path = sys.argv[1:7]
+payload = {"state": "playing", "title": title, "artist": artist, "album": album,
+           "source_indicator": indicator}
+if os.path.exists(art_path):
+    payload["art_path"] = art_path
+with open(out, "w") as fh:
+    json.dump(payload, fh, indent=2)
+PY
+mv "$TMP" "$RENDERER_INPUTS/sonos.json"

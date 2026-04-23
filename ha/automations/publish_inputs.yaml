@@ -1,0 +1,267 @@
+# Renderer-input publishers — one automation per input. The rest_commands
+# themselves live in ha/integrations/rest_commands.yaml. All five are gated
+# by `input_boolean.inkplate_publisher_enabled` so the operator can pause
+# the bridge without touching the automations.
+#
+# See openspec/changes/add-ha-renderer-input-bridge/ for the spec.
+
+# 1. Clock — every minute. Tight cadence because Summary / Night / Weather
+#    all show clocks that should match the wall-clock to within a minute.
+- alias: "Inkplate: publish clock"
+  id: inkplate_publish_clock
+  mode: single
+  max_exceeded: silent
+  trigger:
+    - platform: time_pattern
+      minutes: "*"
+    - platform: homeassistant
+      event: start
+  condition:
+    - condition: state
+      entity_id: input_boolean.inkplate_publisher_enabled
+      state: "on"
+  action:
+    - service: rest_command.inkplate_publish_clock
+
+# 2. Weather — state change on any renderer-facing template sensor, plus
+#    hourly safety republish and HA-start initial push.
+#
+# Forecast comes from `sensor.{loc}_forecast_5d`'s `forecast` attribute —
+# a list of {day_abbr, condition, high_c, low_c} dicts produced by the
+# trigger-based weather template in ha/integrations/weather_forecast.yaml.
+# We remap the keys to the renderer's schema (day / condition / high.c / low.c).
+- alias: "Inkplate: publish weather"
+  id: inkplate_publish_weather
+  mode: single
+  max_exceeded: silent
+  trigger:
+    - platform: state
+      entity_id:
+        - sensor.${PLACE_A_SLUG}_temperature_c
+        - sensor.${PLACE_A_SLUG}_condition
+        - sensor.${PLACE_A_SLUG}_forecast_5d
+        - sensor.${PLACE_A_SLUG}_nowcast_label
+        - sensor.${PLACE_B_SLUG}_temperature_c
+        - sensor.${PLACE_B_SLUG}_condition
+        - sensor.${PLACE_B_SLUG}_forecast_5d
+        - sensor.${PLACE_B_SLUG}_nowcast_label
+        - sensor.inkplate_poetic_weather_line
+    - platform: time_pattern
+      minutes: "0"
+    - platform: homeassistant
+      event: start
+  condition:
+    - condition: state
+      entity_id: input_boolean.inkplate_publisher_enabled
+      state: "on"
+  action:
+    - variables:
+        body: >-
+          {
+            "locations": [
+              {
+                "name": "${PLACE_A_NAME}",
+                "current": {
+                  "condition": "{{ states('sensor.${PLACE_A_SLUG}_condition') }}",
+                  "temp": { "c": {{ states('sensor.${PLACE_A_SLUG}_temperature_c') | float(0) }} }
+                },
+                "forecast": [
+                  {%- set raw = state_attr('sensor.${PLACE_A_SLUG}_forecast_5d','forecast') or [] -%}
+                  {%- for f in raw -%}
+                    {{ ',' if not loop.first else '' }}
+                    {"day": "{{ f.day_abbr }}", "condition": "{{ f.condition }}",
+                     "high": {"c": {{ f.high_c | float(0) }}}, "low": {"c": {{ f.low_c | float(0) }}}}
+                  {%- endfor -%}
+                ],
+                "nowcast": {
+                  "label": "{{ states('sensor.${PLACE_A_SLUG}_nowcast_label') if states('sensor.${PLACE_A_SLUG}_nowcast_label') not in ['unknown','unavailable','none',''] else '' }}",
+                  "minutes_until_change": {{ states('sensor.${PLACE_A_SLUG}_nowcast_minutes') | int(-1) }}
+                }
+              },
+              {
+                "name": "${PLACE_B_NAME}",
+                "current": {
+                  "condition": "{{ states('sensor.${PLACE_B_SLUG}_condition') }}",
+                  "temp": { "c": {{ states('sensor.${PLACE_B_SLUG}_temperature_c') | float(0) }} }
+                },
+                "forecast": [
+                  {%- set raw = state_attr('sensor.${PLACE_B_SLUG}_forecast_5d','forecast') or [] -%}
+                  {%- for f in raw -%}
+                    {{ ',' if not loop.first else '' }}
+                    {"day": "{{ f.day_abbr }}", "condition": "{{ f.condition }}",
+                     "high": {"c": {{ f.high_c | float(0) }}}, "low": {"c": {{ f.low_c | float(0) }}}}
+                  {%- endfor -%}
+                ],
+                "nowcast": {
+                  "label": "{{ states('sensor.${PLACE_B_SLUG}_nowcast_label') if states('sensor.${PLACE_B_SLUG}_nowcast_label') not in ['unknown','unavailable','none',''] else '' }}",
+                  "minutes_until_change": {{ states('sensor.${PLACE_B_SLUG}_nowcast_minutes') | int(-1) }}
+                }
+              }
+            ],
+            "poetic": "{{ states('sensor.inkplate_poetic_weather_line') if states('sensor.inkplate_poetic_weather_line') not in ['unknown','unavailable','none',''] else '' }}",
+            "astro": {
+              "event": {
+                "title": "{{ states('sensor.astro_event_tonight') if states('sensor.astro_event_tonight') not in ['unknown','unavailable','none'] else '' }}",
+                "detail": "{{ state_attr('sensor.astro_event_tonight','detail') | default('', true) }}",
+                "when": "{{ as_timestamp(states('sensor.sunrise_today'), 0) | timestamp_custom('%H:%M', true) }} / {{ as_timestamp(states('sensor.sunset_today'), 0) | timestamp_custom('%H:%M', true) }}"
+              },
+              "moon": {
+                "phase": "{{ (states('sensor.moon_phase_name') | replace('_',' ')) if states('sensor.moon_phase_name') not in ['unknown','unavailable','none'] else '' }}",
+                "illumination": 0
+              },
+              "sun": {
+                "rise": "{{ as_timestamp(states('sensor.sunrise_today'), 0) | timestamp_custom('%H:%M', true) }}",
+                "set":  "{{ as_timestamp(states('sensor.sunset_today'), 0)  | timestamp_custom('%H:%M', true) }}"
+              }
+            }
+          }
+    - service: rest_command.inkplate_publish_weather
+      data:
+        body: "{{ body }}"
+
+# (Section 3 "publish climate" was removed — the product decision is not to
+#  ship any indoor-climate sensor. The renderer's summary.ts no longer draws
+#  an INSIDE zone. Reintroduce both the automation and the zone in a follow-up
+#  change if a kitchen sensor is ever added.)
+
+# 3b. Sonos → Now-Playing input publisher.
+#
+# Supersedes the old shell_command.fetch_sonos_art path, which SSHed from the
+# HA VM to the Mac to download album art and write renderer/inputs/sonos.json.
+# The new path matches every other publisher: HA POSTs to the renderer's
+# /inputs/sonos endpoint. The album art comes through as an absolute HA
+# entity_picture URL that Chromium fetches at render time (the entity_picture
+# URL carries its own access token, so no extra auth is needed).
+#
+# Fires on:
+#   - state change (play/pause/idle) of the Sonos entity
+#   - media_content_id change (new track) while playing
+#   - HA start (seed the renderer input after reboots)
+#
+# NOTE: The `now_playing_override.yaml` automation still owns override state
+# (activate, linger, restore-prior). This publisher runs ALONGSIDE it and only
+# keeps the renderer input in sync with what the speaker is reporting.
+- alias: "Inkplate: publish sonos"
+  id: inkplate_publish_sonos
+  # `restart` — idle→playing often fires before media_content_id is populated;
+  # a later content_id change trigger then lands while the first run's REST
+  # POST is still in flight. With `single` the follow-up is dropped and the
+  # renderer ends up with empty metadata; `restart` cancels the first run so
+  # the latest attributes always win.
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id: media_player.kitchen_sonos
+    - platform: state
+      entity_id: media_player.kitchen_sonos
+      attribute: media_content_id
+    - platform: homeassistant
+      event: start
+  condition:
+    - condition: state
+      entity_id: input_boolean.inkplate_publisher_enabled
+      state: "on"
+  action:
+    - variables:
+        # HA's entity_picture is a relative URL like
+        #   /api/media_player_proxy/<entity>?token=...
+        # We route it through the renderer's /ha-proxy/* same-origin proxy
+        # because Chromium running inside Playwright on the renderer host
+        # cannot reach the HA VM directly (application-layer firewall). The
+        # proxy shells out to curl, which works. See renderer/src/server.ts.
+        pic: "{{ state_attr('media_player.kitchen_sonos','entity_picture') or '' }}"
+        art_url: >-
+          {% if pic and pic.startswith('/api/media_player_proxy/') %}/ha-proxy{{ pic }}
+          {%- elif pic and pic.startswith('http') %}{{ pic }}
+          {%- else %}{% endif %}
+        src_raw: >-
+          {{ (state_attr('media_player.kitchen_sonos','source')
+              or state_attr('media_player.kitchen_sonos','media_content_id')
+              or '') | lower }}
+        # Keep in sync with ha/config/now_playing_sources.yaml. Inlined here so
+        # the automation is self-contained (the old shell-command path read
+        # that YAML at runtime; this is the same set, simpler shape).
+        source_indicator: >-
+          {%- if 'spotify' in src_raw -%}SONOS · SPOTIFY
+          {%- elif 'apple' in src_raw or 'itunes' in src_raw -%}SONOS · APPLE MUSIC
+          {%- elif 'airplay' in src_raw -%}SONOS · AIRPLAY
+          {%- elif 'tunein' in src_raw or 'radio' in src_raw -%}SONOS · RADIO
+          {%- elif 'line' in src_raw -%}SONOS · LINE IN
+          {%- else -%}SONOS
+          {%- endif %}
+        body: >-
+          {
+            "state": "playing",
+            "title": {{ (state_attr('media_player.kitchen_sonos','media_title') or '') | to_json }},
+            "artist": {{ (state_attr('media_player.kitchen_sonos','media_artist') or '') | to_json }},
+            "album": {{ (state_attr('media_player.kitchen_sonos','media_album_name') or '') | to_json }},
+            "source_indicator": {{ source_indicator | trim | to_json }},
+            "art_url": {{ (art_url | trim) | to_json }}
+          }
+    - service: rest_command.inkplate_publish_sonos
+      data:
+        body: "{{ body }}"
+
+# 4. HN — attribute change on the top-stories sensor. Takes the first three
+#    items to fit the Summary zone's maxLines=3.
+#
+# Source: sensor.hn_top_stories (ha/sensors/hn.yaml, command_line platform),
+# `stories` attribute. Each story is {title, domain, url, score, by}.
+- alias: "Inkplate: publish hn"
+  id: inkplate_publish_hn
+  mode: single
+  max_exceeded: silent
+  trigger:
+    - platform: state
+      entity_id: sensor.hn_top_stories
+    - platform: homeassistant
+      event: start
+  condition:
+    - condition: state
+      entity_id: input_boolean.inkplate_publisher_enabled
+      state: "on"
+  action:
+    - variables:
+        stories: "{{ (state_attr('sensor.hn_top_stories', 'stories') or [])[:3] }}"
+        body: >-
+          {
+            "items": [
+              {%- for it in stories -%}
+              {{ ',' if not loop.first else '' }}
+              { "title": "{{ it.title | replace('\"','\\\"') }}", "subtitle": "{{ it.domain | default('') }}" }
+              {%- endfor -%}
+            ]
+          }
+    - service: rest_command.inkplate_publish_hn
+      data:
+        body: "{{ body }}"
+
+# 5. Device — MQTT trigger on retained `inkplate/state/device`. Re-publishes
+#    into renderer/inputs/device.json on every device wake.
+- alias: "Inkplate: publish device state"
+  id: inkplate_publish_device
+  mode: single
+  max_exceeded: silent
+  trigger:
+    - platform: mqtt
+      topic: inkplate/state/device
+    - platform: homeassistant
+      event: start
+  condition:
+    - condition: state
+      entity_id: input_boolean.inkplate_publisher_enabled
+      state: "on"
+  action:
+    - variables:
+        body: >-
+          {
+            "battery": {
+              "percentage": {{ states('sensor.inkplate_device_battery') | int(0) }},
+              "voltage": {{ states('sensor.inkplate_device_voltage') | float(0) }}
+            },
+            "build": "{{ states('sensor.inkplate_device_build') | default('', true) }}",
+            "last_seen": "{{ now().isoformat() }}"
+          }
+    - service: rest_command.inkplate_publish_device
+      data:
+        body: "{{ body }}"

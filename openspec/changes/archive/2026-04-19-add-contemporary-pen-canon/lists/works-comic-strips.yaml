@@ -1,0 +1,222 @@
+recipe: top-contemporary-pen-works
+lineage: comic-strip
+generated: 2026-04-19
+defaults: {panel_fidelity: native, rights_tier: personal_library, form: drawing, medium: pen-and-ink on paper, source: web}
+
+creators:
+
+  bill-watterson:
+    canon_weight: core
+    in_corpus: 0
+    works:
+    - id: watterson-calvin-hobbes-sled
+      title: "Calvin and Hobbes — sledding down the hill"
+      year: 1988
+      themes: [tender-companionship, motion-and-gesture, winter-and-ice, childhood-and-play]
+      mood: [playful, kinetic]
+      register: [iconic, lyric]
+    - id: watterson-calvin-transmogrifier
+      title: "Calvin and Hobbes — Transmogrifier cardboard box"
+      year: 1987
+      themes: [craft-and-play, childhood-and-play, machines-and-mechanisms]
+      mood: [playful, wry]
+      register: [iconic, absurdist]
+    - id: watterson-calvin-spaceman-spiff
+      title: "Calvin and Hobbes — Spaceman Spiff panel"
+      year: 1989
+      themes: [journey, sea-and-sky, childhood-and-play]
+      mood: [playful, dynamic]
+      register: [iconic, absurdist]
+    - id: watterson-calvin-snowman
+      title: "Calvin and Hobbes — army of snowmen"
+      year: 1990
+      themes: [winter-and-ice, childhood-and-play, craft-and-play]
+      mood: [wry, playful]
+      register: [iconic, wry]
+    - id: watterson-calvin-dad-polls
+      title: "Calvin and Hobbes — Dad's approval poll"
+      year: 1986
+      themes: [tender-companionship, everyday-life]
+      mood: [wry, tender]
+      register: [iconic, wry]
+    - id: watterson-calvin-last-strip
+      title: "Calvin and Hobbes — the last strip"
+      year: 1995
+      themes: [journey, winter-and-ice, tender-companionship]
+      mood: [wistful, tender]
+      register: [iconic, lyric]
+
+  charles-schulz:
+    canon_weight: core
+    in_corpus: 0
+    works:
+    - id: schulz-peanuts-charlie-brown-football
+      title: "Peanuts — Lucy pulls the football"
+      year: 1952
+      themes: [tender-companionship, motion-and-gesture, childhood-and-play]
+      mood: [wry, playful]
+      register: [iconic, wry]
+    - id: schulz-peanuts-snoopy-typewriter
+      title: "Peanuts — Snoopy on typewriter"
+      year: 1965
+      themes: [craft-and-play, interior-and-domestic]
+      mood: [wry, playful]
+      register: [iconic, wry]
+    - id: schulz-peanuts-christmas-tree
+      title: "Peanuts — Charlie Brown's little tree"
+      year: 1965
+      themes: [tender-companionship, childhood-and-play]
+      mood: [tender, wistful]
+      register: [iconic, tender]
+    - id: schulz-peanuts-red-baron
+      title: "Peanuts — Snoopy vs the Red Baron"
+      year: 1965
+      themes: [sea-and-sky, motion-and-gesture]
+      mood: [playful, dynamic]
+      register: [iconic, wry]
+    - id: schulz-peanuts-lucy-psychiatric
+      title: "Peanuts — Lucy's Psychiatric Help 5¢ booth"
+      year: 1959
+      themes: [everyday-life, tender-companionship]
+      mood: [wry, deadpan]
+      register: [iconic, wry]
+    - id: schulz-peanuts-kite-tree
+      title: "Peanuts — Charlie Brown and the kite-eating tree"
+      year: 1970
+      themes: [motion-and-gesture, weather-facing]
+      mood: [wry, melancholic]
+      register: [iconic, wry]
+
+  gary-larson:
+    canon_weight: canonical
+    in_corpus: 0
+    works:
+    - id: larson-farside-cow-tools
+      title: "The Far Side — Cow Tools"
+      year: 1982
+      themes: [animals, craft-and-play, machines-and-mechanisms]
+      mood: [absurd, deadpan]
+      register: [iconic, deadpan-absurd]
+    - id: larson-farside-midvale-school-gifted
+      title: "The Far Side — Midvale School for the Gifted"
+      year: 1985
+      themes: [everyday-life, architecture-and-structure]
+      mood: [absurd, wry]
+      register: [iconic, deadpan-absurd]
+    - id: larson-farside-god-chicken
+      title: "The Far Side — God making a chicken"
+      year: 1986
+      themes: [animals, craft-and-play]
+      mood: [absurd, wry]
+      register: [iconic, deadpan-absurd]
+    - id: larson-farside-dinosaurs-smoking
+      title: "The Far Side — the real reason dinosaurs went extinct"
+      year: 1982
+      themes: [animals, mortality]
+      mood: [absurd, wry]
+      register: [iconic, deadpan-absurd]
+    - id: larson-farside-thagomizer
+      title: "The Far Side — thag... Thagomizer"
+      year: 1982
+      themes: [animals, craft-and-play]
+      mood: [absurd, deadpan]
+      register: [iconic, deadpan-absurd]
+
+  scott-adams:
+    canon_weight: canonical
+    in_corpus: 0
+    works:
+    - id: adams-dilbert-pointy-haired-boss
+      title: "Dilbert — Pointy-Haired Boss introduction"
+      year: 1993
+      themes: [work-making, portrait-and-face]
+      mood: [wry, deadpan]
+      register: [iconic, wry]
+    - id: adams-dilbert-dogbert-consultant
+      title: "Dilbert — Dogbert as consultant"
+      year: 1992
+      themes: [animals, work-making]
+      mood: [wry, ironic]
+      register: [iconic, wry]
+    - id: adams-dilbert-tps-reports
+      title: "Dilbert — TPS-style report meeting"
+      year: 1996
+      themes: [work-making, ritual-and-gathering]
+      mood: [wry, deadpan]
+      register: [iconic, wry]
+    - id: adams-dilbert-wally-coffee
+      title: "Dilbert — Wally and his coffee mug"
+      year: 1995
+      themes: [work-making, everyday-life]
+      mood: [wry, deadpan]
+      register: [iconic, wry]
+    - id: adams-dilbert-cubicle-farm
+      title: "Dilbert — cubicle farm overview"
+      year: 1994
+      themes: [work-making, architecture-and-structure]
+      mood: [wry, deadpan]
+      register: [iconic, wry]
+
+  herge:
+    canon_weight: core
+    in_corpus: 0
+    works:
+    - id: herge-tintin-crab-with-golden-claws
+      title: "Tintin — The Crab with the Golden Claws cover"
+      year: 1941
+      themes: [journey, sea-and-sky]
+      mood: [atmospheric, dynamic]
+      register: [iconic, classical]
+    - id: herge-tintin-lunar-moon-walker
+      title: "Tintin — Explorers on the Moon (cover)"
+      year: 1954
+      themes: [journey, sea-and-sky, mysterious]
+      mood: [grand, atmospheric]
+      register: [iconic, classical]
+    - id: herge-tintin-tibet-snow
+      title: "Tintin in Tibet — yeti and Chang"
+      year: 1960
+      themes: [mountain-and-forest, winter-and-ice, tender-companionship]
+      mood: [atmospheric, tender]
+      register: [iconic, classical]
+    - id: herge-tintin-black-island
+      title: "The Black Island — ascent"
+      year: 1938
+      themes: [architecture-and-structure, mysterious, journey]
+      mood: [atmospheric, tense]
+      register: [iconic, classical]
+    - id: herge-tintin-calculus-affair
+      title: "The Calculus Affair — Professor Calculus panel"
+      year: 1956
+      themes: [portrait-and-face, craft-and-play]
+      mood: [wry, atmospheric]
+      register: [iconic, classical]
+
+  quentin-blake:
+    canon_weight: canonical
+    in_corpus: 0
+    works:
+    - id: blake-matilda-reading
+      title: "Matilda — reading a book"
+      year: 1988
+      themes: [reading-and-study, childhood-and-play, interior-and-domestic]
+      mood: [quiet, contemplative]
+      register: [iconic, intimate]
+    - id: blake-bfg-giant
+      title: "The BFG — Giant with Sophie"
+      year: 1982
+      themes: [tender-companionship, mountain-and-forest]
+      mood: [tender, playful]
+      register: [iconic, lyric]
+    - id: blake-charlie-chocolate-factory
+      title: "Charlie and the Chocolate Factory — Charlie with candy"
+      year: 1964
+      themes: [food-and-gathering, childhood-and-play]
+      mood: [playful, tender]
+      register: [iconic, wry]
+    - id: blake-roald-dahl-portrait
+      title: "Roald Dahl — author portrait"
+      year: 1990
+      themes: [portrait-and-face, reading-and-study]
+      mood: [wry, quiet]
+      register: [iconic, intimate]

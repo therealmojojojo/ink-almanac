@@ -1,0 +1,164 @@
+# Gesture handler — turns device-published taps into override-state changes.
+#
+# Device contract (from add-local-clock-tick "Tap detection"):
+#   - Device publishes {"kind":"single"|"double"} on `inkplate/state/gesture`.
+#   - Device is waiting up to ~2 s for an updated retained `active_mode`, then
+#     fetches whichever face the retained value points to.
+#   - Device does NOT interpret gestures; HA is authoritative.
+#
+# Override cascade (highest → lowest):
+#   now_playing > weather_peek > summary_gallery_toggle > schedule.
+#
+# Rules:
+#   - Gestures are SUPPRESSED during quiet hours (user tapped, ack glyph shows
+#     on the device, but no face change here — honest UX).
+#   - Gestures are SUPPRESSED when `now_playing` is the active override
+#     (music wins; stop the music if you want the dashboard back).
+#   - Double-tap toggles Summary↔Gallery. During Night (scheduled_face == night)
+#     the toggle is a no-op (no meaningful "other" face for Night).
+#
+# Tap-to-face-change latency target: < 2 s (the device's grace window). MQTT
+# publish in the same action block is sub-second in a healthy HA, so this is
+# comfortable.
+
+- id: inkplate_gesture_single_tap
+  alias: "Inkplate: single tap → Weather peek"
+  mode: queued
+  max: 3
+  trigger:
+    - platform: mqtt
+      topic: inkplate/state/gesture
+      payload: "single"
+      value_template: "{{ value_json.kind }}"
+  condition:
+    # Not within quiet hours (midnight-wrap aware).
+    - condition: template
+      value_template: >-
+        {% set qs = states('input_datetime.inkplate_quiet_start') %}
+        {% set qe = states('input_datetime.inkplate_quiet_end') %}
+        {% set now_t = now().strftime('%H:%M:%S') %}
+        {% if qs <= qe %}
+          {{ not (qs <= now_t < qe) }}
+        {% else %}
+          {{ not (now_t >= qs or now_t < qe) }}
+        {% endif %}
+    # now_playing wins; don't preempt it.
+    - condition: template
+      value_template: "{{ states('input_text.inkplate_active_override') != 'now_playing' }}"
+  action:
+    # Save current override so we can restore it when the peek expires.
+    - service: input_text.set_value
+      target: { entity_id: input_text.inkplate_prior_override }
+      data: { value: "{{ states('input_text.inkplate_active_override') }}" }
+    - service: input_text.set_value
+      target: { entity_id: input_text.inkplate_active_override }
+      data: { value: weather_peek }
+    # Arm the expiry: now + configured peek seconds.
+    - service: input_datetime.set_datetime
+      target: { entity_id: input_datetime.inkplate_weather_peek_expires_at }
+      data:
+        datetime: >-
+          {% set s = states('input_number.inkplate_weather_peek_seconds') | int(300) %}
+          {{ (now() + timedelta(seconds=s)).strftime('%Y-%m-%d %H:%M:%S') }}
+    # Publish active_mode so the device's post-publish grace window picks it up.
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/active_mode
+        payload: weather
+        retain: true
+    # Wake pulse is redundant (device is already awake doing the grace-window
+    # subscribe) but keeps the pattern consistent with schedule/Sonos paths.
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/wake
+        payload: ""
+        retain: false
+
+- id: inkplate_gesture_double_tap
+  alias: "Inkplate: double tap → Summary/Gallery toggle"
+  mode: queued
+  max: 3
+  trigger:
+    - platform: mqtt
+      topic: inkplate/state/gesture
+      payload: "double"
+      value_template: "{{ value_json.kind }}"
+  condition:
+    # Quiet-hours guard (same as single tap).
+    - condition: template
+      value_template: >-
+        {% set qs = states('input_datetime.inkplate_quiet_start') %}
+        {% set qe = states('input_datetime.inkplate_quiet_end') %}
+        {% set now_t = now().strftime('%H:%M:%S') %}
+        {% if qs <= qe %}
+          {{ not (qs <= now_t < qe) }}
+        {% else %}
+          {{ not (now_t >= qs or now_t < qe) }}
+        {% endif %}
+    - condition: template
+      value_template: "{{ states('input_text.inkplate_active_override') != 'now_playing' }}"
+    # Toggle only meaningful when the scheduled face is Summary or Gallery.
+    # During Night (scheduled_face == night) the double-tap is a no-op.
+    - condition: template
+      value_template: >-
+        {{ states('input_text.inkplate_scheduled_face') in ['summary', 'gallery'] }}
+  action:
+    - variables:
+        toggled: >-
+          {% set s = states('input_text.inkplate_scheduled_face') %}
+          {% if s == 'summary' %}gallery{% elif s == 'gallery' %}summary{% else %}{{ s }}{% endif %}
+    - service: input_text.set_value
+      target: { entity_id: input_text.inkplate_prior_override }
+      data: { value: "{{ states('input_text.inkplate_active_override') }}" }
+    - service: input_text.set_value
+      target: { entity_id: input_text.inkplate_active_override }
+      data: { value: summary_gallery_toggle }
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/active_mode
+        payload: "{{ toggled }}"
+        retain: true
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/wake
+        payload: ""
+        retain: false
+
+- id: inkplate_weather_peek_expiry
+  alias: "Inkplate: Weather-peek window expired → revert"
+  # Fires when the wall clock matches the helper's datetime. If the peek
+  # override is still active (not superseded by now_playing), revert.
+  trigger:
+    - platform: time
+      at: input_datetime.inkplate_weather_peek_expires_at
+  condition:
+    - condition: state
+      entity_id: input_text.inkplate_active_override
+      state: weather_peek
+  action:
+    # Restore the prior override. If prior is `summary_gallery_toggle` and
+    # we're still in the same schedule window, restore it; otherwise fall
+    # back to `schedule`. (A toggle that's already expired would have been
+    # cleared by the schedule-boundary automation.)
+    - variables:
+        prior: "{{ states('input_text.inkplate_prior_override') }}"
+        restore: >-
+          {% if prior == 'summary_gallery_toggle' %}summary_gallery_toggle
+          {% else %}schedule{% endif %}
+        mode_payload: >-
+          {% set r = (prior == 'summary_gallery_toggle') %}
+          {% if r %}{{ states('input_text.inkplate_scheduled_face') }}
+          {% else %}{{ states('input_text.inkplate_scheduled_face') }}{% endif %}
+    - service: input_text.set_value
+      target: { entity_id: input_text.inkplate_active_override }
+      data: { value: "{{ restore | trim }}" }
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/active_mode
+        payload: "{{ mode_payload | trim }}"
+        retain: true
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/wake
+        payload: ""
+        retain: false

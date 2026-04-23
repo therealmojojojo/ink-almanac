@@ -1,0 +1,305 @@
+recipe: top-bw-graphic-arts-works
+lineage: old-master-print
+generated: 2026-04-19
+defaults: {panel_fidelity: native, rights_tier: public_domain}
+note: |
+  Stage-2 works list. Targets archival-resolution scans from the primary
+  museum archive. `source_hint` names the intended host; the fetch script
+  should resolve to the concrete IIIF/JPG URL per-work.
+
+creators:
+
+  albrecht-durer:
+    canon_weight: core
+    in_corpus: 8
+    works:
+    - {id: durer-melencolia-i,        in_corpus: true,  form: engraving}
+    - {id: durer-knight-death-devil,  in_corpus: true,  form: engraving}
+    - {id: durer-st-jerome-in-study,  in_corpus: true,  form: engraving}
+    - {id: durer-adam-eve,            in_corpus: true,  form: engraving}
+    - {id: durer-four-horsemen,       in_corpus: true,  form: woodblock}
+    - {id: durer-rhinoceros,          in_corpus: true,  form: woodblock}
+    - {id: durer-young-hare,          in_corpus: true,  form: drawing}
+    - {id: durer-agony-in-garden,     in_corpus: true,  form: engraving}
+    - id: durer-praying-hands
+      title: "Praying Hands"
+      year: 1508
+      form: drawing
+      themes: [portrait-and-face, ritual-and-gathering]
+      mood: [contemplative, grave]
+      register: [iconic, classical]
+      source_hint: albertina
+      status: pending
+    - id: durer-apocalypse-whore-of-babylon
+      title: "The Whore of Babylon (Apocalypse woodcut)"
+      year: 1498
+      form: woodblock
+      themes: [mortality, motion-and-gesture]
+      mood: [grim, dynamic]
+      register: [iconic, baroque]
+      source_hint: rijksmuseum
+      status: pending
+    - id: durer-nemesis-great-fortune
+      title: "Nemesis (The Great Fortune)"
+      year: 1501
+      form: engraving
+      themes: [body-and-figure, sea-and-sky]
+      mood: [grand, austere]
+      register: [iconic, classical]
+      source_hint: rijksmuseum
+      status: pending
+    - id: durer-self-portrait-age-26-drawing
+      title: "Self-Portrait (pen-and-ink drawing)"
+      year: 1491
+      form: drawing
+      themes: [portrait-and-face, reflection-and-mirror]
+      mood: [contemplative, self-possessed]
+      register: [intimate, classical]
+      source_hint: universitatsbibliothek_erlangen
+      status: pending
+
+  rembrandt-van-rijn:
+    canon_weight: core
+    in_corpus: 1
+    works:
+    - {id: rembrandt-hundred-guilder-print, in_corpus: true, form: etching}
+    - id: rembrandt-three-crosses
+      title: "The Three Crosses (state III)"
+      year: 1653
+      form: etching
+      themes: [mortality, ritual-and-gathering, light-shadow]
+      mood: [grave, haunting]
+      register: [iconic, solemn]
+      source_hint: rijksmuseum
+      status: pending
+    - id: rembrandt-christ-preaching-petite-tombe
+      title: "Christ Preaching ('La Petite Tombe')"
+      year: 1652
+      form: etching
+      themes: [ritual-and-gathering, attention-and-listening]
+      mood: [contemplative, grave]
+      register: [iconic, solemn]
+      source_hint: rijksmuseum
+      status: pending
+    - id: rembrandt-three-trees
+      title: "The Three Trees"
+      year: 1643
+      form: etching
+      themes: [mountain-and-forest, weather-facing, atmospheric]
+      mood: [atmospheric, grand]
+      register: [iconic, classical]
+      source_hint: rijksmuseum
+      status: pending
+    - id: rembrandt-adam-eve
+      title: "Adam and Eve"
+      year: 1638
+      form: etching
+      themes: [body-and-figure, mortality]
+      mood: [grave, tender]
+      register: [classical, intimate]
+      source_hint: rijksmuseum
+      status: pending
+    - id: rembrandt-faust
+      title: "Faust (Scholar in his Study)"
+      year: 1652
+      form: etching
+      themes: [reading-and-study, light-shadow, mysterious]
+      mood: [mysterious, contemplative]
+      register: [iconic, classical]
+      source_hint: rijksmuseum
+      status: pending
+    - id: rembrandt-self-portrait-saskia
+      title: "Self-Portrait with Saskia"
+      year: 1636
+      form: etching
+      themes: [portrait-and-face, tender-companionship]
+      mood: [tender, intimate]
+      register: [intimate, classical]
+      source_hint: rijksmuseum
+      status: pending
+    - id: rembrandt-jan-six
+      title: "Jan Six"
+      year: 1647
+      form: etching
+      themes: [portrait-and-face, reading-and-study, interior-and-domestic]
+      mood: [contemplative, self-possessed]
+      register: [formal, classical]
+      source_hint: rijksmuseum
+      status: pending
+
+  jacques-callot:
+    canon_weight: canonical
+    in_corpus: 2
+    works:
+    - {id: callot-miseres-de-la-guerre-hanging-tree, in_corpus: true, form: etching}
+    - {id: callot-capricci-beggar,                    in_corpus: true, form: etching}
+    - id: callot-miseres-arquebusade
+      title: "L'Arquebusade (Les Grandes Misères de la Guerre)"
+      year: 1633
+      form: etching
+      themes: [mortality, ritual-and-gathering]
+      mood: [grim, stark]
+      register: [iconic, documentary]
+      source_hint: bnf_gallica
+      status: pending
+    - id: callot-balli-di-sfessania-captain
+      title: "Il Capitano Cerimonia (Balli di Sfessania)"
+      year: 1622
+      form: etching
+      themes: [motion-and-gesture, ritual-and-gathering]
+      mood: [playful, kinetic]
+      register: [ornate, wry]
+      source_hint: met_open_access
+      status: pending
+    - id: callot-fair-at-impruneta
+      title: "The Fair at Impruneta"
+      year: 1620
+      form: etching
+      themes: [ritual-and-gathering, urban, rural-pastoral]
+      mood: [dynamic, atmospheric]
+      register: [iconic, documentary]
+      source_hint: nga_washington
+      status: pending
+    - id: callot-temptation-of-st-anthony
+      title: "The Temptation of Saint Anthony"
+      year: 1635
+      form: etching
+      themes: [mortality, mysterious, motion-and-gesture]
+      mood: [surreal, grim]
+      register: [baroque, iconic]
+      source_hint: met_open_access
+      status: pending
+    - id: callot-les-gueux-seated-beggar
+      title: "Seated Beggar (Les Gueux)"
+      year: 1623
+      form: etching
+      themes: [everyday-life, portrait-and-face]
+      mood: [stoic, raw]
+      register: [documentary, unadorned]
+      source_hint: rijksmuseum
+      status: pending
+
+  giovanni-battista-piranesi:
+    canon_weight: core
+    in_corpus: 2
+    works:
+    - {id: piranesi-carceri-ii-mantle,     in_corpus: true, form: etching}
+    - {id: piranesi-carceri-vii-drawbridge, in_corpus: true, form: etching}
+    - id: piranesi-carceri-iii-round-tower
+      title: "The Round Tower (Carceri III)"
+      year: 1761
+      form: etching
+      themes: [architecture-and-structure, mysterious, light-shadow]
+      mood: [grand, haunting]
+      register: [iconic, baroque]
+      source_hint: nga_washington
+      status: pending
+    - id: piranesi-carceri-viii-staircase-with-trophies
+      title: "The Staircase with Trophies (Carceri VIII)"
+      year: 1761
+      form: etching
+      themes: [architecture-and-structure, mysterious]
+      mood: [grand, mysterious]
+      register: [iconic, baroque]
+      source_hint: nga_washington
+      status: pending
+    - id: piranesi-carceri-xiv-gothic-arch
+      title: "The Gothic Arch (Carceri XIV)"
+      year: 1761
+      form: etching
+      themes: [architecture-and-structure, mysterious]
+      mood: [grand, atmospheric]
+      register: [iconic, baroque]
+      source_hint: nga_washington
+      status: pending
+    - id: piranesi-vedute-di-roma-colosseum
+      title: "Veduta del Colosseo (Vedute di Roma)"
+      year: 1757
+      form: etching
+      themes: [architecture-and-structure, decay-and-memory, urban]
+      mood: [grand, atmospheric]
+      register: [iconic, classical]
+      source_hint: met_open_access
+      status: pending
+    - id: piranesi-vedute-pantheon
+      title: "Veduta del Pantheon (Vedute di Roma)"
+      year: 1761
+      form: etching
+      themes: [architecture-and-structure, urban]
+      mood: [grand, austere]
+      register: [iconic, classical]
+      source_hint: met_open_access
+      status: pending
+    - id: piranesi-vedute-piazza-del-popolo
+      title: "Veduta della Piazza del Popolo"
+      year: 1750
+      form: etching
+      themes: [architecture-and-structure, urban]
+      mood: [grand, dynamic]
+      register: [iconic, baroque]
+      source_hint: met_open_access
+      status: pending
+    - id: piranesi-vedute-piazza-di-spagna
+      title: "Veduta della Piazza di Spagna"
+      year: 1750
+      form: etching
+      themes: [architecture-and-structure, urban]
+      mood: [grand, atmospheric]
+      register: [iconic, classical]
+      source_hint: rijksmuseum
+      status: pending
+
+  francisco-goya:
+    canon_weight: core
+    in_corpus: 5
+    works:
+    - {id: goya-caprichos-sleep-of-reason,            in_corpus: true, form: etching}
+    - {id: goya-disasters-of-war-one,                 in_corpus: true, form: etching}
+    - {id: goya-disasters-por-que,                    in_corpus: true, form: etching}
+    - {id: goya-desastres-grande-hazana-muertos,      in_corpus: true, form: etching}
+    - {id: goya-giant-tauromaquia,                    in_corpus: true, form: etching}
+    - id: goya-caprichos-there-is-no-remedy
+      title: "No hay remedio (Los Caprichos, plate 24)"
+      year: 1799
+      form: etching
+      themes: [mortality, ritual-and-gathering]
+      mood: [grim, unflinching]
+      register: [iconic, documentary]
+      source_hint: museo_del_prado
+      status: pending
+    - id: goya-caprichos-hasta-la-muerte
+      title: "Hasta la muerte (Los Caprichos, plate 55)"
+      year: 1799
+      form: etching
+      themes: [mortality, reflection-and-mirror]
+      mood: [ironic, grim]
+      register: [wry, iconic]
+      source_hint: museo_del_prado
+      status: pending
+    - id: goya-giant-aquatint
+      title: "The Giant (El Gigante) aquatint"
+      year: 1818
+      form: aquatint
+      themes: [mountain-and-forest, mysterious]
+      mood: [grand, haunting]
+      register: [iconic, oracular]
+      source_hint: museo_del_prado
+      status: pending
+    - id: goya-disparates-flying-folly
+      title: "Disparate volante (Los Disparates)"
+      year: 1816
+      form: etching
+      themes: [mysterious, motion-and-gesture]
+      mood: [surreal, haunting]
+      register: [surreal, iconic]
+      source_hint: museo_del_prado
+      status: pending
+    - id: goya-tauromaquia-desgracias-acaecidas
+      title: "Desgracias acaecidas en el tendido (La Tauromaquia 21)"
+      year: 1816
+      form: etching
+      themes: [motion-and-gesture, ritual-and-gathering, mortality]
+      mood: [urgent, raw]
+      register: [documentary, iconic]
+      source_hint: museo_del_prado
+      status: pending

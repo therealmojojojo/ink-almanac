@@ -1,0 +1,21 @@
+# Low-battery notification: fires once when the device crosses below 20%,
+# re-arms after either recovering above 30% or after 4h of silence.
+
+- id: inkplate_low_battery_notify
+  alias: "Inkplate: low-battery notification"
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.inkplate_device_battery
+      below: 20
+      for: "00:02:00"
+  condition:
+    - condition: template
+      value_template: >-
+        {% set last = state_attr('automation.inkplate_low_battery_notify','last_triggered') %}
+        {{ last is none or (now() - last).total_seconds() > 4*3600 }}
+  action:
+    - service: notify.inkplate_operator
+      data:
+        title: "Inkplate battery low"
+        message: >-
+          Battery at {{ states('sensor.inkplate_device_battery') }}% — charge soon.

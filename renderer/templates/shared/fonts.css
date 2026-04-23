@@ -1,0 +1,62 @@
+/*
+ * Self-hosted font declarations. Actual WOFF2 files live in
+ * `renderer/templates/fonts/` and are not committed — run
+ * `npm run fonts:fetch` to download (or drop them in manually).
+ *
+ * A fetch helper is out of scope for the initial apply; for now,
+ * templates degrade gracefully to system serif/mono/sans fallbacks
+ * declared in tokens.css.
+ */
+@font-face {
+  font-family: 'Fraunces';
+  src: url('/static/fonts/Fraunces[opsz,wght].woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Fraunces';
+  src: url('/static/fonts/Fraunces-Italic[opsz,wght].woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: block;
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  src: url('/static/fonts/IBMPlexMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/static/fonts/JetBrainsMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'IBM Plex Sans';
+  src: url('/static/fonts/IBMPlexSans-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'IBM Plex Sans';
+  src: url('/static/fonts/IBMPlexSans-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+/* Noto Serif JP — subsetted to the CJK range (hiragana, katakana, kanji
+ * and JP punctuation) that actually appears in the haiku corpus. Loaded
+ * by unicode-range so it only activates when Japanese glyphs are present. */
+@font-face {
+  font-family: 'Noto Serif JP';
+  src: url('/static/fonts/NotoSerifJP-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+  unicode-range: U+3000-303F, U+3040-309F, U+30A0-30FF, U+4E00-9FFF, U+FF00-FFEF;
+}

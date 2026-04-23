@@ -1,0 +1,29 @@
+# Sleep-strategy: republish the full bundle on any helper change to a retained
+# MQTT topic the device reads on wake. Also republish on HA start so the topic
+# holds the current values after a broker restart.
+
+- id: inkplate_sleep_strategy_publish
+  alias: "Inkplate: publish sleep-strategy on change"
+  trigger:
+    - platform: state
+      entity_id:
+        - input_datetime.inkplate_sonos_active_start
+        - input_datetime.inkplate_sonos_active_end
+        - input_datetime.inkplate_quiet_start
+        - input_datetime.inkplate_quiet_end
+        - input_number.inkplate_fast_path_interval_seconds
+    - platform: homeassistant
+      event: start
+  action:
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/sleep_strategy
+        retain: true
+        payload: >-
+          {
+            "sonos_active_start": "{{ states('input_datetime.inkplate_sonos_active_start') }}",
+            "sonos_active_end":   "{{ states('input_datetime.inkplate_sonos_active_end') }}",
+            "quiet_start":        "{{ states('input_datetime.inkplate_quiet_start') }}",
+            "quiet_end":          "{{ states('input_datetime.inkplate_quiet_end') }}",
+            "fast_path_interval_seconds": {{ states('input_number.inkplate_fast_path_interval_seconds') | int(180) }}
+          }

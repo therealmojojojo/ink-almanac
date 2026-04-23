@@ -1,0 +1,140 @@
+# Hourly-horizon nowcast sensors — short-term precipitation outlook
+# derived from MET.no's hourly forecast. Covers the 1h-6h window; the
+# 0-60 min window comes from Tomorrow.io via
+# ha/integrations/weather_nowcast_minutely.yaml when that provider is
+# configured. The combiner there picks minutely when available and
+# falls through to the sensors below when not.
+#
+# MET.no does not expose minute-level nowcasts, but its hourly forecast
+# carries enough signal to compute a coarse "rain in ~Nh" / "clearing in
+# Nh" / "dry 6h+" label. This package runs `weather.get_forecasts` with
+# `type: hourly` every 15 minutes for both locations and exposes
+# `*_nowcast_hourly_label` + `*_nowcast_hourly_minutes` per location.
+# (The `_hourly_` suffix was added when Tomorrow.io was introduced so
+# the combiner in weather_nowcast_minutely.yaml can reference both
+# sources unambiguously.)
+#
+# Label semantics:
+#   • "RAIN IN ~Nh"   — precipitation expected to start in N hours (1..6)
+#   • "RAIN NOW"      — precipitation in the current forecast slot
+#   • "CLEARING IN Nh"— currently raining, dry slot expected in N hours
+#   • "DRY 6h+"       — no precipitation in the next 6 hourly slots
+#
+# The label is bounded to ~18 chars to fit the renderer's `wx_nowcast` zone
+# (22 chars × 1 line). `minutes_until_change` exposes the derived horizon so
+# the renderer can stagger or hide as it pleases.
+#
+# Threshold: precipitation_probability ≥ 40% OR precipitation ≥ 0.2 mm counts
+# as "rainy" for the purpose of this label. Operator can bump these inline if
+# the local MET.no profile runs hot or cold.
+
+template:
+  - trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
+    action:
+      - service: weather.get_forecasts
+        target: { entity_id: weather.${PLACE_A_SLUG}_primary }
+        data: { type: hourly }
+        response_variable: buc_h
+      - service: weather.get_forecasts
+        target: { entity_id: weather.${PLACE_B_SLUG}_primary }
+        data: { type: hourly }
+        response_variable: sec_h
+      - variables:
+          buc_hourly: "{{ buc_h['weather.${PLACE_A_SLUG}_primary'].forecast | default([]) }}"
+          sec_hourly: "{{ sec_h['weather.${PLACE_B_SLUG}_primary'].forecast | default([]) }}"
+    sensor:
+      # ------- ${PLACE_A_NAME} -------
+      - name: ${PLACE_A_SLUG}_nowcast_hourly_label
+        unique_id: ${PLACE_A_SLUG}_nowcast_hourly_label
+        state: >-
+          {% set fc = buc_hourly[:6] %}
+          {% set ns = namespace(first_wet=-1, first_dry=-1) %}
+          {% for h in fc %}
+            {% set wet = (h.get('precipitation_probability', 0) | float(0)) >= 40
+                         or (h.get('precipitation', 0) | float(0)) >= 0.2 %}
+            {% if wet and ns.first_wet < 0 %}
+              {% set ns.first_wet = loop.index0 %}
+            {% endif %}
+            {% if (not wet) and ns.first_dry < 0 %}
+              {% set ns.first_dry = loop.index0 %}
+            {% endif %}
+          {% endfor %}
+          {%- if ns.first_wet == 0 and ns.first_dry > 0 -%}
+            CLEARING IN {{ ns.first_dry }}h
+          {%- elif ns.first_wet == 0 -%}
+            RAIN NOW
+          {%- elif ns.first_wet == 1 -%}
+            RAIN IN ~1h
+          {%- elif ns.first_wet > 0 -%}
+            RAIN IN ~{{ ns.first_wet }}h
+          {%- else -%}
+            DRY 6h+
+          {%- endif %}
+
+      - name: ${PLACE_A_SLUG}_nowcast_hourly_minutes
+        unique_id: ${PLACE_A_SLUG}_nowcast_hourly_minutes
+        unit_of_measurement: min
+        state: >-
+          {% set fc = buc_hourly[:6] %}
+          {% set ns = namespace(first_wet=-1, first_dry=-1) %}
+          {% for h in fc %}
+            {% set wet = (h.get('precipitation_probability', 0) | float(0)) >= 40
+                         or (h.get('precipitation', 0) | float(0)) >= 0.2 %}
+            {% if wet and ns.first_wet < 0 %}{% set ns.first_wet = loop.index0 %}{% endif %}
+            {% if (not wet) and ns.first_dry < 0 %}{% set ns.first_dry = loop.index0 %}{% endif %}
+          {% endfor %}
+          {%- if ns.first_wet == 0 and ns.first_dry > 0 -%}
+            {{ ns.first_dry * 60 }}
+          {%- elif ns.first_wet > 0 -%}
+            {{ ns.first_wet * 60 }}
+          {%- else -%}
+            -1
+          {%- endif %}
+
+      # ------- ${PLACE_B_NAME} -------
+      - name: ${PLACE_B_SLUG}_nowcast_hourly_label
+        unique_id: ${PLACE_B_SLUG}_nowcast_hourly_label
+        state: >-
+          {% set fc = sec_hourly[:6] %}
+          {% set ns = namespace(first_wet=-1, first_dry=-1) %}
+          {% for h in fc %}
+            {% set wet = (h.get('precipitation_probability', 0) | float(0)) >= 40
+                         or (h.get('precipitation', 0) | float(0)) >= 0.2 %}
+            {% if wet and ns.first_wet < 0 %}{% set ns.first_wet = loop.index0 %}{% endif %}
+            {% if (not wet) and ns.first_dry < 0 %}{% set ns.first_dry = loop.index0 %}{% endif %}
+          {% endfor %}
+          {%- if ns.first_wet == 0 and ns.first_dry > 0 -%}
+            CLEARING IN {{ ns.first_dry }}h
+          {%- elif ns.first_wet == 0 -%}
+            RAIN NOW
+          {%- elif ns.first_wet == 1 -%}
+            RAIN IN ~1h
+          {%- elif ns.first_wet > 0 -%}
+            RAIN IN ~{{ ns.first_wet }}h
+          {%- else -%}
+            DRY 6h+
+          {%- endif %}
+
+      - name: ${PLACE_B_SLUG}_nowcast_hourly_minutes
+        unique_id: ${PLACE_B_SLUG}_nowcast_hourly_minutes
+        unit_of_measurement: min
+        state: >-
+          {% set fc = sec_hourly[:6] %}
+          {% set ns = namespace(first_wet=-1, first_dry=-1) %}
+          {% for h in fc %}
+            {% set wet = (h.get('precipitation_probability', 0) | float(0)) >= 40
+                         or (h.get('precipitation', 0) | float(0)) >= 0.2 %}
+            {% if wet and ns.first_wet < 0 %}{% set ns.first_wet = loop.index0 %}{% endif %}
+            {% if (not wet) and ns.first_dry < 0 %}{% set ns.first_dry = loop.index0 %}{% endif %}
+          {% endfor %}
+          {%- if ns.first_wet == 0 and ns.first_dry > 0 -%}
+            {{ ns.first_dry * 60 }}
+          {%- elif ns.first_wet > 0 -%}
+            {{ ns.first_wet * 60 }}
+          {%- else -%}
+            -1
+          {%- endif %}

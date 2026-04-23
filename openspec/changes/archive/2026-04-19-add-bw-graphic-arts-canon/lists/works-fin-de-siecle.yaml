@@ -1,0 +1,191 @@
+recipe: top-bw-graphic-arts-works
+lineage: fin-de-siecle
+generated: 2026-04-19
+defaults: {panel_fidelity: native}
+
+creators:
+
+  aubrey-beardsley:
+    canon_weight: core
+    in_corpus: 3
+    defaults: {rights_tier: public_domain}
+    works:
+    - {id: beardsley-peacock-skirt,         in_corpus: true, form: drawing}
+    - {id: beardsley-salome-climax,         in_corpus: true, form: drawing}
+    - {id: beardsley-salome-peacock-skirt,  in_corpus: true, form: drawing}
+    - id: beardsley-salome-black-cape
+      title: "The Black Cape (Salome)"
+      year: 1894
+      form: drawing
+      themes: [body-and-figure, ornate]
+      mood: [ornate, enigmatic]
+      register: [iconic, ornate]
+      source_hint: va_museum
+      status: pending
+    - id: beardsley-salome-jai-baise-ta-bouche
+      title: "J'ai baisé ta bouche, Iokanaan (Salome)"
+      year: 1893
+      form: drawing
+      themes: [mortality, mysterious, body-and-figure]
+      mood: [haunting, enigmatic]
+      register: [iconic, ornate]
+      source_hint: harvard_art_museums
+      status: pending
+    - id: beardsley-salome-stomach-dance
+      title: "The Stomach Dance (Salome)"
+      year: 1894
+      form: drawing
+      themes: [motion-and-gesture, body-and-figure, ornate]
+      mood: [dynamic, kinetic]
+      register: [iconic, ornate]
+      source_hint: va_museum
+      status: pending
+    - id: beardsley-yellow-book-cover-volume-i
+      title: "The Yellow Book, Volume I (cover)"
+      year: 1894
+      form: drawing
+      themes: [portrait-and-face, ornate]
+      mood: [wry, poised]
+      register: [iconic, ornate]
+      source_hint: archive_org
+      status: pending
+    - id: beardsley-lysistrata-cinesias-myrrhina
+      title: "Cinesias Entreating Myrrhina (Lysistrata)"
+      year: 1896
+      form: drawing
+      themes: [body-and-figure, motion-and-gesture]
+      mood: [wry, sly]
+      register: [iconic, wry]
+      source_hint: va_museum
+      status: pending
+
+  henri-de-toulouse-lautrec:
+    canon_weight: core
+    in_corpus: 2
+    defaults: {rights_tier: public_domain}
+    works:
+    - {id: lautrec-jane-avril-lithograph, in_corpus: true, form: lithograph}
+    - {id: lautrec-yvette-guilbert,       in_corpus: true, form: lithograph}
+    - id: lautrec-moulin-rouge-la-goulue
+      title: "Moulin Rouge: La Goulue"
+      year: 1891
+      form: poster
+      themes: [ritual-and-gathering, urban, motion-and-gesture, paris-amsterdam-vintage]
+      mood: [dynamic, kinetic]
+      register: [iconic, ornate]
+      source_hint: moma
+      status: pending
+    - id: lautrec-divan-japonais
+      title: "Divan Japonais"
+      year: 1893
+      form: poster
+      themes: [ritual-and-gathering, urban, paris-amsterdam-vintage]
+      mood: [poised, wry]
+      register: [iconic, ornate]
+      source_hint: moma
+      status: pending
+    - id: lautrec-aristide-bruant-cabaret
+      title: "Aristide Bruant dans son cabaret"
+      year: 1893
+      form: poster
+      themes: [portrait-and-face, paris-amsterdam-vintage]
+      mood: [sharp, poised]
+      register: [iconic, formal]
+      source_hint: moma
+      status: pending
+    - id: lautrec-revue-blanche
+      title: "La Revue Blanche"
+      year: 1895
+      form: poster
+      themes: [portrait-and-face, ornate, paris-amsterdam-vintage]
+      mood: [poised, playful]
+      register: [iconic, ornate]
+      source_hint: moma
+      status: pending
+    - id: lautrec-elles-femme-au-tub
+      title: "Femme au Tub (Elles portfolio)"
+      year: 1896
+      form: lithograph
+      themes: [interior-and-domestic, body-and-figure]
+      mood: [intimate, quiet]
+      register: [intimate, lyric]
+      source_hint: met_open_access
+      status: pending
+    - id: lautrec-elles-femme-qui-se-peigne
+      title: "Femme qui se peigne (Elles portfolio)"
+      year: 1896
+      form: lithograph
+      themes: [interior-and-domestic, body-and-figure, everyday-life]
+      mood: [intimate, quiet]
+      register: [intimate, lyric]
+      source_hint: artic
+      status: pending
+
+  edvard-munch:
+    canon_weight: core
+    in_corpus: 0
+    defaults: {rights_tier: personal_library, source: munch_museum}
+    works:
+    - id: munch-scream-lithograph
+      title: "The Scream (lithograph)"
+      year: 1895
+      form: lithograph
+      themes: [mortality, motion-and-gesture, portrait-and-face]
+      mood: [urgent, haunting]
+      register: [iconic, expressive]
+      source_hint: munch_museum
+      status: pending
+    - id: munch-madonna-lithograph
+      title: "Madonna (lithograph)"
+      year: 1895
+      form: lithograph
+      themes: [body-and-figure, mysterious]
+      mood: [haunting, ecstatic]
+      register: [iconic, expressive]
+      source_hint: munch_museum
+      status: pending
+    - id: munch-melancholy-woodcut
+      title: "Melancholy (woodcut)"
+      year: 1896
+      form: woodblock
+      themes: [solitude, sea-and-sky, water-and-reflection]
+      mood: [melancholic, atmospheric]
+      register: [iconic, expressive]
+      source_hint: nasjonalmuseet
+      status: pending
+    - id: munch-kiss-woodcut
+      title: "The Kiss (woodcut IV)"
+      year: 1902
+      form: woodblock
+      themes: [tender-companionship, body-and-figure]
+      mood: [intimate, tender]
+      register: [iconic, intimate]
+      source_hint: munch_museum
+      status: pending
+    - id: munch-vampire-lithograph
+      title: "Vampire (lithograph)"
+      year: 1895
+      form: lithograph
+      themes: [tender-companionship, mortality, mysterious]
+      mood: [haunting, intimate]
+      register: [iconic, expressive]
+      source_hint: munch_museum
+      status: pending
+    - id: munch-anxiety-woodcut
+      title: "Anxiety (woodcut)"
+      year: 1896
+      form: woodblock
+      themes: [urban, portrait-and-face, mortality]
+      mood: [tense, haunting]
+      register: [iconic, expressive]
+      source_hint: munch_museum
+      status: pending
+    - id: munch-towards-the-forest
+      title: "Towards the Forest (woodcut)"
+      year: 1897
+      form: woodblock
+      themes: [mountain-and-forest, tender-companionship]
+      mood: [atmospheric, mysterious]
+      register: [iconic, atmospheric]
+      source_hint: moma
+      status: pending

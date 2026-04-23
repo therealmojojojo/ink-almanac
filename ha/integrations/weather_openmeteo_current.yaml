@@ -1,0 +1,187 @@
+# Open-Meteo current-conditions + daily-forecast sensors.
+#
+# Text-weather default source: current condition and 5-day forecast
+# conditions come from Open-Meteo's forecast API first, with MET.no as the
+# fallback (see `weather_template.yaml` / `weather_forecast.yaml`). This
+# gives a single consistent source for human-facing text ("partly cloudy",
+# "rainy") across all faces.
+#
+# Open-Meteo uses WMO weather codes (https://open-meteo.com/en/docs#weather-
+# variable-documentation). The mapping to HA standard condition strings is
+# inlined in the template sensors below and mirrored in both locations.
+#
+# Temperatures and rain-probability numbers stay on MET.no for now — this
+# change is scoped to text fields only.
+#
+# Rate budget: 2 locations × 48 calls/day = 96 calls/day; Open-Meteo's
+# free tier allows 10k/day/IP. Scan interval is 30 min because current
+# conditions don't need 15-min precision — the 0-60 min rain nowcast is
+# a separate REST sensor in `weather_nowcast_minutely.yaml`.
+
+rest:
+  - scan_interval: 1800       # 30 min
+    resource: https://api.open-meteo.com/v1/forecast
+    params:
+      latitude: !secret ${PLACE_A_SLUG}_latitude
+      longitude: !secret ${PLACE_A_SLUG}_longitude
+      current: "weather_code"
+      daily: "weather_code,precipitation_probability_max"
+      forecast_days: "7"
+      timezone: "auto"
+    timeout: 20
+    sensor:
+      - name: ${PLACE_A_SLUG}_openmeteo_current
+        unique_id: ${PLACE_A_SLUG}_openmeteo_current
+        value_template: >-
+          {% set cw = value_json.current | default({}) %}
+          {% if cw and cw.weather_code is defined %}ok{% else %}empty{% endif %}
+        json_attributes:
+          - current
+          - daily
+
+  - scan_interval: 1800
+    resource: https://api.open-meteo.com/v1/forecast
+    params:
+      latitude: !secret ${PLACE_B_SLUG}_latitude
+      longitude: !secret ${PLACE_B_SLUG}_longitude
+      current: "weather_code"
+      daily: "weather_code,precipitation_probability_max"
+      forecast_days: "7"
+      timezone: "auto"
+    timeout: 20
+    sensor:
+      - name: ${PLACE_B_SLUG}_openmeteo_current
+        unique_id: ${PLACE_B_SLUG}_openmeteo_current
+        value_template: >-
+          {% set cw = value_json.current | default({}) %}
+          {% if cw and cw.weather_code is defined %}ok{% else %}empty{% endif %}
+        json_attributes:
+          - current
+          - daily
+
+# Derived sensors: WMO → HA condition mapping done once here; downstream
+# consumers read these as plain strings / attribute lists.
+template:
+  - sensor:
+      # ---------- ${PLACE_A_NAME} ----------
+      - name: ${PLACE_A_SLUG}_openmeteo_condition
+        unique_id: ${PLACE_A_SLUG}_openmeteo_condition
+        # State is the HA standard condition string, or empty when the
+        # Open-Meteo sensor is unavailable / missing the weather code.
+        state: >-
+          {% set cw = state_attr('sensor.${PLACE_A_SLUG}_openmeteo_current','current') or {} %}
+          {% set code = cw.weather_code if 'weather_code' in cw else none %}
+          {% set is_day = is_state('sun.sun','above_horizon') %}
+          {% set map = {
+              0:  ('sunny' if is_day else 'clear-night'),
+              1:  ('sunny' if is_day else 'clear-night'),
+              2:  'partlycloudy',
+              3:  'cloudy',
+              45: 'fog', 48: 'fog',
+              51: 'rainy', 53: 'rainy', 55: 'rainy',
+              56: 'snowy-rainy', 57: 'snowy-rainy',
+              61: 'rainy', 63: 'rainy', 65: 'pouring',
+              66: 'snowy-rainy', 67: 'snowy-rainy',
+              71: 'snowy', 73: 'snowy', 75: 'snowy', 77: 'snowy',
+              80: 'rainy', 81: 'rainy', 82: 'pouring',
+              85: 'snowy', 86: 'snowy',
+              95: 'lightning-rainy',
+              96: 'lightning-rainy', 99: 'lightning-rainy'
+          } %}
+          {{ map.get(code, '') if code is not none else '' }}
+
+      - name: ${PLACE_A_SLUG}_openmeteo_forecast_5d
+        unique_id: ${PLACE_A_SLUG}_openmeteo_forecast_5d
+        # State is "ok" when the Open-Meteo daily data is usable,
+        # "empty" otherwise. Downstream consumers read the `forecast`
+        # attribute and fall back to MET.no when state != "ok".
+        state: >-
+          {% set daily = state_attr('sensor.${PLACE_A_SLUG}_openmeteo_current','daily') or {} %}
+          {% set codes = daily.weather_code if 'weather_code' in daily else [] %}
+          {% if codes | length >= 5 %}ok{% else %}empty{% endif %}
+        attributes:
+          forecast: >-
+            {% set daily = state_attr('sensor.${PLACE_A_SLUG}_openmeteo_current','daily') or {} %}
+            {% set times = daily.time if 'time' in daily else [] %}
+            {% set codes = daily.weather_code if 'weather_code' in daily else [] %}
+            {% set map = {
+                0:'sunny', 1:'sunny', 2:'partlycloudy', 3:'cloudy',
+                45:'fog', 48:'fog',
+                51:'rainy', 53:'rainy', 55:'rainy',
+                56:'snowy-rainy', 57:'snowy-rainy',
+                61:'rainy', 63:'rainy', 65:'pouring',
+                66:'snowy-rainy', 67:'snowy-rainy',
+                71:'snowy', 73:'snowy', 75:'snowy', 77:'snowy',
+                80:'rainy', 81:'rainy', 82:'pouring',
+                85:'snowy', 86:'snowy',
+                95:'lightning-rainy', 96:'lightning-rainy', 99:'lightning-rainy'
+            } %}
+            {% set ns = namespace(items=[]) %}
+            {% for i in range([codes | length, 5] | min) %}
+              {% set t = times[i] if i < times | length else '' %}
+              {% set c = map.get(codes[i] | int(-1), 'cloudy') %}
+              {% set ns.items = ns.items + [{
+                'day_abbr': (as_timestamp(t ~ 'T00:00:00', 0) | timestamp_custom('%a')) if t else '',
+                'condition': c
+              }] %}
+            {% endfor %}
+            {{ ns.items }}
+
+      # ---------- ${PLACE_B_NAME} ----------
+      - name: ${PLACE_B_SLUG}_openmeteo_condition
+        unique_id: ${PLACE_B_SLUG}_openmeteo_condition
+        state: >-
+          {% set cw = state_attr('sensor.${PLACE_B_SLUG}_openmeteo_current','current') or {} %}
+          {% set code = cw.weather_code if 'weather_code' in cw else none %}
+          {% set is_day = is_state('sun.sun','above_horizon') %}
+          {% set map = {
+              0:  ('sunny' if is_day else 'clear-night'),
+              1:  ('sunny' if is_day else 'clear-night'),
+              2:  'partlycloudy',
+              3:  'cloudy',
+              45: 'fog', 48: 'fog',
+              51: 'rainy', 53: 'rainy', 55: 'rainy',
+              56: 'snowy-rainy', 57: 'snowy-rainy',
+              61: 'rainy', 63: 'rainy', 65: 'pouring',
+              66: 'snowy-rainy', 67: 'snowy-rainy',
+              71: 'snowy', 73: 'snowy', 75: 'snowy', 77: 'snowy',
+              80: 'rainy', 81: 'rainy', 82: 'pouring',
+              85: 'snowy', 86: 'snowy',
+              95: 'lightning-rainy',
+              96: 'lightning-rainy', 99: 'lightning-rainy'
+          } %}
+          {{ map.get(code, '') if code is not none else '' }}
+
+      - name: ${PLACE_B_SLUG}_openmeteo_forecast_5d
+        unique_id: ${PLACE_B_SLUG}_openmeteo_forecast_5d
+        state: >-
+          {% set daily = state_attr('sensor.${PLACE_B_SLUG}_openmeteo_current','daily') or {} %}
+          {% set codes = daily.weather_code if 'weather_code' in daily else [] %}
+          {% if codes | length >= 5 %}ok{% else %}empty{% endif %}
+        attributes:
+          forecast: >-
+            {% set daily = state_attr('sensor.${PLACE_B_SLUG}_openmeteo_current','daily') or {} %}
+            {% set times = daily.time if 'time' in daily else [] %}
+            {% set codes = daily.weather_code if 'weather_code' in daily else [] %}
+            {% set map = {
+                0:'sunny', 1:'sunny', 2:'partlycloudy', 3:'cloudy',
+                45:'fog', 48:'fog',
+                51:'rainy', 53:'rainy', 55:'rainy',
+                56:'snowy-rainy', 57:'snowy-rainy',
+                61:'rainy', 63:'rainy', 65:'pouring',
+                66:'snowy-rainy', 67:'snowy-rainy',
+                71:'snowy', 73:'snowy', 75:'snowy', 77:'snowy',
+                80:'rainy', 81:'rainy', 82:'pouring',
+                85:'snowy', 86:'snowy',
+                95:'lightning-rainy', 96:'lightning-rainy', 99:'lightning-rainy'
+            } %}
+            {% set ns = namespace(items=[]) %}
+            {% for i in range([codes | length, 5] | min) %}
+              {% set t = times[i] if i < times | length else '' %}
+              {% set c = map.get(codes[i] | int(-1), 'cloudy') %}
+              {% set ns.items = ns.items + [{
+                'day_abbr': (as_timestamp(t ~ 'T00:00:00', 0) | timestamp_custom('%a')) if t else '',
+                'condition': c
+              }] %}
+            {% endfor %}
+            {{ ns.items }}

@@ -1,0 +1,35 @@
+{
+  "locations": [
+    {
+      "name": "Cluj",
+      "current": { "condition": "partly cloudy", "temp": { "c": 12 } },
+      "forecast": [
+        { "day": "Tue", "high": { "c": 14 }, "low": { "c": 6 }, "condition": "cloudy" },
+        { "day": "Wed", "high": { "c": 15 }, "low": { "c": 7 }, "condition": "sun" },
+        { "day": "Thu", "high": { "c": 13 }, "low": { "c": 5 }, "condition": "rain" },
+        { "day": "Fri", "high": { "c": 16 }, "low": { "c": 8 }, "condition": "sun" },
+        { "day": "Sat", "high": { "c": 17 }, "low": { "c": 9 }, "condition": "cloudy" }
+      ]
+    },
+    {
+      "name": "Reykjavík",
+      "current": { "condition": "overcast", "temp": { "c": 4 } },
+      "forecast": [
+        { "day": "Tue", "high": { "c": 5 }, "low": { "c": 1 }, "condition": "snow" },
+        { "day": "Wed", "high": { "c": 6 }, "low": { "c": 2 }, "condition": "rain" },
+        { "day": "Thu", "high": { "c": 7 }, "low": { "c": 3 }, "condition": "sun" },
+        { "day": "Fri", "high": { "c": 5 }, "low": { "c": 2 }, "condition": "cloudy" },
+        { "day": "Sat", "high": { "c": 4 }, "low": { "c": 0 }, "condition": "snow" }
+      ]
+    }
+  ],
+  "astro": {
+    "event": {
+      "title": "Lyrid meteors peak",
+      "detail": "radiant from Vega, up to 18/hr after midnight",
+      "when": "06:12 / 19:48"
+    },
+    "moon": { "phase": "waxing gibbous", "illumination": 0.82 }
+  },
+  "poetic": "cold wind off the river"
+}

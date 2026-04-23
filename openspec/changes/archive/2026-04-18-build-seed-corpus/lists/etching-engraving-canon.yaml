@@ -1,0 +1,270 @@
+category: etching-engraving-canon
+side: image
+proposed_by: claude
+proposed_at: 2026-04-17
+notes: |
+  Canonical intaglio prints — etchings and engravings. All items
+  `panel_fidelity: native` (pure line + hatch, no hue). Every artist
+  is deep-PD (pre-1800 or 19c with decisive-moment death dates).
+  Sources: Met Open Access (most Rembrandt, Goya, Dürer), Rijksmuseum
+  (some Rembrandt), LoC P&P, Wikimedia Commons.
+
+  Five of the 10 Dürer/Piranesi pieces already appear in `drawing-canon.yaml`
+  or are on disk (piranesi-carceri-vii-drawbridge, piranesi-pantheon-interior).
+  Consolidate or drop duplicates at list-approval; Piranesi is canonical
+  enough to merit a second pass here.
+
+items:
+  # Rembrandt etchings — the core canon
+  - id: rembrandt-three-crosses
+    title: "The Three Crosses"
+    creator: "Rembrandt van Rijn"
+    year: 1653
+    rights_tier: public_domain
+    source: met_open_access
+    form: etching
+    panel_fidelity: native
+    themes: [mortality, ritual-and-gathering, body-and-figure]
+    mood: [grave, awestruck, haunting]
+    register: [classical, oracular, iconic]
+
+  - id: rembrandt-hundred-guilder-print
+    title: "Christ Healing the Sick (The Hundred Guilder Print)"
+    creator: "Rembrandt van Rijn"
+    year: 1649
+    rights_tier: public_domain
+    source: rijksmuseum
+    form: etching
+    panel_fidelity: native
+    themes: [ritual-and-gathering, body-and-figure, tender-companionship]
+    mood: [contemplative, grave]
+    register: [classical, iconic]
+
+  - id: rembrandt-self-portrait-etching-1639
+    title: "Self-Portrait Leaning on a Stone Sill"
+    creator: "Rembrandt van Rijn"
+    year: 1639
+    rights_tier: public_domain
+    source: rijksmuseum
+    form: etching
+    panel_fidelity: native
+    themes: [portrait-and-face, solitude, craft-and-play]
+    mood: [self-possessed, poised]
+    register: [formal, iconic]
+
+  - id: rembrandt-adam-and-eve
+    title: "Adam and Eve"
+    creator: "Rembrandt van Rijn"
+    year: 1638
+    rights_tier: public_domain
+    source: rijksmuseum
+    form: etching
+    panel_fidelity: native
+    themes: [body-and-figure, garden-and-grove, mortality]
+    mood: [grave, unflinching]
+    register: [classical, iconic]
+
+  - id: rembrandt-three-trees
+    title: "The Three Trees"
+    creator: "Rembrandt van Rijn"
+    year: 1643
+    rights_tier: public_domain
+    source: met_open_access
+    form: etching
+    panel_fidelity: native
+    themes: [rural-pastoral, weather-facing, mountain-and-forest]
+    mood: [atmospheric, contemplative]
+    register: [classical, lyric]
+
+  # Goya — Caprichos, Desastres, Tauromaquia, Disparates
+  - id: goya-sleep-of-reason
+    title: "El sueño de la razón produce monstruos (from Los Caprichos no. 43)"
+    creator: "Francisco de Goya"
+    year: 1799
+    rights_tier: public_domain
+    source: met_open_access
+    form: etching
+    panel_fidelity: native
+    themes: [mortality, craft-and-play, night-and-lamplight]
+    mood: [haunting, grave, uncanny]
+    register: [oracular, iconic]
+    notes: "Nocturne candidate — the sleeping figure at the desk is night-scene."
+
+  - id: goya-giant-tauromaquia
+    title: "Bullfight in a Divided Ring (from La Tauromaquia)"
+    creator: "Francisco de Goya"
+    year: 1816
+    rights_tier: public_domain
+    source: met_open_access
+    form: etching
+    panel_fidelity: native
+    themes: [ritual-and-gathering, motion-and-gesture, animals]
+    mood: [kinetic, unflinching]
+    register: [documentary, iconic]
+
+  - id: goya-desastres-grande-hazana-muertos
+    title: "Grande hazaña! con muertos! (from Los Desastres de la Guerra)"
+    creator: "Francisco de Goya"
+    year: 1813
+    rights_tier: public_domain
+    source: met_open_access
+    form: etching
+    panel_fidelity: native
+    themes: [mortality, body-and-figure, decay-and-memory]
+    mood: [grim, unflinching, haunting]
+    register: [documentary, solemn, iconic]
+
+  - id: goya-disparates-flying-folly
+    title: "Modo de volar (Disparate ridículo / from Los Disparates)"
+    creator: "Francisco de Goya"
+    year: 1816
+    rights_tier: public_domain
+    source: met_open_access
+    form: etching
+    panel_fidelity: native
+    themes: [journey, machines-and-mechanisms, craft-and-play]
+    mood: [surreal, ironic, uncanny]
+    register: [surreal, wry, iconic]
+
+  - id: goya-colossus
+    title: "The Colossus (El Coloso)"
+    creator: "Francisco de Goya"
+    year: 1818
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: etching
+    panel_fidelity: native
+    themes: [mortality, weather-facing, body-and-figure]
+    mood: [grim, grand, awestruck]
+    register: [oracular, iconic]
+    notes: "Aquatint + etching; treat as etching for form classification."
+
+  # Dürer (drawing-canon has three; keeping them canonical engravings here too,
+  # plus additional)
+  - id: durer-four-horsemen
+    title: "The Four Horsemen (from the Apocalypse series)"
+    creator: "Albrecht Dürer"
+    year: 1498
+    rights_tier: public_domain
+    source: met_open_access
+    form: engraving
+    panel_fidelity: native
+    themes: [mortality, motion-and-gesture, ritual-and-gathering]
+    mood: [urgent, grim, dynamic]
+    register: [classical, oracular, iconic]
+    notes: "Strictly a woodcut, not engraving — move to wood-engraving list if form matters strictly."
+
+  - id: durer-rhinoceros
+    title: "Rhinoceros"
+    creator: "Albrecht Dürer"
+    year: 1515
+    rights_tier: public_domain
+    source: met_open_access
+    form: engraving
+    panel_fidelity: native
+    themes: [animals, craft-and-play]
+    mood: [awestruck, playful]
+    register: [classical, iconic]
+    notes: "Woodcut technically; reclassify at review."
+
+  # Callot
+  - id: callot-miseres-de-la-guerre-hanging-tree
+    title: "The Hanging Tree (from Les Misères et les Malheurs de la Guerre)"
+    creator: "Jacques Callot"
+    year: 1633
+    rights_tier: public_domain
+    source: met_open_access
+    form: etching
+    panel_fidelity: native
+    themes: [mortality, ritual-and-gathering, weather-facing]
+    mood: [grim, grave]
+    register: [documentary, solemn, iconic]
+
+  - id: callot-capricci-beggar
+    title: "Beggar with a Wooden Leg (from Les Gueux)"
+    creator: "Jacques Callot"
+    year: 1622
+    rights_tier: public_domain
+    source: met_open_access
+    form: etching
+    panel_fidelity: native
+    themes: [portrait-and-face, body-and-figure, decay-and-memory]
+    mood: [unflinching, wry]
+    register: [documentary, sly]
+
+  # Blake illuminated prints / engravings
+  - id: blake-ancient-of-days
+    title: "The Ancient of Days (Europe a Prophecy frontispiece)"
+    creator: "William Blake"
+    year: 1794
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: engraving
+    panel_fidelity: native
+    themes: [craft-and-play, weather-facing, mortality]
+    mood: [grand, awestruck, mysterious]
+    register: [oracular, iconic]
+    notes: "Hand-colored relief etching; tonal value is still primary — leaving native."
+
+  - id: blake-nebuchadnezzar
+    title: "Nebuchadnezzar"
+    creator: "William Blake"
+    year: 1795
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: engraving
+    panel_fidelity: native
+    themes: [body-and-figure, mortality, rural-pastoral]
+    mood: [haunting, grim]
+    register: [oracular, expressive]
+
+  # Piranesi (already on disk; second-pass representation)
+  - id: piranesi-carceri-ii-mantle
+    title: "Carceri II — The Man on the Rack"
+    creator: "Giovanni Battista Piranesi"
+    year: 1761
+    rights_tier: public_domain
+    source: met_open_access
+    form: etching
+    panel_fidelity: native
+    themes: [architecture-and-structure, mortality, body-and-figure]
+    mood: [grim, haunting, mysterious]
+    register: [baroque, iconic]
+
+  - id: piranesi-vedute-di-roma-colosseum
+    title: "View of the Colosseum (from Vedute di Roma)"
+    creator: "Giovanni Battista Piranesi"
+    year: 1757
+    rights_tier: public_domain
+    source: met_open_access
+    form: etching
+    panel_fidelity: native
+    themes: [architecture-and-structure, decay-and-memory, ritual-and-gathering]
+    mood: [grand, atmospheric]
+    register: [classical, iconic]
+
+  # Whistler etchings (d.1903, PD)
+  - id: whistler-black-lion-wharf
+    title: "Black Lion Wharf (from Thames Set)"
+    creator: "James Abbott McNeill Whistler"
+    year: 1859
+    rights_tier: public_domain
+    source: met_open_access
+    form: etching
+    panel_fidelity: native
+    themes: [urban, water-and-reflection, work-making]
+    mood: [atmospheric, quiet]
+    register: [lyric, iconic]
+
+  - id: whistler-nocturne-etching
+    title: "Nocturne: Palaces (from Second Venice Set)"
+    creator: "James Abbott McNeill Whistler"
+    year: 1879
+    rights_tier: public_domain
+    source: met_open_access
+    form: etching
+    panel_fidelity: native
+    themes: [night-and-lamplight, architecture-and-structure, water-and-reflection]
+    mood: [atmospheric, dim, serene]
+    register: [lyric, atmospheric]
+    notes: "Nocturne candidate."

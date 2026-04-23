@@ -1,0 +1,241 @@
+category: sumi-e-canon
+side: image
+proposed_by: claude
+proposed_at: 2026-04-17
+notes: |
+  Japanese and Chinese ink-wash painting (sumi-e / shuǐ-mò-huà). Pure-value
+  tradition — the panel's native medium. All `panel_fidelity: native`.
+  All artists deep-PD (15c–19c, or early 20c Chinese). Sources: Met Open
+  Access, Tokyo National Museum, Shanghai Museum (via Wikimedia), Palace
+  Museum Beijing, Cleveland Museum.
+
+  Some 20c masters (Qi Baishi d.1957, Zhang Daqian d.1983) are
+  personal_library tier; flagged per item.
+
+items:
+  # Japanese Muromachi / Momoyama / Edo
+  - id: sesshu-autumn-winter-landscape
+    title: "Autumn and Winter Landscape (scroll pair)"
+    creator: "Sesshū Tōyō"
+    year: 1486
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: ink-wash
+    panel_fidelity: native
+    themes: [mountain-and-forest, seasons-and-time, winter-and-ice]
+    mood: [austere, serene, still]
+    register: [classical, iconic]
+
+  - id: sesshu-haboku-landscape
+    title: "Haboku Landscape (splashed-ink)"
+    creator: "Sesshū Tōyō"
+    year: 1495
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: ink-wash
+    panel_fidelity: native
+    themes: [mountain-and-forest, weather-facing, attention-and-listening]
+    mood: [kinetic, austere, mysterious]
+    register: [classical, expressive, iconic]
+
+  - id: tohaku-pine-trees-screen
+    title: "Pine Trees (Shōrin-zu byōbu)"
+    creator: "Hasegawa Tōhaku"
+    year: 1595
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: ink-wash
+    panel_fidelity: native
+    themes: [mountain-and-forest, weather-facing, solitude]
+    mood: [atmospheric, still, mysterious]
+    register: [classical, iconic]
+    notes: "Arguably the greatest Japanese ink painting. Pair-stands-alone masterpiece."
+
+  - id: tohaku-monkeys-on-a-tree
+    title: "Monkeys Reaching for the Moon"
+    creator: "Hasegawa Tōhaku"
+    year: 1600
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: ink-wash
+    panel_fidelity: native
+    themes: [animals, night-and-lamplight, reflection-and-mirror]
+    mood: [playful, tender]
+    register: [classical, lyric]
+    notes: "Nocturne candidate."
+
+  - id: ike-no-taiga-true-view-mt-asama
+    title: "True View of Mount Asama"
+    creator: "Ike no Taiga"
+    year: 1760
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: ink-wash
+    panel_fidelity: native
+    themes: [mountain-and-forest, journey, rural-pastoral]
+    mood: [contemplative, atmospheric]
+    register: [lyric, classical]
+
+  # Zen / Edo
+  - id: hakuin-ekaku-bodhidharma
+    title: "Bodhidharma"
+    creator: "Hakuin Ekaku"
+    year: 1760
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: ink-wash
+    panel_fidelity: native
+    themes: [portrait-and-face, solitude, attention-and-listening]
+    mood: [sharp, unflinching]
+    register: [expressive, iconic]
+
+  - id: sengai-universe
+    title: "Universe (Circle, Triangle, Square)"
+    creator: "Sengai Gibon"
+    year: 1820
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: ink-wash
+    panel_fidelity: native
+    themes: [craft-and-play, attention-and-listening]
+    mood: [playful, contemplative]
+    register: [aphoristic, iconic]
+
+  # Chinese Song / Yuan / Ming
+  - id: muqi-six-persimmons
+    title: "Six Persimmons"
+    creator: "Mu Qi (Muxi Fachang)"
+    year: 1250
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: ink-wash
+    panel_fidelity: native
+    themes: [still-life, attention-and-listening, food-and-gathering]
+    mood: [serene, austere, contemplative]
+    register: [classical, iconic]
+
+  - id: liang-kai-sixth-patriarch
+    title: "Sixth Patriarch Chopping Bamboo"
+    creator: "Liang Kai"
+    year: 1220
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: ink-wash
+    panel_fidelity: native
+    themes: [work-making, solitude, craft-and-play]
+    mood: [kinetic, austere]
+    register: [classical, iconic]
+
+  - id: xia-gui-pure-and-remote-view
+    title: "Pure and Remote View of Streams and Mountains"
+    creator: "Xia Gui"
+    year: 1200
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: ink-wash
+    panel_fidelity: native
+    themes: [mountain-and-forest, water-and-reflection, journey]
+    mood: [atmospheric, serene, mysterious]
+    register: [classical, lyric]
+
+  - id: ma-yuan-scholar-by-waterfall
+    title: "Scholar Viewing a Waterfall"
+    creator: "Ma Yuan"
+    year: 1200
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: ink-wash
+    panel_fidelity: native
+    themes: [mountain-and-forest, solitude, attention-and-listening]
+    mood: [serene, contemplative]
+    register: [classical, lyric, iconic]
+
+  # Ming / Early Qing
+  - id: bada-shanren-fish
+    title: "Fish (ink album leaf)"
+    creator: "Bada Shanren (Zhu Da)"
+    year: 1692
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: ink-wash
+    panel_fidelity: native
+    themes: [animals, water-and-reflection, solitude]
+    mood: [enigmatic, sharp, wry]
+    register: [expressive, iconic]
+
+  - id: bada-shanren-birds-rocks
+    title: "Two Birds on a Rock"
+    creator: "Bada Shanren (Zhu Da)"
+    year: 1694
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: ink-wash
+    panel_fidelity: native
+    themes: [animals, mountain-and-forest, solitude]
+    mood: [enigmatic, wry]
+    register: [expressive, lyric]
+
+  - id: shitao-wandering
+    title: "Wandering in Streams and Mountains"
+    creator: "Shitao (Zhu Ruoji)"
+    year: 1697
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: ink-wash
+    panel_fidelity: native
+    themes: [mountain-and-forest, journey, solitude]
+    mood: [atmospheric, contemplative]
+    register: [lyric, classical]
+
+  # 20c masters — personal_library
+  - id: qi-baishi-shrimp
+    title: "Shrimp"
+    creator: "Qi Baishi"
+    year: 1950
+    rights_tier: personal_library
+    source: web
+    citation: "Qi Baishi, *Qi Baishi: The Great Painter of the Twentieth Century*, Palace Museum, 2014"
+    form: ink-wash
+    panel_fidelity: native
+    themes: [animals, water-and-reflection, craft-and-play]
+    mood: [kinetic, playful, attentive]
+    register: [classical, iconic]
+
+  - id: qi-baishi-crabs
+    title: "Crabs"
+    creator: "Qi Baishi"
+    year: 1948
+    rights_tier: personal_library
+    source: web
+    citation: "Qi Baishi, *Qi Baishi: The Great Painter*, Palace Museum, 2014"
+    form: ink-wash
+    panel_fidelity: native
+    themes: [animals, still-life]
+    mood: [playful, attentive]
+    register: [classical, lyric]
+
+  - id: zhang-daqian-lotus
+    title: "Lotus"
+    creator: "Zhang Daqian"
+    year: 1960
+    rights_tier: personal_library
+    source: web
+    citation: "Zhang Daqian, *Challenging the Past*, Arthur M. Sackler Gallery, 1991"
+    form: ink-wash
+    panel_fidelity: native
+    themes: [garden-and-grove, water-and-reflection, still-life]
+    mood: [serene, luminous]
+    register: [classical, lyric]
+
+  - id: huang-binhong-mountain-dwelling
+    title: "Mountain Dwelling"
+    creator: "Huang Binhong"
+    year: 1953
+    rights_tier: personal_library
+    source: web
+    citation: "Huang Binhong, *Huang Binhong: Late Works*, Zhejiang Publishing, 2010"
+    form: ink-wash
+    panel_fidelity: native
+    themes: [mountain-and-forest, architecture-and-structure, solitude]
+    mood: [atmospheric, austere]
+    register: [lyric, classical]

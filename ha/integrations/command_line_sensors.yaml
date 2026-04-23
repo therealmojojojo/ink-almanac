@@ -1,0 +1,47 @@
+# Command-line sensors, in the current (2023.6+) `command_line:` integration
+# format. Legacy `- platform: command_line` under `sensor:` is silently
+# ignored by modern HA — that broke hn_top_stories + astro_event_tonight.
+# This file lives in integrations/ because it needs a dict root (the legacy
+# list-root format was compatible with !include_dir_merge_list but the new
+# dict-root format isn't).
+
+command_line:
+  # Hacker News top stories — 30-minute refresh.
+  # HN's Firebase API: topstories.json → first 5 ids → fetch each item/{id}.json.
+  # Chained-fetch shape so a single REST sensor can't cover it.
+  - sensor:
+      name: hn_top_stories
+      unique_id: hn_top_stories
+      command: "/config/custom/inkplate/scripts/fetch_hn_top.sh"
+      scan_interval: 1800   # 30 minutes
+      value_template: "{{ value_json.count }}"
+      json_attributes:
+        - stories
+
+  # Night-mode poetic weather line — reads the file written by
+  # generate_poetic_weather_line.sh. scan_interval keeps the sensor fresh
+  # within minutes of new generations; the publish_weather automation triggers
+  # on this sensor's state change, so the renderer gets the new line promptly.
+  # If the file is absent at boot, `cat ... || true` yields empty output and
+  # the sensor reports empty — Night face then renders without the poetic line
+  # per the graceful-degradation rule.
+  - sensor:
+      name: inkplate_poetic_weather_line
+      unique_id: inkplate_poetic_weather_line
+      command: "/bin/sh -c 'cat /config/custom/inkplate/state/poetic_weather.txt 2>/dev/null || true'"
+      scan_interval: 300
+      value_template: "{{ value | default('', true) }}"
+
+  # Tonight's astronomical event (meteor shower, ISS pass, conjunction).
+  # Cached 12 h via scan_interval. The scrape inside the script is best-effort
+  # — when the source has nothing, state becomes 'none' and Weather's TONIGHT
+  # block falls back to its em-dash placeholder.
+  - sensor:
+      name: astro_event_tonight
+      unique_id: astro_event_tonight
+      command: "/config/custom/inkplate/scripts/fetch_astro_event.sh"
+      scan_interval: 43200  # 12 hours
+      value_template: "{{ value_json.title | default('') }}"
+      json_attributes:
+        - detail
+        - when

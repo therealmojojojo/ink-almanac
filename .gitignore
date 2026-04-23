@@ -1,0 +1,50 @@
+# Binary content — managed via corpus/_manifest.json and restored from backup
+corpus/images/*.jpg
+corpus/images/*.jpeg
+corpus/images/*.png
+corpus/images/*.tif
+corpus/images/*.tiff
+corpus/images/*.webp
+
+corpus/nocturne/*.jpg
+corpus/nocturne/*.jpeg
+corpus/nocturne/*.png
+corpus/nocturne/*.tif
+corpus/nocturne/*.tiff
+corpus/nocturne/*.webp
+
+# Personal-library tier — binaries AND body-file text bodies are git-ignored
+corpus/personal_library/*.jpg
+corpus/personal_library/*.jpeg
+corpus/personal_library/*.png
+corpus/personal_library/*.tif
+corpus/personal_library/*.tiff
+corpus/personal_library/*.webp
+corpus/personal_library/*.body.*.txt
+
+# Generated content — pairings and audits
+pairings/
+corpus/_staging/
+
+# Home Assistant — real secrets and mutable state live only on the VM / operator machine
+ha/secrets.yaml
+ha/state/*
+!ha/state/.gitkeep
+
+# Node / Python
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+dist/
+build/
+
+# Renderer runtime inputs — mutated by HA publishers + scripts on every wake
+renderer/inputs/*
+!renderer/inputs/.gitkeep
+
+# Firmware dry-run PNG captures
+firmware/test/out/
+
+# macOS
+.DS_Store

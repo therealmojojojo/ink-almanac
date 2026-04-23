@@ -1,0 +1,229 @@
+/*
+ * Weather: header + two location rows + astro footer.
+ * Per dashboard-faces/spec.md.
+ */
+
+.weather-root {
+  grid-template-rows: auto 1fr 1fr auto;
+}
+/* Weather face pushes the battery indicator further inside the face — the
+ * 100% chrome sits too close to the edge at the shared default. */
+.weather-root .battery-indicator {
+  /* Match the 16u distance between the date baseline and the header rule. */
+  top: calc(16 * var(--u));
+  right: calc(16 * var(--u));
+  font-size: calc(22 * var(--u));  /* matches forecast day labels */
+}
+
+.weather-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-top: calc(24 * var(--u));
+  padding-bottom: calc(16 * var(--u));
+  border-bottom: 2px solid var(--ink);
+}
+.weather-header .title {
+  font-family: var(--font-mono);
+  font-size: calc(30 * var(--u));
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ink);
+}
+.weather-header .date {
+  font-family: var(--font-mono);
+  font-size: calc(25 * var(--u));
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--mid);
+}
+.weather-header .clock {
+  font-family: var(--font-serif);
+  font-variation-settings: 'opsz' 72, 'wght' 500;
+  font-feature-settings: 'tnum' 1;
+  font-size: calc(44 * var(--u));
+  line-height: 1;
+}
+
+.weather-row {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr 2fr;
+  align-items: center;
+  gap: calc(20 * var(--u));
+  padding: calc(18 * var(--u)) 0;
+}
+.weather-row + .weather-row {
+  border-top: var(--rule-faint-dashed);
+}
+.weather-row .name-block .name {
+  font-family: var(--font-mono);
+  font-size: calc(28 * var(--u));
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+/* Current block: stacked — (big temp + hi/lo) on top, condition word below.
+ * Fixed-width temp column with right-aligned text so "12°" and "4°" align
+ * vertically at their trailing edge — no drift between rows. */
+.weather-row .current {
+  display: flex;
+  flex-direction: column;
+  gap: calc(8 * var(--u));
+}
+.weather-row .current .top {
+  display: grid;
+  grid-template-columns: calc(220 * var(--u)) 1fr;
+  align-items: center;
+  gap: calc(18 * var(--u));
+}
+.weather-row .current .temp {
+  font-family: var(--font-serif);
+  font-variation-settings: 'opsz' 144, 'wght' 500;
+  font-feature-settings: 'tnum' 1;
+  font-size: calc(128 * var(--u));
+  line-height: 1;
+  text-align: right;
+}
+.weather-row .current .cond {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: calc(28 * var(--u));
+  color: var(--mid);
+  line-height: 1.15;
+  text-align: center;
+  text-transform: lowercase;
+}
+
+/* Stacked hi/lo values. Hi on top, lo on bottom. */
+.weather-row .current .hl-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(2 * var(--u));
+  margin-top: calc(4 * var(--u));
+}
+.weather-row .current .hl-row {
+  display: flex;
+  align-items: baseline;
+}
+.weather-row .current .hl-value {
+  font-family: var(--font-serif);
+  font-variation-settings: 'opsz' 36, 'wght' 500;
+  font-feature-settings: 'tnum' 1;
+  font-size: calc(32 * var(--u));
+  line-height: 1;
+}
+
+/* Mini-forecast strip */
+.weather-row .forecast {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: end;
+  gap: calc(8 * var(--u));
+  border-left: var(--rule-faint);
+  padding-left: calc(20 * var(--u));
+}
+.weather-row .forecast .cell {
+  text-align: center;
+}
+.weather-row .forecast .cell .day {
+  font-family: var(--font-mono);
+  font-size: calc(22 * var(--u)) /* chrome */;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--mid);
+}
+.weather-row .forecast .cell .wicon {
+  color: var(--mid);
+  margin: calc(4 * var(--u)) auto;
+  display: block;
+}
+/* Hi and lo share the same size so the ° glyphs align cleanly. */
+.weather-row .forecast .cell .hi,
+.weather-row .forecast .cell .lo {
+  font-family: var(--font-serif);
+  font-variation-settings: 'opsz' 36, 'wght' 500;
+  font-feature-settings: 'tnum' 1;
+  font-size: calc(30 * var(--u));
+  line-height: 1;
+  text-align: center;
+}
+.weather-row .forecast .cell .lo {
+  color: var(--mid);
+  font-variation-settings: 'opsz' 36, 'wght' 500;
+}
+
+/* ---- Astro footer (top-aligned cells) ----------------------------- */
+.weather-astro {
+  border-top: 2px solid var(--ink);
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: start;
+  padding: calc(18 * var(--u)) 0 0;
+}
+.weather-astro .cell {
+  padding: 0 calc(20 * var(--u));
+  display: flex;
+  flex-direction: column;
+  gap: calc(10 * var(--u));
+}
+.weather-astro .cell + .cell {
+  border-left: var(--rule-faint);
+}
+.weather-astro .label {
+  font-family: var(--font-mono);
+  font-size: calc(25 * var(--u));
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--mid);
+}
+
+.weather-astro .sun-times {
+  display: flex;
+  flex-direction: column;
+  gap: calc(6 * var(--u));
+}
+.weather-astro .sun-row {
+  display: flex;
+  align-items: center;
+  gap: calc(12 * var(--u));
+  font-family: var(--font-serif);
+  font-variation-settings: 'opsz' 36, 'wght' 500;
+  font-size: calc(30 * var(--u));
+}
+.weather-astro .sicon {
+  width: calc(32 * var(--u));
+  height: calc(32 * var(--u));
+  color: var(--mid);
+  flex-shrink: 0;
+}
+
+.weather-astro .moon-block {
+  display: flex;
+  align-items: center;
+  gap: calc(14 * var(--u));
+}
+.weather-astro .moon-block .moon {
+  width: calc(44 * var(--u));
+  height: calc(44 * var(--u));
+  flex-shrink: 0;
+  color: var(--ink);
+}
+.weather-astro .moon-block .phase {
+  font-family: var(--font-mono);
+  font-size: calc(25 * var(--u));
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.weather-astro .value {
+  font-family: var(--font-serif);
+  font-variation-settings: 'opsz' 36, 'wght' 500;
+  font-size: calc(28 * var(--u));
+}
+.weather-astro .detail {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: calc(25 * var(--u));
+  color: var(--mid);
+}

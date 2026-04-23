@@ -1,0 +1,562 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Fridge Dashboard</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,system-ui,sans-serif;background:#1c1b19;color:#ececec;padding:20px 12px 40px}.wrap{max-width:1280px;margin:0 auto}h1{font-weight:400;font-size:20px;margin-bottom:4px}.sub{color:#888;font-size:13px;margin-bottom:28px}.mode{margin-bottom:36px}.mode-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;padding:0 4px}.mode-name{font-size:14px;font-weight:500;color:#f5f3ee;letter-spacing:1px;text-transform:uppercase}.mode-desc{font-size:12px;color:#888;font-style:italic}.frame-wrap{position:relative;width:100%;aspect-ratio:1200/825;border-radius:4px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.55);background:#ececec}.frame-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0}.tip{margin-top:16px;padding:12px 16px;background:#262523;border-radius:4px;font-size:12px;color:#999;border-left:3px solid #d4a574;line-height:1.6}</style></head><body><div class="wrap"><h1>Fridge Dashboard · four modes, five faces</h1><div class="sub">Gallery alternates visual / text days · Summary delight is the thematic companion</div><div class="mode"><div class="mode-head"><div class="mode-name">1 · Summary</div><div class="mode-desc">06:30–10:00 · morning</div></div><div class="frame-wrap"><iframe srcdoc="&lt;!doctype html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1, viewport-fit=cover&quot;&gt;
+&lt;title&gt;Fridge Dashboard · v4&lt;/title&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,400&amp;family=IBM+Plex+Mono:wght@400&amp;family=IBM+Plex+Sans:wght@300;400;500&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;style&gt;
+  :root {
+    --ink: #000; --mid: #555; --faint: #a8a8a8; --paper: #ececec;
+    --u: min(calc((100vw - 8px) / 1200), calc((100vh - 32px) / 825));
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { background: #1c1b19; display: flex; align-items: center; justify-content: center; font-family: &#x27;IBM Plex Sans&#x27;, sans-serif; overflow: hidden; }
+  .frame {
+    width: calc(1200 * var(--u)); height: calc(825 * var(--u));
+    background: var(--paper); color: var(--ink);
+    padding: calc(36 * var(--u)) calc(48 * var(--u));
+    display: grid; grid-template-rows: auto auto 1fr; gap: calc(18 * var(--u));
+    box-shadow: 0 calc(16 * var(--u)) calc(60 * var(--u)) rgba(0,0,0,.55);
+    position: relative;
+  }
+  .micro { font-family: &#x27;IBM Plex Mono&#x27;, monospace; font-size: calc(25 * var(--u)); letter-spacing: calc(3 * var(--u)); text-transform: uppercase; color: var(--mid); font-weight: 400; }
+
+  /* TOP: clock + current weather */
+  .top { display: grid; grid-template-columns: 1.3fr 1fr; gap: calc(40 * var(--u)); align-items: end; }
+  .clock { font-family: &#x27;Fraunces&#x27;, serif; font-weight: 300; font-variation-settings: &quot;opsz&quot; 144; font-size: calc(230 * var(--u)); line-height: .82; letter-spacing: calc(-8 * var(--u)); font-feature-settings: &quot;tnum&quot; 1; }
+  .date { margin-top: calc(16 * var(--u)); font-family: &#x27;IBM Plex Mono&#x27;, monospace; font-size: calc(25 * var(--u)); letter-spacing: calc(3 * var(--u)); text-transform: uppercase; color: var(--mid); }
+  .weather-now { text-align: right; border-left: 1px solid var(--faint); padding-left: calc(32 * var(--u)); }
+  .temp-big { font-family: &#x27;Fraunces&#x27;, serif; font-weight: 300; font-size: calc(140 * var(--u)); line-height: .88; letter-spacing: calc(-3 * var(--u)); }
+  .temp-big sup { font-size: calc(48 * var(--u)); font-weight: 400; position: relative; top: calc(28 * var(--u)); }
+  .cond { margin-top: calc(10 * var(--u)); font-family: &#x27;IBM Plex Mono&#x27;, monospace; font-size: calc(25 * var(--u)); letter-spacing: calc(3 * var(--u)); text-transform: uppercase; color: var(--mid); }
+  .hilo { margin-top: calc(8 * var(--u)); font-size: calc(26 * var(--u)); color: var(--mid); letter-spacing: calc(.5 * var(--u)); }
+
+  /* 3-DAY FORECAST */
+  .forecast { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--faint); border-bottom: 1px solid var(--faint); padding: calc(16 * var(--u)) 0; }
+  .fc { display: grid; grid-template-columns: auto 1fr auto; align-items: center; padding: 0 calc(22 * var(--u)); border-right: 1px dashed var(--faint); gap: calc(18 * var(--u)); }
+  .fc:last-child { border-right: none; }
+  .fc svg { width: calc(52 * var(--u)); height: calc(52 * var(--u)); }
+  .fc .day { font-family: &#x27;IBM Plex Mono&#x27;, monospace; font-size: calc(25 * var(--u)); color: var(--ink); letter-spacing: calc(3 * var(--u)); text-transform: uppercase; font-weight: 400; }
+  .fc .cond-sm { font-family: &#x27;IBM Plex Sans&#x27;, sans-serif; font-size: calc(25 * var(--u)); color: var(--mid); margin-top: calc(4 * var(--u)); font-weight: 300; }
+  .fc .temps { font-family: &#x27;Fraunces&#x27;, serif; font-weight: 300; font-size: calc(44 * var(--u)); text-align: right; line-height: 1; }
+  .fc .temps .lo { color: var(--mid); font-size: calc(28 * var(--u)); margin-left: calc(6 * var(--u)); }
+
+  /* BOTTOM */
+  .bottom { display: grid; grid-template-columns: 1.45fr 1fr; gap: calc(36 * var(--u)); border-top: calc(2 * var(--u)) solid var(--ink); padding-top: calc(22 * var(--u)); min-height: 0; }
+
+  .delight { display: flex; flex-direction: column; gap: calc(16 * var(--u)); }
+  .haiku { font-family: &#x27;Fraunces&#x27;, serif; font-style: italic; font-weight: 400; font-size: calc(54 * var(--u)); line-height: 1.28; }
+  .haiku-attr { font-family: &#x27;IBM Plex Mono&#x27;, monospace; font-size: calc(25 * var(--u)); color: var(--mid); letter-spacing: calc(2 * var(--u)); text-transform: uppercase; margin-top: auto; }
+
+  .sidebar { border-left: 1px solid var(--faint); padding-left: calc(28 * var(--u)); display: grid; grid-template-rows: auto 1fr; gap: calc(20 * var(--u)); min-height: 0; }
+
+  .climate { display: grid; grid-template-columns: 1fr 1fr; gap: calc(16 * var(--u)); padding-bottom: calc(18 * var(--u)); border-bottom: 1px dashed var(--faint); }
+  .cl-val { font-family: &#x27;Fraunces&#x27;, serif; font-weight: 300; font-size: calc(64 * var(--u)); line-height: 1; letter-spacing: calc(-1 * var(--u)); }
+  .cl-lbl { margin-top: calc(8 * var(--u)); }
+
+  .feed { display: flex; flex-direction: column; gap: calc(14 * var(--u)); min-height: 0; }
+  .hn-item { display: grid; grid-template-columns: auto 1fr; gap: calc(14 * var(--u)); align-items: baseline; }
+  .hn-num { font-family: &#x27;Fraunces&#x27;, serif; font-weight: 300; font-size: calc(44 * var(--u)); color: var(--mid); line-height: 1; }
+  .hn-title { font-family: &#x27;IBM Plex Sans&#x27;, sans-serif; font-weight: 400; font-size: calc(26 * var(--u)); line-height: 1.25; }
+  .batt { position:absolute; top:calc(16*var(--u)); right:calc(20*var(--u)); display:flex; align-items:center; gap:calc(6*var(--u)); font-family:&#x27;IBM Plex Mono&#x27;,monospace; font-size:calc(14*var(--u)); color:var(--mid); letter-spacing:calc(1*var(--u)); }
+  .batt svg { width:calc(22*var(--u)); height:calc(12*var(--u)); }
+  .ico { stroke: var(--ink); stroke-width: 1.4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;frame&quot;&gt;
+  &lt;div class=&quot;batt&quot;&gt;
+    &lt;svg viewBox=&quot;0 0 22 12&quot; class=&quot;ico&quot; preserveAspectRatio=&quot;none&quot;&gt;
+      &lt;rect x=&quot;0.5&quot; y=&quot;0.5&quot; width=&quot;18&quot; height=&quot;11&quot; rx=&quot;1.5&quot;/&gt;
+      &lt;rect x=&quot;19.5&quot; y=&quot;3.5&quot; width=&quot;2&quot; height=&quot;5&quot; rx=&quot;.5&quot; fill=&quot;#000&quot; stroke=&quot;none&quot;/&gt;
+      &lt;rect x=&quot;2&quot; y=&quot;2&quot; width=&quot;13.5&quot; height=&quot;8&quot; fill=&quot;#000&quot; stroke=&quot;none&quot;/&gt;
+    &lt;/svg&gt;
+    82%
+  &lt;/div&gt;
+  &lt;div class=&quot;top&quot;&gt;
+    &lt;div&gt;
+      &lt;div class=&quot;clock&quot;&gt;08:47&lt;/div&gt;
+      &lt;div class=&quot;date&quot;&gt;Sunday · 12 April&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;weather-now&quot;&gt;
+      &lt;div class=&quot;temp-big&quot;&gt;11&lt;sup&gt;°&lt;/sup&gt;&lt;/div&gt;
+      &lt;div class=&quot;cond&quot;&gt;Partly Cloudy&lt;/div&gt;
+      &lt;div class=&quot;hilo&quot;&gt;H 17°  ·  L 6°  ·  rain 20%&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;forecast&quot;&gt;
+    &lt;div class=&quot;fc&quot;&gt;
+      &lt;svg viewBox=&quot;0 0 32 32&quot; class=&quot;ico&quot;&gt;&lt;path d=&quot;M9 18a5 5 0 0 1 0-10 6 6 0 0 1 12 0 4 4 0 0 1 0 10z&quot;/&gt;&lt;/svg&gt;
+      &lt;div&gt;&lt;div class=&quot;day&quot;&gt;Mon&lt;/div&gt;&lt;div class=&quot;cond-sm&quot;&gt;Cloudy&lt;/div&gt;&lt;/div&gt;
+      &lt;div class=&quot;temps&quot;&gt;18°&lt;span class=&quot;lo&quot;&gt;9°&lt;/span&gt;&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;fc&quot;&gt;
+      &lt;svg viewBox=&quot;0 0 32 32&quot; class=&quot;ico&quot;&gt;&lt;path d=&quot;M9 18a5 5 0 0 1 0-10 6 6 0 0 1 12 0 4 4 0 0 1 0 10z&quot;/&gt;&lt;path d=&quot;M12 22l-1.5 4M18 22l-1.5 4M22 22l-1.5 4&quot;/&gt;&lt;/svg&gt;
+      &lt;div&gt;&lt;div class=&quot;day&quot;&gt;Tue&lt;/div&gt;&lt;div class=&quot;cond-sm&quot;&gt;Light rain&lt;/div&gt;&lt;/div&gt;
+      &lt;div class=&quot;temps&quot;&gt;14°&lt;span class=&quot;lo&quot;&gt;7°&lt;/span&gt;&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;fc&quot;&gt;
+      &lt;svg viewBox=&quot;0 0 32 32&quot; class=&quot;ico&quot;&gt;&lt;circle cx=&quot;16&quot; cy=&quot;16&quot; r=&quot;6&quot;/&gt;&lt;path d=&quot;M16 3v4M16 25v4M3 16h4M25 16h4M6.5 6.5l3 3M22.5 22.5l3 3M6.5 25.5l3-3M22.5 9.5l3-3&quot;/&gt;&lt;/svg&gt;
+      &lt;div&gt;&lt;div class=&quot;day&quot;&gt;Wed&lt;/div&gt;&lt;div class=&quot;cond-sm&quot;&gt;Clear&lt;/div&gt;&lt;/div&gt;
+      &lt;div class=&quot;temps&quot;&gt;20°&lt;span class=&quot;lo&quot;&gt;10°&lt;/span&gt;&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;bottom&quot;&gt;
+    &lt;div class=&quot;delight&quot;&gt;
+      &lt;div class=&quot;micro&quot;&gt;Today · haiku&lt;/div&gt;
+      &lt;div class=&quot;haiku&quot;&gt;An old silent pond —&lt;br&gt;a frog jumps in,&lt;br&gt;splash! Silence again.&lt;/div&gt;
+      &lt;div class=&quot;haiku-attr&quot;&gt;Matsuo Bashō&lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div class=&quot;sidebar&quot;&gt;
+      &lt;div class=&quot;climate&quot;&gt;
+        &lt;div&gt;
+          &lt;div class=&quot;cl-val&quot;&gt;22.4°&lt;/div&gt;
+          &lt;div class=&quot;cl-lbl micro&quot;&gt;Kitchen&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div&gt;
+          &lt;div class=&quot;cl-val&quot;&gt;47&lt;span style=&quot;font-size:.5em&quot;&gt;%&lt;/span&gt;&lt;/div&gt;
+          &lt;div class=&quot;cl-lbl micro&quot;&gt;Humidity&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;feed&quot;&gt;
+        &lt;div class=&quot;micro&quot;&gt;Hacker News&lt;/div&gt;
+        &lt;div class=&quot;hn-item&quot;&gt;
+          &lt;div class=&quot;hn-num&quot;&gt;1&lt;/div&gt;
+          &lt;div class=&quot;hn-title&quot;&gt;Why small teams ship faster: the coordination tax&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;hn-item&quot;&gt;
+          &lt;div class=&quot;hn-num&quot;&gt;2&lt;/div&gt;
+          &lt;div class=&quot;hn-title&quot;&gt;Show HN: a local-first RSS reader in Rust&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe></div></div><div class="mode"><div class="mode-head"><div class="mode-name">2 · Weather</div><div class="mode-desc">on-demand · 5 min peek</div></div><div class="frame-wrap"><iframe srcdoc="&lt;!doctype html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1, viewport-fit=cover&quot;&gt;
+&lt;title&gt;Fridge Dashboard · v5 · Weather&lt;/title&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500&amp;family=IBM+Plex+Mono:wght@400&amp;family=IBM+Plex+Sans:wght@300;400&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;style&gt;
+  :root { --ink:#000; --mid:#555; --faint:#a8a8a8; --paper:#ececec;
+    --u: min(calc((100vw - 8px) / 1200), calc((100vh - 32px) / 825)); }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { background:#1c1b19; display:flex; align-items:center; justify-content:center; font-family:&#x27;IBM Plex Sans&#x27;,sans-serif; overflow:hidden; }
+  .frame { width:calc(1200*var(--u)); height:calc(825*var(--u)); background:var(--paper); color:var(--ink);
+    padding:calc(36*var(--u)) calc(48*var(--u)); display:grid; grid-template-rows:auto 1fr auto; gap:calc(20*var(--u));
+    box-shadow:0 calc(16*var(--u)) calc(60*var(--u)) rgba(0,0,0,.55); position:relative; overflow:hidden; }
+  .micro { font-family:&#x27;IBM Plex Mono&#x27;,monospace; font-size:calc(25*var(--u)); letter-spacing:calc(3*var(--u)); text-transform:uppercase; color:var(--mid); }
+  .header { display:grid; grid-template-columns:auto 1fr auto; align-items:baseline; gap:calc(24*var(--u)); border-bottom:calc(2*var(--u)) solid var(--ink); padding-bottom:calc(14*var(--u)); }
+  .mode { font-family:&#x27;Fraunces&#x27;,serif; font-weight:300; font-size:calc(52*var(--u)); line-height:1; letter-spacing:calc(-1*var(--u)); }
+  .time { font-family:&#x27;Fraunces&#x27;,serif; font-weight:300; font-size:calc(52*var(--u)); line-height:1; font-feature-settings:&quot;tnum&quot; 1; }
+  .date-inline { text-align:center; }
+  /* Content budget 1104u. Loc: 460 + 28 gap + 616 = 1104u exactly */
+  .loc { display:grid; grid-template-columns: calc(460*var(--u)) calc(616*var(--u)); gap:calc(28*var(--u)); align-items:center; padding:calc(18*var(--u)) 0; overflow:hidden; }
+  .loc + .loc { border-top:1px dashed var(--faint); }
+  .loc-left { min-width:0; overflow:hidden; }
+  .loc-name { font-family:&#x27;Fraunces&#x27;,serif; font-weight:300; font-size:calc(62*var(--u)); line-height:1; letter-spacing:calc(-1.5*var(--u)); }
+  .loc-sub { margin-top:calc(6*var(--u)); font-family:&#x27;IBM Plex Mono&#x27;,monospace; font-size:calc(25*var(--u)); letter-spacing:calc(2.5*var(--u)); text-transform:uppercase; color:var(--mid); }
+  .loc-now { margin-top:calc(12*var(--u)); display:flex; flex-direction:column; gap:calc(8*var(--u)); }
+  .loc-now-row { display:flex; align-items:center; gap:calc(20*var(--u)); }
+  .loc-now-row svg { width:calc(56*var(--u)); height:calc(56*var(--u)); flex-shrink:0; }
+  .loc-temp { font-family:&#x27;Fraunces&#x27;,serif; font-weight:300; font-size:calc(110*var(--u)); line-height:.9; letter-spacing:calc(-3*var(--u)); }
+  .loc-temp sup { font-size:calc(38*var(--u)); position:relative; top:calc(22*var(--u)); }
+  .loc-detail { font-size:calc(25*var(--u)); color:var(--mid); line-height:1.35; letter-spacing:calc(.5*var(--u)); }
+  .loc-right { display:grid; grid-template-columns:repeat(5, calc(116*var(--u))); gap:0; border-left:1px solid var(--faint); padding-left:calc(24*var(--u)); overflow:hidden; }
+  .fd { text-align:center; display:flex; flex-direction:column; gap:calc(6*var(--u)); align-items:center; }
+  .fd .d { font-family:&#x27;IBM Plex Mono&#x27;,monospace; font-size:calc(25*var(--u)); color:var(--mid); letter-spacing:calc(2*var(--u)); text-transform:uppercase; }
+  .fd svg { width:calc(38*var(--u)); height:calc(38*var(--u)); }
+  .fd .t { font-family:&#x27;Fraunces&#x27;,serif; font-weight:300; font-size:calc(32*var(--u)); line-height:1; }
+  .fd .lo { font-size:calc(22*var(--u)); color:var(--mid); }
+  .footer { display:flex; justify-content:space-between; align-items:baseline; border-top:1px solid var(--faint); padding-top:calc(14*var(--u)); }
+  .sun { font-size:calc(25*var(--u)); color:var(--mid); letter-spacing:calc(1*var(--u)); }
+  /* Content budget: 1200 - 2*48 padding = 1104u
+     Astro: 300 + 340 + 320 + 2*28 gaps = 1016u (fits with 88u margin) */
+  .astro { display:grid; grid-template-columns: calc(300*var(--u)) calc(340*var(--u)) calc(320*var(--u)); gap:calc(28*var(--u)); border-top:calc(2*var(--u)) solid var(--ink); padding-top:calc(18*var(--u)); align-items:center; overflow:hidden; }
+  .astro-sun, .astro-event { min-width:0; overflow:hidden; }
+  .astro-event { text-align:right; }
+  .astro-moon { display:flex; align-items:center; gap:calc(16*var(--u)); padding:0 calc(20*var(--u)); border-left:1px solid var(--faint); border-right:1px solid var(--faint); min-width:0; overflow:hidden; }
+  .astro-moon svg { flex-shrink:0; }
+  .astro-moon &gt; div { min-width:0; overflow:hidden; }
+  .astro-label { font-family:&#x27;IBM Plex Mono&#x27;,monospace; font-size:calc(25*var(--u)); letter-spacing:calc(2.5*var(--u)); text-transform:uppercase; color:var(--mid); white-space:nowrap; }
+  .astro-vals { font-family:&#x27;Fraunces&#x27;,serif; font-weight:300; font-size:calc(30*var(--u)); line-height:1.15; margin-top:calc(4*var(--u)); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .astro-sub { font-size:calc(23*var(--u)); color:var(--mid); margin-top:calc(4*var(--u)); letter-spacing:calc(.5*var(--u)); line-height:1.2; }
+  .ico { stroke:var(--ink); stroke-width:1.4; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;frame&quot;&gt;
+  &lt;div class=&quot;header&quot;&gt;
+    &lt;div class=&quot;mode&quot;&gt;Weather&lt;/div&gt;
+    &lt;div class=&quot;date-inline micro&quot;&gt;Sunday · 12 April&lt;/div&gt;
+    &lt;div class=&quot;time&quot;&gt;08:47&lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div&gt;
+    &lt;div class=&quot;loc&quot;&gt;
+      &lt;div class=&quot;loc-left&quot;&gt;
+        &lt;div class=&quot;loc-name&quot;&gt;${PLACE_A_NAME}&lt;/div&gt;
+        &lt;div class=&quot;loc-sub&quot;&gt;Home · 95m&lt;/div&gt;
+        &lt;div class=&quot;loc-now&quot;&gt;
+          &lt;div class=&quot;loc-now-row&quot;&gt;
+            &lt;svg viewBox=&quot;0 0 32 32&quot; class=&quot;ico&quot;&gt;&lt;circle cx=&quot;11&quot; cy=&quot;12&quot; r=&quot;4&quot;/&gt;&lt;path d=&quot;M11 5v2M5 12h2M6.5 7.5l1.5 1.5&quot;/&gt;&lt;path d=&quot;M10 22a6 6 0 0 1 0-12 7 7 0 0 1 14 .5A5 5 0 0 1 24 22z&quot;/&gt;&lt;/svg&gt;
+          &lt;div class=&quot;loc-temp&quot;&gt;11&lt;sup&gt;°&lt;/sup&gt;&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;loc-detail&quot;&gt;Partly cloudy · feels 9°&lt;br&gt;H 17° · L 6° · rain 20%&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;loc-right&quot;&gt;
+        &lt;div class=&quot;fd&quot;&gt;&lt;div class=&quot;d&quot;&gt;Mon&lt;/div&gt;&lt;svg viewBox=&quot;0 0 32 32&quot; class=&quot;ico&quot;&gt;&lt;path d=&quot;M9 18a5 5 0 0 1 0-10 6 6 0 0 1 12 0 4 4 0 0 1 0 10z&quot;/&gt;&lt;/svg&gt;&lt;div class=&quot;t&quot;&gt;18°&lt;/div&gt;&lt;div class=&quot;lo&quot;&gt;9°&lt;/div&gt;&lt;/div&gt;
+        &lt;div class=&quot;fd&quot;&gt;&lt;div class=&quot;d&quot;&gt;Tue&lt;/div&gt;&lt;svg viewBox=&quot;0 0 32 32&quot; class=&quot;ico&quot;&gt;&lt;path d=&quot;M9 18a5 5 0 0 1 0-10 6 6 0 0 1 12 0 4 4 0 0 1 0 10z&quot;/&gt;&lt;path d=&quot;M12 22l-1.5 4M18 22l-1.5 4M22 22l-1.5 4&quot;/&gt;&lt;/svg&gt;&lt;div class=&quot;t&quot;&gt;14°&lt;/div&gt;&lt;div class=&quot;lo&quot;&gt;7°&lt;/div&gt;&lt;/div&gt;
+        &lt;div class=&quot;fd&quot;&gt;&lt;div class=&quot;d&quot;&gt;Wed&lt;/div&gt;&lt;svg viewBox=&quot;0 0 32 32&quot; class=&quot;ico&quot;&gt;&lt;circle cx=&quot;16&quot; cy=&quot;16&quot; r=&quot;6&quot;/&gt;&lt;path d=&quot;M16 3v4M16 25v4M3 16h4M25 16h4M6.5 6.5l3 3M22.5 22.5l3 3M6.5 25.5l3-3M22.5 9.5l3-3&quot;/&gt;&lt;/svg&gt;&lt;div class=&quot;t&quot;&gt;20°&lt;/div&gt;&lt;div class=&quot;lo&quot;&gt;10°&lt;/div&gt;&lt;/div&gt;
+        &lt;div class=&quot;fd&quot;&gt;&lt;div class=&quot;d&quot;&gt;Thu&lt;/div&gt;&lt;svg viewBox=&quot;0 0 32 32&quot; class=&quot;ico&quot;&gt;&lt;circle cx=&quot;16&quot; cy=&quot;16&quot; r=&quot;6&quot;/&gt;&lt;path d=&quot;M16 3v4M16 25v4M3 16h4M25 16h4M6.5 6.5l3 3M22.5 22.5l3 3M6.5 25.5l3-3M22.5 9.5l3-3&quot;/&gt;&lt;/svg&gt;&lt;div class=&quot;t&quot;&gt;22°&lt;/div&gt;&lt;div class=&quot;lo&quot;&gt;11°&lt;/div&gt;&lt;/div&gt;
+        &lt;div class=&quot;fd&quot;&gt;&lt;div class=&quot;d&quot;&gt;Fri&lt;/div&gt;&lt;svg viewBox=&quot;0 0 32 32&quot; class=&quot;ico&quot;&gt;&lt;path d=&quot;M9 18a5 5 0 0 1 0-10 6 6 0 0 1 12 0 4 4 0 0 1 0 10z&quot;/&gt;&lt;/svg&gt;&lt;div class=&quot;t&quot;&gt;19°&lt;/div&gt;&lt;div class=&quot;lo&quot;&gt;10°&lt;/div&gt;&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div class=&quot;loc&quot;&gt;
+      &lt;div class=&quot;loc-left&quot;&gt;
+        &lt;div class=&quot;loc-name&quot;&gt;${PLACE_B_NAME}&lt;/div&gt;
+        &lt;div class=&quot;loc-sub&quot;&gt;Mountains · 900m&lt;/div&gt;
+        &lt;div class=&quot;loc-now&quot;&gt;
+          &lt;div class=&quot;loc-now-row&quot;&gt;
+            &lt;svg viewBox=&quot;0 0 32 32&quot; class=&quot;ico&quot;&gt;&lt;circle cx=&quot;16&quot; cy=&quot;16&quot; r=&quot;6&quot;/&gt;&lt;path d=&quot;M16 3v4M16 25v4M3 16h4M25 16h4M6.5 6.5l3 3M22.5 22.5l3 3M6.5 25.5l3-3M22.5 9.5l3-3&quot;/&gt;&lt;/svg&gt;
+          &lt;div class=&quot;loc-temp&quot;&gt;5&lt;sup&gt;°&lt;/sup&gt;&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;loc-detail&quot;&gt;Clear · crisp · feels 2°&lt;br&gt;H 9° · L −1° · snow 0%&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;loc-right&quot;&gt;
+        &lt;div class=&quot;fd&quot;&gt;&lt;div class=&quot;d&quot;&gt;Mon&lt;/div&gt;&lt;svg viewBox=&quot;0 0 32 32&quot; class=&quot;ico&quot;&gt;&lt;circle cx=&quot;16&quot; cy=&quot;16&quot; r=&quot;6&quot;/&gt;&lt;path d=&quot;M16 3v4M16 25v4M3 16h4M25 16h4&quot;/&gt;&lt;/svg&gt;&lt;div class=&quot;t&quot;&gt;10°&lt;/div&gt;&lt;div class=&quot;lo&quot;&gt;0°&lt;/div&gt;&lt;/div&gt;
+        &lt;div class=&quot;fd&quot;&gt;&lt;div class=&quot;d&quot;&gt;Tue&lt;/div&gt;&lt;svg viewBox=&quot;0 0 32 32&quot; class=&quot;ico&quot;&gt;&lt;path d=&quot;M9 18a5 5 0 0 1 0-10 6 6 0 0 1 12 0 4 4 0 0 1 0 10z&quot;/&gt;&lt;path d=&quot;M12 22l-1.5 4M18 22l-1.5 4M22 22l-1.5 4&quot;/&gt;&lt;/svg&gt;&lt;div class=&quot;t&quot;&gt;7°&lt;/div&gt;&lt;div class=&quot;lo&quot;&gt;−2°&lt;/div&gt;&lt;/div&gt;
+        &lt;div class=&quot;fd&quot;&gt;&lt;div class=&quot;d&quot;&gt;Wed&lt;/div&gt;&lt;svg viewBox=&quot;0 0 32 32&quot; class=&quot;ico&quot;&gt;&lt;circle cx=&quot;16&quot; cy=&quot;16&quot; r=&quot;6&quot;/&gt;&lt;path d=&quot;M16 3v4M16 25v4M3 16h4M25 16h4&quot;/&gt;&lt;/svg&gt;&lt;div class=&quot;t&quot;&gt;12°&lt;/div&gt;&lt;div class=&quot;lo&quot;&gt;1°&lt;/div&gt;&lt;/div&gt;
+        &lt;div class=&quot;fd&quot;&gt;&lt;div class=&quot;d&quot;&gt;Thu&lt;/div&gt;&lt;svg viewBox=&quot;0 0 32 32&quot; class=&quot;ico&quot;&gt;&lt;circle cx=&quot;16&quot; cy=&quot;16&quot; r=&quot;6&quot;/&gt;&lt;path d=&quot;M16 3v4M16 25v4&quot;/&gt;&lt;/svg&gt;&lt;div class=&quot;t&quot;&gt;13°&lt;/div&gt;&lt;div class=&quot;lo&quot;&gt;2°&lt;/div&gt;&lt;/div&gt;
+        &lt;div class=&quot;fd&quot;&gt;&lt;div class=&quot;d&quot;&gt;Fri&lt;/div&gt;&lt;svg viewBox=&quot;0 0 32 32&quot; class=&quot;ico&quot;&gt;&lt;path d=&quot;M9 18a5 5 0 0 1 0-10 6 6 0 0 1 12 0 4 4 0 0 1 0 10z&quot;/&gt;&lt;/svg&gt;&lt;div class=&quot;t&quot;&gt;11°&lt;/div&gt;&lt;div class=&quot;lo&quot;&gt;0°&lt;/div&gt;&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;astro&quot;&gt;
+    &lt;div class=&quot;astro-sun&quot;&gt;
+      &lt;div class=&quot;astro-label&quot;&gt;Sun&lt;/div&gt;
+      &lt;div class=&quot;astro-vals&quot;&gt;↑ 06:42  ·  ↓ 19:51&lt;/div&gt;
+      &lt;div class=&quot;astro-sub&quot;&gt;Daylight 13h 09m&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;astro-moon&quot;&gt;
+      &lt;svg viewBox=&quot;0 0 60 60&quot; width=&quot;calc(80*var(--u))&quot; height=&quot;calc(80*var(--u))&quot;&gt;
+        &lt;circle cx=&quot;30&quot; cy=&quot;30&quot; r=&quot;26&quot; fill=&quot;#ececec&quot; stroke=&quot;#000&quot; stroke-width=&quot;1.2&quot;/&gt;
+        &lt;path d=&quot;M 30 4 A 26 26 0 0 1 30 56 A 20 26 0 0 0 30 4 Z&quot; fill=&quot;#000&quot;/&gt;
+      &lt;/svg&gt;
+      &lt;div&gt;
+        &lt;div class=&quot;astro-label&quot;&gt;Moon&lt;/div&gt;
+        &lt;div class=&quot;astro-vals&quot;&gt;Waxing gibbous · 78%&lt;/div&gt;
+        &lt;div class=&quot;astro-sub&quot;&gt;Full moon · Tue 14 Apr&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;astro-event&quot;&gt;
+      &lt;div class=&quot;astro-label&quot;&gt;Tonight&lt;/div&gt;
+      &lt;div class=&quot;astro-vals&quot;&gt;Lyrid meteor shower&lt;/div&gt;
+      &lt;div class=&quot;astro-sub&quot;&gt;Peak 10–15/hr&lt;br&gt;Best after 23:30 · NE&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe></div></div><div class="mode"><div class="mode-head"><div class="mode-name">3a · Gallery (visual day)</div><div class="mode-desc">visual pool · ~60% of days</div></div><div class="frame-wrap"><iframe srcdoc="&lt;!doctype html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1, viewport-fit=cover&quot;&gt;
+&lt;title&gt;Fridge Dashboard · v6 · Gallery&lt;/title&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,400&amp;family=IBM+Plex+Mono:wght@400&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;style&gt;
+  :root { --ink:#000; --mid:#555; --faint:#a8a8a8; --paper:#ececec;
+    --u: min(calc((100vw - 8px) / 1200), calc((100vh - 32px) / 825)); }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { background:#1c1b19; display:flex; align-items:center; justify-content:center; font-family:&#x27;IBM Plex Sans&#x27;,sans-serif; overflow:hidden; }
+  .frame { width:calc(1200*var(--u)); height:calc(825*var(--u)); background:var(--paper); color:var(--ink);
+    box-shadow:0 calc(16*var(--u)) calc(60*var(--u)) rgba(0,0,0,.55); position:relative; overflow:hidden; }
+  .art { position:absolute; inset:calc(32*var(--u)) calc(40*var(--u)) calc(120*var(--u)) calc(40*var(--u)); }
+  .art svg { width:100%; height:100%; }
+  .caption { position:absolute; left:calc(40*var(--u)); right:calc(40*var(--u)); bottom:calc(30*var(--u)); display:flex; justify-content:space-between; align-items:flex-end; gap:calc(24*var(--u)); border-top:1px solid var(--ink); padding-top:calc(18*var(--u)); }
+  .title { font-family:&#x27;Fraunces&#x27;,serif; font-style:italic; font-weight:400; font-size:calc(40*var(--u)); line-height:1.1; letter-spacing:calc(-.5*var(--u)); }
+  .meta { margin-top:calc(8*var(--u)); font-family:&#x27;IBM Plex Mono&#x27;,monospace; font-size:calc(25*var(--u)); letter-spacing:calc(2.5*var(--u)); text-transform:uppercase; color:var(--mid); }
+  .time { font-family:&#x27;Fraunces&#x27;,serif; font-weight:300; font-size:calc(52*var(--u)); line-height:1; font-feature-settings:&quot;tnum&quot; 1; text-align:right; white-space:nowrap; }
+  .date { margin-top:calc(6*var(--u)); font-family:&#x27;IBM Plex Mono&#x27;,monospace; font-size:calc(25*var(--u)); letter-spacing:calc(2.5*var(--u)); text-transform:uppercase; color:var(--mid); text-align:right; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;frame&quot;&gt;
+
+  &lt;!-- Placeholder &quot;lithograph&quot;: stylized mountain village scene with dense linework --&gt;
+  &lt;div class=&quot;art&quot;&gt;
+    &lt;svg viewBox=&quot;0 0 1120 573&quot; preserveAspectRatio=&quot;xMidYMid slice&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;&gt;
+      &lt;defs&gt;
+        &lt;pattern id=&quot;hatch&quot; patternUnits=&quot;userSpaceOnUse&quot; width=&quot;6&quot; height=&quot;6&quot; patternTransform=&quot;rotate(45)&quot;&gt;
+          &lt;line x1=&quot;0&quot; y1=&quot;0&quot; x2=&quot;0&quot; y2=&quot;6&quot; stroke=&quot;#000&quot; stroke-width=&quot;.7&quot; opacity=&quot;.4&quot;/&gt;
+        &lt;/pattern&gt;
+        &lt;pattern id=&quot;hatchDense&quot; patternUnits=&quot;userSpaceOnUse&quot; width=&quot;3&quot; height=&quot;3&quot; patternTransform=&quot;rotate(45)&quot;&gt;
+          &lt;line x1=&quot;0&quot; y1=&quot;0&quot; x2=&quot;0&quot; y2=&quot;3&quot; stroke=&quot;#000&quot; stroke-width=&quot;.7&quot; opacity=&quot;.8&quot;/&gt;
+        &lt;/pattern&gt;
+      &lt;/defs&gt;
+      &lt;!-- sky --&gt;
+      &lt;rect x=&quot;0&quot; y=&quot;0&quot; width=&quot;1120&quot; height=&quot;380&quot; fill=&quot;#ececec&quot;/&gt;
+      &lt;!-- distant mountains --&gt;
+      &lt;path d=&quot;M0 280 L120 210 L220 250 L340 180 L460 230 L580 170 L720 220 L860 160 L980 210 L1120 175 L1120 380 L0 380 Z&quot; fill=&quot;url(#hatch)&quot; stroke=&quot;#000&quot; stroke-width=&quot;1&quot;/&gt;
+      &lt;!-- mid mountains --&gt;
+      &lt;path d=&quot;M0 340 L180 260 L320 310 L460 240 L620 300 L780 250 L920 310 L1120 270 L1120 440 L0 440 Z&quot; fill=&quot;url(#hatchDense)&quot; stroke=&quot;#000&quot; stroke-width=&quot;1.2&quot;/&gt;
+      &lt;!-- foreground hill --&gt;
+      &lt;path d=&quot;M0 440 L200 380 L400 420 L620 370 L820 410 L1120 380 L1120 573 L0 573 Z&quot; fill=&quot;#ececec&quot; stroke=&quot;#000&quot; stroke-width=&quot;1.4&quot;/&gt;
+      &lt;!-- village cluster --&gt;
+      &lt;g stroke=&quot;#000&quot; fill=&quot;#ececec&quot; stroke-width=&quot;1.2&quot;&gt;
+        &lt;!-- church with steeple --&gt;
+        &lt;rect x=&quot;480&quot; y=&quot;390&quot; width=&quot;50&quot; height=&quot;60&quot;/&gt;
+        &lt;polygon points=&quot;480,390 505,360 530,390&quot;/&gt;
+        &lt;line x1=&quot;505&quot; y1=&quot;360&quot; x2=&quot;505&quot; y2=&quot;340&quot;/&gt;
+        &lt;line x1=&quot;500&quot; y1=&quot;348&quot; x2=&quot;510&quot; y2=&quot;348&quot;/&gt;
+        &lt;!-- houses --&gt;
+        &lt;rect x=&quot;390&quot; y=&quot;410&quot; width=&quot;45&quot; height=&quot;38&quot;/&gt;
+        &lt;polygon points=&quot;390,410 412,390 435,410&quot;/&gt;
+        &lt;rect x=&quot;545&quot; y=&quot;408&quot; width=&quot;40&quot; height=&quot;40&quot;/&gt;
+        &lt;polygon points=&quot;545,408 565,386 585,408&quot;/&gt;
+        &lt;rect x=&quot;600&quot; y=&quot;415&quot; width=&quot;50&quot; height=&quot;36&quot;/&gt;
+        &lt;polygon points=&quot;600,415 625,392 650,415&quot;/&gt;
+        &lt;rect x=&quot;335&quot; y=&quot;420&quot; width=&quot;38&quot; height=&quot;30&quot;/&gt;
+        &lt;polygon points=&quot;335,420 354,402 373,420&quot;/&gt;
+        &lt;rect x=&quot;665&quot; y=&quot;418&quot; width=&quot;42&quot; height=&quot;32&quot;/&gt;
+        &lt;polygon points=&quot;665,418 686,398 707,418&quot;/&gt;
+      &lt;/g&gt;
+      &lt;!-- trees (tall, conical, dense hatching) --&gt;
+      &lt;g stroke=&quot;#000&quot; stroke-width=&quot;1&quot; fill=&quot;#ececec&quot;&gt;
+        &lt;polygon points=&quot;240,455 250,380 260,455&quot;/&gt;
+        &lt;polygon points=&quot;258,460 270,378 282,460&quot;/&gt;
+        &lt;polygon points=&quot;740,458 752,385 764,458&quot;/&gt;
+        &lt;polygon points=&quot;762,462 775,382 788,462&quot;/&gt;
+        &lt;polygon points=&quot;790,465 800,400 810,465&quot;/&gt;
+        &lt;polygon points=&quot;870,458 880,390 890,458&quot;/&gt;
+        &lt;polygon points=&quot;145,470 158,410 170,470&quot;/&gt;
+        &lt;polygon points=&quot;168,472 180,415 192,472&quot;/&gt;
+        &lt;polygon points=&quot;930,465 942,405 954,465&quot;/&gt;
+      &lt;/g&gt;
+      &lt;!-- foreground linework / path --&gt;
+      &lt;path d=&quot;M0 520 Q 300 480, 560 510 T 1120 495&quot; fill=&quot;none&quot; stroke=&quot;#000&quot; stroke-width=&quot;1.4&quot;/&gt;
+      &lt;path d=&quot;M0 540 Q 300 505, 560 528 T 1120 517&quot; fill=&quot;none&quot; stroke=&quot;#000&quot; stroke-width=&quot;.8&quot; opacity=&quot;.6&quot;/&gt;
+      &lt;!-- fine grass hatching bottom --&gt;
+      &lt;g stroke=&quot;#000&quot; stroke-width=&quot;.6&quot; opacity=&quot;.7&quot;&gt;
+        &lt;line x1=&quot;50&quot; y1=&quot;555&quot; x2=&quot;52&quot; y2=&quot;548&quot;/&gt;
+        &lt;line x1=&quot;90&quot; y1=&quot;558&quot; x2=&quot;93&quot; y2=&quot;550&quot;/&gt;
+        &lt;line x1=&quot;140&quot; y1=&quot;560&quot; x2=&quot;143&quot; y2=&quot;552&quot;/&gt;
+        &lt;line x1=&quot;200&quot; y1=&quot;562&quot; x2=&quot;203&quot; y2=&quot;553&quot;/&gt;
+        &lt;line x1=&quot;280&quot; y1=&quot;565&quot; x2=&quot;283&quot; y2=&quot;555&quot;/&gt;
+        &lt;line x1=&quot;360&quot; y1=&quot;562&quot; x2=&quot;364&quot; y2=&quot;552&quot;/&gt;
+        &lt;line x1=&quot;450&quot; y1=&quot;565&quot; x2=&quot;454&quot; y2=&quot;555&quot;/&gt;
+        &lt;line x1=&quot;540&quot; y1=&quot;562&quot; x2=&quot;544&quot; y2=&quot;552&quot;/&gt;
+        &lt;line x1=&quot;640&quot; y1=&quot;560&quot; x2=&quot;644&quot; y2=&quot;550&quot;/&gt;
+        &lt;line x1=&quot;740&quot; y1=&quot;562&quot; x2=&quot;744&quot; y2=&quot;553&quot;/&gt;
+        &lt;line x1=&quot;830&quot; y1=&quot;565&quot; x2=&quot;834&quot; y2=&quot;555&quot;/&gt;
+        &lt;line x1=&quot;920&quot; y1=&quot;562&quot; x2=&quot;924&quot; y2=&quot;552&quot;/&gt;
+        &lt;line x1=&quot;1020&quot; y1=&quot;560&quot; x2=&quot;1024&quot; y2=&quot;551&quot;/&gt;
+      &lt;/g&gt;
+      &lt;!-- cloud hint --&gt;
+      &lt;path d=&quot;M160 120 Q 210 90, 260 110 Q 310 95, 340 120&quot; fill=&quot;none&quot; stroke=&quot;#000&quot; stroke-width=&quot;.8&quot; opacity=&quot;.6&quot;/&gt;
+      &lt;path d=&quot;M700 95 Q 750 70, 810 92 Q 870 75, 910 100&quot; fill=&quot;none&quot; stroke=&quot;#000&quot; stroke-width=&quot;.8&quot; opacity=&quot;.6&quot;/&gt;
+    &lt;/svg&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;caption&quot;&gt;
+    &lt;div&gt;
+      &lt;div class=&quot;title&quot;&gt;View of a Carpathian Village&lt;/div&gt;
+      &lt;div class=&quot;meta&quot;&gt;Amadeo Preziosi · lithograph · 1869&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div&gt;
+      &lt;div class=&quot;time&quot;&gt;08:47&lt;/div&gt;
+      &lt;div class=&quot;date&quot;&gt;Sun · 12 Apr&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe></div></div><div class="mode"><div class="mode-head"><div class="mode-name">3b · Gallery (text day)</div><div class="mode-desc">text pool · ~40% of days</div></div><div class="frame-wrap"><iframe srcdoc="&lt;!doctype html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1, viewport-fit=cover&quot;&gt;
+&lt;title&gt;Fridge Dashboard · v10 · Gallery (text day)&lt;/title&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&amp;family=IBM+Plex+Mono:wght@400&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;style&gt;
+  :root { --ink:#000; --mid:#555; --faint:#a8a8a8; --paper:#ececec;
+    --u: min(calc((100vw - 8px) / 1200), calc((100vh - 32px) / 825)); }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html, body { height:100%; }
+  body { background:#1c1b19; display:flex; align-items:center; justify-content:center; font-family:&#x27;IBM Plex Sans&#x27;,sans-serif; overflow:hidden; }
+  .frame { width:calc(1200*var(--u)); height:calc(825*var(--u)); background:var(--paper); color:var(--ink);
+    box-shadow:0 calc(16*var(--u)) calc(60*var(--u)) rgba(0,0,0,.55); position:relative; overflow:hidden;
+    padding:calc(72*var(--u)) calc(120*var(--u)) calc(48*var(--u)); display:flex; flex-direction:column; }
+  .label { font-family:&#x27;IBM Plex Mono&#x27;,monospace; font-size:calc(23*var(--u)); letter-spacing:calc(3*var(--u)); text-transform:uppercase; color:var(--mid); margin-bottom:calc(40*var(--u)); }
+  .poem { flex:1; display:flex; align-items:center; }
+  .poem-body { font-family:&#x27;Fraunces&#x27;,serif; font-weight:300; font-variation-settings:&quot;opsz&quot; 72; font-style:italic;
+    font-size:calc(48*var(--u)); line-height:1.4; letter-spacing:calc(-.5*var(--u)); }
+  .poem-body p { margin-bottom:calc(16*var(--u)); }
+  .poem-body .stanza-break { height:calc(20*var(--u)); }
+  .cap { display:flex; justify-content:space-between; align-items:baseline; border-top:1px solid var(--ink); padding-top:calc(18*var(--u)); margin-top:calc(24*var(--u)); }
+  .cap-title { font-family:&#x27;Fraunces&#x27;,serif; font-weight:400; font-size:calc(26*var(--u)); font-style:italic; }
+  .cap-meta { font-family:&#x27;IBM Plex Mono&#x27;,monospace; font-size:calc(23*var(--u)); letter-spacing:calc(2.5*var(--u)); text-transform:uppercase; color:var(--mid); }
+  .flourish { font-family:&#x27;Fraunces&#x27;,serif; font-size:calc(60*var(--u)); color:var(--mid); line-height:1; margin-bottom:calc(8*var(--u)); font-style:italic; font-weight:300; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;frame&quot;&gt;
+  &lt;div class=&quot;label&quot;&gt;Today · a poem&lt;/div&gt;
+  &lt;div class=&quot;poem&quot;&gt;
+    &lt;div class=&quot;poem-body&quot;&gt;
+      &lt;div class=&quot;flourish&quot;&gt;&amp;mdash;&lt;/div&gt;
+      &lt;p&gt;I prefer the absurdity of writing poems&lt;/p&gt;
+      &lt;p&gt;to the absurdity of not writing poems.&lt;/p&gt;
+      &lt;div class=&quot;stanza-break&quot;&gt;&lt;/div&gt;
+      &lt;p&gt;I prefer, where love&#x27;s concerned, nonspecific&lt;/p&gt;
+      &lt;p&gt;anniversaries that can be celebrated every day.&lt;/p&gt;
+      &lt;div class=&quot;stanza-break&quot;&gt;&lt;/div&gt;
+      &lt;p&gt;I prefer moralists&lt;/p&gt;
+      &lt;p&gt;who promise me nothing.&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;cap&quot;&gt;
+    &lt;div class=&quot;cap-title&quot;&gt;from &lt;em&gt;Possibilities&lt;/em&gt;&lt;/div&gt;
+    &lt;div class=&quot;cap-meta&quot;&gt;Wisława Szymborska · 1986&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe></div></div><div class="mode"><div class="mode-head"><div class="mode-name">4 · Night</div><div class="mode-desc">22:00–06:30 · mono clock + art</div></div><div class="frame-wrap"><iframe srcdoc="&lt;!doctype html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1, viewport-fit=cover&quot;&gt;
+&lt;title&gt;Fridge Dashboard · v9 · Night&lt;/title&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,400&amp;family=IBM+Plex+Mono:wght@300;400;500&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;style&gt;
+  :root { --ink:#000; --mid:#555; --faint:#a8a8a8; --paper:#ececec;
+    --u: min(calc((100vw - 8px) / 1200), calc((100vh - 32px) / 825)); }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html, body { height:100%; }
+  body { background:#1c1b19; display:flex; align-items:center; justify-content:center; font-family:&#x27;IBM Plex Sans&#x27;,sans-serif; overflow:hidden; }
+  .frame { width:calc(1200*var(--u)); height:calc(825*var(--u)); background:var(--paper); color:var(--ink);
+    box-shadow:0 calc(16*var(--u)) calc(60*var(--u)) rgba(0,0,0,.55); position:relative;
+    display:grid; grid-template-columns: calc(340*var(--u)) 1fr; padding:calc(36*var(--u)) calc(44*var(--u));
+    gap:calc(40*var(--u)); }
+
+  .left { display:flex; flex-direction:column; justify-content:space-between; padding-right:calc(4*var(--u)); border-right:1px solid var(--faint); }
+
+  .clock-stack { display:inline-flex; flex-direction:column; line-height:.95;
+    font-family:&#x27;IBM Plex Mono&#x27;, monospace; font-weight:400;
+    letter-spacing:calc(-4*var(--u)); }
+  .clock-h, .clock-m { font-size:calc(260*var(--u)); display:block; }
+  .clock-m { color:var(--mid); }
+
+  .weather-note { margin-top:calc(20*var(--u)); padding-top:calc(18*var(--u)); border-top:calc(2*var(--u)) solid var(--ink); }
+  .weather-line { font-family:&#x27;Fraunces&#x27;,serif; font-style:italic; font-weight:400; font-size:calc(38*var(--u)); line-height:1.2; }
+  .weather-sub { margin-top:calc(8*var(--u)); font-family:&#x27;IBM Plex Mono&#x27;,monospace; font-size:calc(25*var(--u)); letter-spacing:calc(2.5*var(--u)); text-transform:uppercase; color:var(--mid); }
+  .day { font-family:&#x27;IBM Plex Mono&#x27;,monospace; font-size:calc(25*var(--u)); letter-spacing:calc(3*var(--u)); text-transform:uppercase; color:var(--mid); margin-bottom:calc(12*var(--u)); }
+
+  .right { display:flex; flex-direction:column; min-width:0; min-height:0; }
+  .art { flex:1; min-height:0; overflow:hidden; }
+  .art svg { width:100%; height:100%; display:block; }
+  .cap { display:flex; justify-content:space-between; align-items:baseline; margin-top:calc(16*var(--u)); padding-top:calc(14*var(--u)); border-top:1px solid var(--ink); gap:calc(24*var(--u)); }
+  .cap-title { font-family:&#x27;Fraunces&#x27;,serif; font-style:italic; font-weight:400; font-size:calc(30*var(--u)); line-height:1.1; }
+  .cap-meta { font-family:&#x27;IBM Plex Mono&#x27;,monospace; font-size:calc(25*var(--u)); letter-spacing:calc(2.5*var(--u)); text-transform:uppercase; color:var(--mid); white-space:nowrap; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;frame&quot;&gt;
+  &lt;div class=&quot;left&quot;&gt;
+    &lt;div&gt;
+      &lt;div class=&quot;day&quot;&gt;Monday&lt;/div&gt;
+      &lt;div class=&quot;clock-stack&quot;&gt;
+        &lt;span class=&quot;clock-h&quot;&gt;03&lt;/span&gt;
+        &lt;span class=&quot;clock-m&quot;&gt;14&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;weather-note&quot;&gt;
+      &lt;div class=&quot;weather-line&quot;&gt;Rain on the windows.&lt;/div&gt;
+      &lt;div class=&quot;weather-sub&quot;&gt;6° · wind 14 km/h&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;right&quot;&gt;
+    &lt;div class=&quot;art&quot;&gt;
+      &lt;svg viewBox=&quot;0 0 820 680&quot; preserveAspectRatio=&quot;xMidYMid slice&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;&gt;
+        &lt;defs&gt;
+          &lt;pattern id=&quot;hn&quot; patternUnits=&quot;userSpaceOnUse&quot; width=&quot;5&quot; height=&quot;5&quot; patternTransform=&quot;rotate(45)&quot;&gt;
+            &lt;line x1=&quot;0&quot; y1=&quot;0&quot; x2=&quot;0&quot; y2=&quot;5&quot; stroke=&quot;#000&quot; stroke-width=&quot;.6&quot; opacity=&quot;.5&quot;/&gt;
+          &lt;/pattern&gt;
+          &lt;pattern id=&quot;hn2&quot; patternUnits=&quot;userSpaceOnUse&quot; width=&quot;3&quot; height=&quot;3&quot; patternTransform=&quot;rotate(45)&quot;&gt;
+            &lt;line x1=&quot;0&quot; y1=&quot;0&quot; x2=&quot;0&quot; y2=&quot;3&quot; stroke=&quot;#000&quot; stroke-width=&quot;.7&quot; opacity=&quot;.75&quot;/&gt;
+          &lt;/pattern&gt;
+        &lt;/defs&gt;
+        &lt;rect x=&quot;0&quot; y=&quot;0&quot; width=&quot;820&quot; height=&quot;680&quot; fill=&quot;#ececec&quot;/&gt;
+        &lt;g transform=&quot;translate(640,110)&quot;&gt;
+          &lt;circle r=&quot;38&quot; fill=&quot;#ececec&quot; stroke=&quot;#000&quot; stroke-width=&quot;1&quot;/&gt;
+          &lt;path d=&quot;M -10 -34 A 38 38 0 0 1 -10 34 A 28 38 0 0 0 -10 -34 Z&quot; fill=&quot;#000&quot; opacity=&quot;.85&quot;/&gt;
+        &lt;/g&gt;
+        &lt;path d=&quot;M0 340 L100 270 L200 305 L320 240 L450 290 L580 230 L700 275 L820 245 L820 430 L0 430 Z&quot; fill=&quot;url(#hn)&quot; stroke=&quot;#000&quot; stroke-width=&quot;.9&quot;/&gt;
+        &lt;path d=&quot;M0 400 L140 330 L260 380 L400 310 L560 370 L700 320 L820 360 L820 480 L0 480 Z&quot; fill=&quot;url(#hn2)&quot; stroke=&quot;#000&quot; stroke-width=&quot;1.1&quot;/&gt;
+        &lt;path d=&quot;M0 490 L160 440 L320 475 L500 425 L660 470 L820 445 L820 680 L0 680 Z&quot; fill=&quot;#ececec&quot; stroke=&quot;#000&quot; stroke-width=&quot;1.3&quot;/&gt;
+        &lt;g stroke=&quot;#000&quot; fill=&quot;#ececec&quot; stroke-width=&quot;1.1&quot;&gt;
+          &lt;rect x=&quot;320&quot; y=&quot;445&quot; width=&quot;42&quot; height=&quot;48&quot;/&gt;&lt;polygon points=&quot;320,445 341,422 362,445&quot;/&gt;
+          &lt;line x1=&quot;341&quot; y1=&quot;422&quot; x2=&quot;341&quot; y2=&quot;408&quot;/&gt;
+          &lt;rect x=&quot;255&quot; y=&quot;465&quot; width=&quot;34&quot; height=&quot;32&quot;/&gt;&lt;polygon points=&quot;255,465 272,448 289,465&quot;/&gt;
+          &lt;rect x=&quot;375&quot; y=&quot;465&quot; width=&quot;32&quot; height=&quot;32&quot;/&gt;&lt;polygon points=&quot;375,465 391,448 407,465&quot;/&gt;
+          &lt;rect x=&quot;430&quot; y=&quot;460&quot; width=&quot;38&quot; height=&quot;34&quot;/&gt;&lt;polygon points=&quot;430,460 449,442 468,460&quot;/&gt;
+          &lt;rect x=&quot;200&quot; y=&quot;478&quot; width=&quot;28&quot; height=&quot;24&quot;/&gt;&lt;polygon points=&quot;200,478 214,466 228,478&quot;/&gt;
+          &lt;rect x=&quot;485&quot; y=&quot;472&quot; width=&quot;34&quot; height=&quot;28&quot;/&gt;&lt;polygon points=&quot;485,472 502,456 519,472&quot;/&gt;
+        &lt;/g&gt;
+        &lt;g fill=&quot;#000&quot;&gt;
+          &lt;rect x=&quot;331&quot; y=&quot;462&quot; width=&quot;6&quot; height=&quot;7&quot;/&gt;
+          &lt;rect x=&quot;345&quot; y=&quot;462&quot; width=&quot;6&quot; height=&quot;7&quot;/&gt;
+          &lt;rect x=&quot;443&quot; y=&quot;475&quot; width=&quot;6&quot; height=&quot;6&quot;/&gt;
+          &lt;rect x=&quot;265&quot; y=&quot;478&quot; width=&quot;5&quot; height=&quot;5&quot;/&gt;
+          &lt;rect x=&quot;495&quot; y=&quot;485&quot; width=&quot;5&quot; height=&quot;5&quot;/&gt;
+        &lt;/g&gt;
+        &lt;g stroke=&quot;#000&quot; stroke-width=&quot;.9&quot; fill=&quot;#ececec&quot;&gt;
+          &lt;polygon points=&quot;150,510 160,448 170,510&quot;/&gt;
+          &lt;polygon points=&quot;172,515 182,454 192,515&quot;/&gt;
+          &lt;polygon points=&quot;550,512 562,450 574,512&quot;/&gt;
+          &lt;polygon points=&quot;580,516 590,456 600,516&quot;/&gt;
+          &lt;polygon points=&quot;610,520 620,464 630,520&quot;/&gt;
+          &lt;polygon points=&quot;100,520 108,472 116,520&quot;/&gt;
+          &lt;polygon points=&quot;690,515 700,458 710,515&quot;/&gt;
+        &lt;/g&gt;
+        &lt;path d=&quot;M0 580 Q 220 545, 420 570 T 820 550&quot; fill=&quot;none&quot; stroke=&quot;#000&quot; stroke-width=&quot;1.2&quot;/&gt;
+        &lt;path d=&quot;M0 605 Q 220 570, 420 595 T 820 578&quot; fill=&quot;none&quot; stroke=&quot;#000&quot; stroke-width=&quot;.7&quot; opacity=&quot;.6&quot;/&gt;
+        &lt;g fill=&quot;#000&quot;&gt;
+          &lt;circle cx=&quot;120&quot; cy=&quot;80&quot; r=&quot;1.4&quot;/&gt;&lt;circle cx=&quot;240&quot; cy=&quot;50&quot; r=&quot;1&quot;/&gt;&lt;circle cx=&quot;320&quot; cy=&quot;110&quot; r=&quot;1.2&quot;/&gt;
+          &lt;circle cx=&quot;440&quot; cy=&quot;60&quot; r=&quot;1&quot;/&gt;&lt;circle cx=&quot;510&quot; cy=&quot;130&quot; r=&quot;1.4&quot;/&gt;&lt;circle cx=&quot;730&quot; cy=&quot;180&quot; r=&quot;1&quot;/&gt;
+          &lt;circle cx=&quot;180&quot; cy=&quot;160&quot; r=&quot;1&quot;/&gt;&lt;circle cx=&quot;70&quot; cy=&quot;220&quot; r=&quot;1.2&quot;/&gt;
+        &lt;/g&gt;
+      &lt;/svg&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;cap&quot;&gt;
+      &lt;div class=&quot;cap-title&quot;&gt;Village by Moonlight&lt;/div&gt;
+      &lt;div class=&quot;cap-meta&quot;&gt;Nocturne · plate VII&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe></div></div><div class="tip">Daily pairing curated by Claude at 06:25 · flavor + hero + linked companion chosen together · visual pool and text pool grow over time</div></div></body></html>

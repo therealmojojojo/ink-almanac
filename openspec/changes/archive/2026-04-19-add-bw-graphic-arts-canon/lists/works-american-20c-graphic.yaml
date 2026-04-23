@@ -1,0 +1,169 @@
+recipe: top-bw-graphic-arts-works
+lineage: american-20c-graphic
+generated: 2026-04-19
+defaults: {panel_fidelity: native}
+
+creators:
+
+  edward-hopper:
+    canon_weight: canonical
+    in_corpus: 1
+    defaults: {rights_tier: personal_library}
+    works:
+    - id: hopper-night-shadows
+      title: "Night Shadows"
+      year: 1921
+      form: etching
+      themes: [night-and-lamplight, urban, light-shadow]
+      mood: [atmospheric, still]
+      register: [iconic, atmospheric]
+      source_hint: whitney_museum
+      status: pending
+    - id: hopper-east-side-interior
+      title: "East Side Interior"
+      year: 1922
+      form: etching
+      themes: [interior-and-domestic, solitude, urban]
+      mood: [quiet, contemplative]
+      register: [iconic, intimate]
+      source_hint: whitney_museum
+      status: pending
+    - id: hopper-the-lonely-house
+      title: "The Lonely House"
+      year: 1923
+      form: etching
+      themes: [architecture-and-structure, solitude, light-shadow]
+      mood: [quiet, still]
+      register: [iconic, atmospheric]
+      source_hint: whitney_museum
+      status: pending
+    - id: hopper-evening-wind
+      title: "Evening Wind"
+      year: 1921
+      form: etching
+      themes: [interior-and-domestic, body-and-figure, weather-facing]
+      mood: [atmospheric, intimate]
+      register: [iconic, intimate]
+      source_hint: whitney_museum
+      status: pending
+    - id: hopper-american-landscape
+      title: "American Landscape"
+      year: 1920
+      form: etching
+      themes: [rural-pastoral, architecture-and-structure]
+      mood: [quiet, atmospheric]
+      register: [iconic, documentary]
+      source_hint: whitney_museum
+      status: pending
+    - {id: hopper-railroad-sunset-drawing, in_corpus: true, form: drawing}
+
+  martin-lewis:
+    canon_weight: canonical
+    in_corpus: 0
+    defaults: {rights_tier: public_domain}
+    works:
+    - id: lewis-relics-speakeasy-corner
+      title: "Relics (Speakeasy Corner)"
+      year: 1928
+      form: etching
+      themes: [urban, night-and-lamplight, light-shadow]
+      mood: [atmospheric, still]
+      register: [iconic, atmospheric]
+      source_hint: nga_washington
+      status: pending
+    - id: lewis-shadow-dance
+      title: "Shadow Dance"
+      year: 1930
+      form: etching
+      themes: [urban, night-and-lamplight, motion-and-gesture, light-shadow]
+      mood: [atmospheric, kinetic]
+      register: [iconic, atmospheric]
+      source_hint: met_open_access
+      status: pending
+    - id: lewis-glow-of-the-city
+      title: "Glow of the City"
+      year: 1929
+      form: etching
+      themes: [urban, night-and-lamplight, architecture-and-structure]
+      mood: [atmospheric, grand]
+      register: [iconic, atmospheric]
+      source_hint: nga_washington
+      status: pending
+    - id: lewis-little-penthouse
+      title: "Little Penthouse"
+      year: 1931
+      form: etching
+      themes: [urban, interior-and-domestic, night-and-lamplight]
+      mood: [intimate, atmospheric]
+      register: [iconic, intimate]
+      source_hint: nga_washington
+      status: pending
+    - id: lewis-stoops-in-snow
+      title: "Stoops in Snow"
+      year: 1930
+      form: etching
+      themes: [urban, winter-and-ice, everyday-life]
+      mood: [atmospheric, quiet]
+      register: [iconic, atmospheric]
+      source_hint: met_open_access
+      status: pending
+    - id: lewis-fifth-avenue-bridge
+      title: "Fifth Avenue Bridge"
+      year: 1928
+      form: etching
+      themes: [urban, architecture-and-structure, motion-and-gesture]
+      mood: [atmospheric, dynamic]
+      register: [iconic, atmospheric]
+      source_hint: british_museum
+      status: pending
+
+  lynd-ward:
+    canon_weight: canonical
+    in_corpus: 0
+    defaults: {rights_tier: personal_library}
+    works:
+    - id: ward-gods-man-frontispiece
+      title: "Frontispiece (Gods' Man)"
+      year: 1929
+      form: wood-engraving
+      themes: [solitude, architecture-and-structure, urban, journey]
+      mood: [grim, atmospheric]
+      register: [iconic, expressive]
+      source_hint: archive_org
+      status: pending
+    - id: ward-gods-man-city-at-night
+      title: "City at Night (Gods' Man)"
+      year: 1929
+      form: wood-engraving
+      themes: [urban, night-and-lamplight, architecture-and-structure]
+      mood: [grim, atmospheric]
+      register: [iconic, expressive]
+      source_hint: archive_org
+      status: pending
+    - id: ward-madmans-drum-drummer
+      title: "The Drummer (Madman's Drum)"
+      year: 1930
+      form: wood-engraving
+      themes: [motion-and-gesture, mortality]
+      mood: [haunting, urgent]
+      register: [iconic, expressive]
+      source_hint: archive_org
+      status: pending
+    - id: ward-wild-pilgrimage-road
+      title: "On the Road (Wild Pilgrimage)"
+      year: 1932
+      form: wood-engraving
+      themes: [journey, rural-pastoral, solitude]
+      mood: [atmospheric, stoic]
+      register: [iconic, expressive]
+      source_hint: archive_org
+      status: pending
+    - id: ward-vertigo-factory
+      title: "The Factory (Vertigo)"
+      year: 1937
+      form: wood-engraving
+      themes: [work-making, machines-and-mechanisms, urban]
+      mood: [grim, dynamic]
+      register: [iconic, expressive]
+      source_hint: archive_org
+      status: pending

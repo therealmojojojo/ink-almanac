@@ -1,0 +1,6 @@
+.pio/
+build/
+build-*/
+compile_commands.json
+test/out/
+test/third_party/doctest/*.h.tmp

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.inkplate.renderer</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/sh</string>
+    <string>-c</string>
+    <string>cd "$INKPLATE_RENDERER_DIR" &amp;&amp; /opt/homebrew/bin/npm start</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>INKPLATE_RENDERER_DIR</key>
+    <string>${INKPLATE_REPO}/renderer</string>
+    <key>PATH</key>
+    <string>/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin</string>
+    <key>RENDERER_PORT</key>
+    <string>8575</string>
+    <key>NODE_ENV</key>
+    <string>production</string>
+    <!-- Shared secret for `POST /inputs/:name`. Operator pastes the bare
+         token generated once for this host. Must match `renderer_input_auth_header`
+         (in "Bearer <token>" form) on the HA side. -->
+    <key>RENDERER_INPUT_TOKEN</key>
+    <string>placeholder-bearer-token</string>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>ThrottleInterval</key>
+  <integer>10</integer>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/inkplate-renderer.out.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/tmp/inkplate-renderer.err.log</string>
+</dict>
+</plist>

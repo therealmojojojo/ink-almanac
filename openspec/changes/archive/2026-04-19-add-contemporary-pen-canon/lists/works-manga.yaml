@@ -1,0 +1,361 @@
+recipe: top-contemporary-pen-works
+lineage: manga
+generated: 2026-04-19
+defaults: {panel_fidelity: native, rights_tier: personal_library, form: drawing, medium: pen-and-ink on paper, source: web}
+
+creators:
+
+  osamu-tezuka:
+    canon_weight: core
+    in_corpus: 0
+    works:
+    - id: tezuka-astro-boy-cover
+      title: "Astro Boy (Tetsuwan Atom) — cover panel"
+      year: 1952
+      themes: [machines-and-mechanisms, childhood-and-play, journey]
+      mood: [playful, kinetic]
+      register: [iconic, expressive]
+    - id: tezuka-phoenix-karma-bird
+      title: "Phoenix (Hi no Tori) — Karma chapter"
+      year: 1978
+      themes: [mortality, mysterious, body-and-figure]
+      mood: [grand, contemplative]
+      register: [iconic, expressive]
+    - id: tezuka-black-jack-surgery
+      title: "Black Jack — operating-room panel"
+      year: 1973
+      themes: [work-making, mortality, portrait-and-face]
+      mood: [grave, tense]
+      register: [iconic, expressive]
+    - id: tezuka-buddha-contemplation
+      title: "Buddha — tree contemplation panel"
+      year: 1972
+      themes: [mountain-and-forest, ritual-and-gathering, solitude]
+      mood: [contemplative, serene]
+      register: [iconic, lyric]
+    - id: tezuka-kimba-white-lion
+      title: "Kimba the White Lion — savannah panel"
+      year: 1950
+      themes: [animals, rural-pastoral, childhood-and-play]
+      mood: [tender, atmospheric]
+      register: [iconic, lyric]
+    - id: tezuka-princess-knight
+      title: "Princess Knight — Sapphire duel panel"
+      year: 1953
+      themes: [motion-and-gesture, body-and-figure]
+      mood: [kinetic, playful]
+      register: [iconic, expressive]
+
+  akira-toriyama:
+    canon_weight: canonical
+    in_corpus: 0
+    works:
+    - id: toriyama-dragon-ball-goku-cloud
+      title: "Dragon Ball — Goku on Nimbus"
+      year: 1984
+      themes: [journey, sea-and-sky, childhood-and-play]
+      mood: [playful, dynamic]
+      register: [iconic, expressive]
+    - id: toriyama-dragon-ball-kamehameha
+      title: "Dragon Ball — Kamehameha"
+      year: 1985
+      themes: [motion-and-gesture, body-and-figure]
+      mood: [kinetic, urgent]
+      register: [iconic, expressive]
+    - id: toriyama-dr-slump-arale
+      title: "Dr. Slump — Arale running"
+      year: 1980
+      themes: [motion-and-gesture, childhood-and-play]
+      mood: [playful, kinetic]
+      register: [iconic, wry]
+    - id: toriyama-dragon-ball-shenron
+      title: "Dragon Ball — Shenron summoned"
+      year: 1984
+      themes: [mysterious, ritual-and-gathering]
+      mood: [grand, dynamic]
+      register: [iconic, expressive]
+    - id: toriyama-dragon-ball-vegeta
+      title: "Dragon Ball Z — Vegeta saiyan panel"
+      year: 1988
+      themes: [portrait-and-face, body-and-figure]
+      mood: [tense, sharp]
+      register: [iconic, expressive]
+
+  hayao-miyazaki:
+    canon_weight: canonical
+    in_corpus: 0
+    works:
+    - id: miyazaki-nausicaa-glider
+      title: "Nausicaä — with her mehve glider"
+      year: 1984
+      themes: [sea-and-sky, motion-and-gesture, journey]
+      mood: [contemplative, grand]
+      register: [iconic, lyric]
+    - id: miyazaki-nausicaa-ohmu
+      title: "Nausicaä — Ohmu meeting"
+      year: 1984
+      themes: [animals, mountain-and-forest, tender-companionship]
+      mood: [awestruck, tender]
+      register: [iconic, lyric]
+    - id: miyazaki-totoro-bus-stop
+      title: "Totoro — bus stop in rain (storyboard)"
+      year: 1988
+      themes: [tender-companionship, weather-facing, childhood-and-play]
+      mood: [tender, atmospheric]
+      register: [iconic, intimate]
+    - id: miyazaki-spirited-away-bathhouse
+      title: "Spirited Away — bathhouse concept sketch"
+      year: 2001
+      themes: [architecture-and-structure, mysterious, ritual-and-gathering]
+      mood: [atmospheric, mysterious]
+      register: [iconic, lyric]
+    - id: miyazaki-mononoke-forest-spirit
+      title: "Princess Mononoke — Forest Spirit concept"
+      year: 1997
+      themes: [mountain-and-forest, mysterious, animals]
+      mood: [grand, mysterious]
+      register: [iconic, lyric]
+
+  jiro-taniguchi:
+    canon_weight: canonical
+    in_corpus: 0
+    works:
+    - id: taniguchi-walking-man-street
+      title: "The Walking Man — suburban street"
+      year: 1992
+      themes: [solitude, journey, urban]
+      mood: [unhurried, contemplative]
+      register: [iconic, lyric]
+    - id: taniguchi-distant-neighborhood-train
+      title: "A Distant Neighborhood — train arrival"
+      year: 1998
+      themes: [journey, decay-and-memory, urban]
+      mood: [wistful, atmospheric]
+      register: [iconic, lyric]
+    - id: taniguchi-walking-man-roof
+      title: "The Walking Man — on the rooftop"
+      year: 1992
+      themes: [solitude, urban, sea-and-sky]
+      mood: [contemplative, still]
+      register: [iconic, lyric]
+
+  taiyo-matsumoto:
+    canon_weight: canonical
+    in_corpus: 0
+    works:
+    - id: matsumoto-tekkonkinkreet-black-white
+      title: "Tekkonkinkreet — Black and White over Treasure Town"
+      year: 1993
+      themes: [urban, architecture-and-structure, tender-companionship]
+      mood: [dynamic, atmospheric]
+      register: [iconic, expressive]
+    - id: matsumoto-ping-pong-smash
+      title: "Ping Pong — Smile's smash"
+      year: 1996
+      themes: [motion-and-gesture, body-and-figure]
+      mood: [kinetic, tense]
+      register: [iconic, expressive]
+    - id: matsumoto-sunny-six-kids
+      title: "Sunny — car with six children"
+      year: 2011
+      themes: [childhood-and-play, tender-companionship]
+      mood: [wistful, tender]
+      register: [iconic, lyric]
+
+  naoki-urasawa:
+    canon_weight: canonical
+    in_corpus: 0
+    works:
+    - id: urasawa-monster-tenma-reflection
+      title: "Monster — Dr. Tenma confronting Johan"
+      year: 1994
+      themes: [portrait-and-face, tense, reflection-and-mirror]
+      mood: [tense, haunting]
+      register: [iconic, expressive]
+    - id: urasawa-20th-century-boys-friend
+      title: "20th Century Boys — Friend's mask"
+      year: 1999
+      themes: [mysterious, portrait-and-face]
+      mood: [mysterious, tense]
+      register: [iconic, expressive]
+    - id: urasawa-pluto-atom
+      title: "Pluto — Atom looking at the reader"
+      year: 2003
+      themes: [portrait-and-face, machines-and-mechanisms]
+      mood: [contemplative, wistful]
+      register: [iconic, lyric]
+
+  chiba-tetsuya:
+    canon_weight: core
+    in_corpus: 0
+    works:
+    - id: chiba-ashita-no-joe-vs-rikiishi
+      title: "Ashita no Joe — Joe vs Rikiishi"
+      year: 1970
+      themes: [motion-and-gesture, body-and-figure, ritual-and-gathering]
+      mood: [kinetic, urgent]
+      register: [iconic, expressive]
+    - id: chiba-ashita-no-joe-final-panel
+      title: "Ashita no Joe — final panel (burnt out)"
+      year: 1973
+      themes: [solitude, mortality]
+      mood: [wistful, stoic]
+      register: [iconic, expressive]
+    - id: chiba-ashita-no-joe-street-training
+      title: "Ashita no Joe — street training"
+      year: 1969
+      themes: [urban, motion-and-gesture, work-making]
+      mood: [kinetic, stoic]
+      register: [iconic, expressive]
+    - id: chiba-ashita-no-joe-danpei
+      title: "Ashita no Joe — Danpei the trainer"
+      year: 1969
+      themes: [portrait-and-face, tender-companionship]
+      mood: [stoic, wistful]
+      register: [iconic, expressive]
+    - id: chiba-notari-matsutaro-sumo
+      title: "Notari Matsutarō — sumo match panel"
+      year: 1973
+      themes: [motion-and-gesture, body-and-figure, ritual-and-gathering]
+      mood: [kinetic, urgent]
+      register: [iconic, expressive]
+
+  eiichiro-oda:
+    canon_weight: core
+    in_corpus: 0
+    works:
+    - id: oda-one-piece-luffy-straw-hat
+      title: "One Piece — Luffy with the straw hat"
+      year: 1997
+      themes: [portrait-and-face, sea-and-sky]
+      mood: [playful, dynamic]
+      register: [iconic, expressive]
+    - id: oda-one-piece-going-merry
+      title: "One Piece — Going Merry ship"
+      year: 2000
+      themes: [sea-and-sky, journey, architecture-and-structure]
+      mood: [atmospheric, dynamic]
+      register: [iconic, expressive]
+    - id: oda-one-piece-thousand-sunny
+      title: "One Piece — Thousand Sunny ship"
+      year: 2007
+      themes: [sea-and-sky, journey, architecture-and-structure]
+      mood: [grand, dynamic]
+      register: [iconic, expressive]
+    - id: oda-one-piece-straw-hats-crew
+      title: "One Piece — Straw Hat crew group"
+      year: 2005
+      themes: [tender-companionship, ritual-and-gathering]
+      mood: [playful, dynamic]
+      register: [iconic, expressive]
+    - id: oda-one-piece-luffy-gear-4
+      title: "One Piece — Luffy Gear 4"
+      year: 2015
+      themes: [motion-and-gesture, body-and-figure]
+      mood: [kinetic, urgent]
+      register: [iconic, expressive]
+    - id: oda-one-piece-wano-landscape
+      title: "One Piece — Wano country landscape"
+      year: 2018
+      themes: [architecture-and-structure, japan, mountain-and-forest]
+      mood: [grand, atmospheric]
+      register: [iconic, expressive]
+
+  rumiko-takahashi:
+    canon_weight: canonical
+    in_corpus: 0
+    works:
+    - id: takahashi-urusei-yatsura-lum
+      title: "Urusei Yatsura — Lum with horns"
+      year: 1978
+      themes: [portrait-and-face, body-and-figure]
+      mood: [playful, dynamic]
+      register: [iconic, expressive]
+    - id: takahashi-ranma-transformation
+      title: "Ranma ½ — cold water transformation"
+      year: 1987
+      themes: [motion-and-gesture, body-and-figure, weather-facing]
+      mood: [playful, kinetic]
+      register: [iconic, wry]
+    - id: takahashi-inuyasha-at-the-well
+      title: "Inuyasha — Kagome at the well"
+      year: 1996
+      themes: [mysterious, journey, architecture-and-structure]
+      mood: [mysterious, atmospheric]
+      register: [iconic, lyric]
+    - id: takahashi-inuyasha-portrait
+      title: "Inuyasha — portrait"
+      year: 1996
+      themes: [portrait-and-face]
+      mood: [sharp, poised]
+      register: [iconic, expressive]
+    - id: takahashi-mermaid-saga-panel
+      title: "Mermaid Saga — panel"
+      year: 1984
+      themes: [mortality, sea-and-sky, mysterious]
+      mood: [haunting, atmospheric]
+      register: [iconic, expressive]
+
+  hirohiko-araki:
+    canon_weight: canonical
+    in_corpus: 0
+    works:
+    - id: araki-jojo-jotaro-star-platinum
+      title: "JoJo's Bizarre Adventure — Jotaro and Star Platinum"
+      year: 1989
+      themes: [portrait-and-face, body-and-figure, mysterious]
+      mood: [tense, sharp]
+      register: [iconic, expressive]
+    - id: araki-jojo-dio-brando
+      title: "JoJo's Bizarre Adventure — Dio Brando"
+      year: 1987
+      themes: [portrait-and-face, body-and-figure]
+      mood: [sharp, grim]
+      register: [iconic, expressive]
+    - id: araki-jojo-ora-ora-ora
+      title: "JoJo's Bizarre Adventure — ORA ORA panel"
+      year: 1990
+      themes: [motion-and-gesture, body-and-figure]
+      mood: [kinetic, urgent]
+      register: [iconic, expressive]
+    - id: araki-jojo-josuke-pompadour
+      title: "JoJo's Bizarre Adventure — Josuke pompadour"
+      year: 1992
+      themes: [portrait-and-face]
+      mood: [poised, wry]
+      register: [iconic, expressive]
+    - id: araki-jojo-giorno-giovanna
+      title: "JoJo's Bizarre Adventure — Giorno Giovanna"
+      year: 1995
+      themes: [portrait-and-face, body-and-figure]
+      mood: [poised, sharp]
+      register: [iconic, expressive]
+    - id: araki-jojo-jojolion-splash
+      title: "JoJo's Bizarre Adventure — JoJolion splash page"
+      year: 2011
+      themes: [body-and-figure, motion-and-gesture]
+      mood: [dynamic, sharp]
+      register: [iconic, expressive]
+
+  fujiko-f-fujio:
+    canon_weight: canonical
+    in_corpus: 0
+    works:
+    - id: fujio-doraemon-takecopter
+      title: "Doraemon — Takecopter flight"
+      year: 1970
+      themes: [motion-and-gesture, childhood-and-play, sea-and-sky]
+      mood: [playful, kinetic]
+      register: [iconic, wry]
+    - id: fujio-doraemon-nobita-study
+      title: "Doraemon — Nobita at his desk"
+      year: 1970
+      themes: [interior-and-domestic, reading-and-study, childhood-and-play]
+      mood: [quiet, wry]
+      register: [iconic, intimate]
+    - id: fujio-doraemon-gadget-pocket
+      title: "Doraemon — gadget from the pocket"
+      year: 1970
+      themes: [craft-and-play, machines-and-mechanisms, childhood-and-play]
+      mood: [playful, wry]
+      register: [iconic, wry]

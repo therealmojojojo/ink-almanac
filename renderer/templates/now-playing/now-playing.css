@@ -1,0 +1,121 @@
+/*
+ * Now-Playing: album art left (~65%), track text right, up-next bottom-right.
+ * Per dashboard-faces/spec.md. No progress bar. No elapsed/total.
+ */
+
+.np-root {
+  /* Art zone is 825×825 — a true square, matching the intrinsic shape of
+   * Sonos/Spotify cover art. No stretch, no crop, no letterbox. Right column
+   * becomes 1200-825 = 375 px wide. */
+  grid-template-columns: 825px 1fr;
+  padding: 0;  /* album art bleeds to edge */
+}
+.np-art {
+  position: relative;
+  background: var(--paper);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.np-art img {
+  width: 100%;
+  height: 100%;
+  /* With a square zone + square image, contain and cover are equivalent;
+   * using `contain` documents the intent (no cropping). */
+  object-fit: contain;
+  display: block;
+}
+.np-art .fallback {
+  font-family: var(--font-mono);
+  font-size: calc(40 * var(--u));
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--mid);
+}
+
+.np-right {
+  /* Narrower column (375 px) — drop padding from 48 u to 36 u so the text
+   * has 303 px of usable width. */
+  padding: calc(36 * var(--u));
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: calc(18 * var(--u));
+}
+.np-right .source {
+  font-family: var(--font-mono);
+  font-size: calc(22 * var(--u));
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--mid);
+}
+.np-right .text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: calc(14 * var(--u));
+}
+/*
+ * Title — adaptive size by length so longer track names stay readable at 1 m
+ * viewing distance without being cropped. The template sets `data-size` to
+ * one of xs/s/m/l based on character count (see nowPlaying.ts).
+ * Minimum at the `xs` step is ~36 u (≈ 5.3 mm tall), still crisp at 1 m for
+ * most of the Inkplate's 175 DPI rendering.
+ */
+.np-right .title {
+  font-family: var(--font-serif);
+  font-variation-settings: 'opsz' 36, 'wght' 500;
+  line-height: 1.05;
+  /* Allow wrapping to 2 lines if even the smallest size overflows (verse cap
+   * in the zone budget is `maxLines: 2`). */
+  overflow-wrap: break-word;
+}
+.np-right .title[data-size='l']  { font-size: calc(72 * var(--u)); }
+.np-right .title[data-size='m']  { font-size: calc(56 * var(--u)); }
+.np-right .title[data-size='s']  { font-size: calc(44 * var(--u)); }
+.np-right .title[data-size='xs'] { font-size: calc(36 * var(--u)); line-height: 1.1; }
+.np-right .artist {
+  font-family: var(--font-mono);
+  font-size: calc(32 * var(--u));
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--ink);
+}
+.np-right .album {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: calc(32 * var(--u));
+  color: var(--mid);
+}
+.np-right .next {
+  border-top: var(--rule-faint);
+  padding-top: calc(12 * var(--u));
+}
+.np-right .next .label {
+  font-family: var(--font-mono);
+  font-size: calc(20 * var(--u));
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--faint);
+}
+.np-right .next .track {
+  font-family: var(--font-mono);
+  font-size: calc(22 * var(--u));
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--mid);
+  margin-top: calc(4 * var(--u));
+}
+
+/* Corner clock — same treatment as Gallery text-day (gt-corner-time):
+ * a small Fraunces time anchored to the bottom-right of the face. */
+.np-clock {
+  position: absolute;
+  right: calc(36 * var(--u));
+  bottom: calc(36 * var(--u));
+  font-family: var(--font-serif);
+  font-variation-settings: 'opsz' 36, 'wght' 500;
+  font-feature-settings: 'tnum' 1;
+  font-size: calc(28 * var(--u));
+  color: var(--mid);
+}

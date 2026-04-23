@@ -1,0 +1,295 @@
+category: romantic-symbolist-poetry
+side: text
+proposed_by: claude
+proposed_at: 2026-04-17
+notes: |
+  Canonical Romantic (English/early-19c) and French Symbolist (late-19c)
+  poetry. Every item is well past 70-years-after-death, so all PD.
+  English Romantics — Blake d.1827, Wordsworth d.1850, Coleridge d.1834,
+  Byron d.1824, Keats d.1821, Shelley d.1822. French Symbolists —
+  Baudelaire d.1867, Verlaine d.1896, Rimbaud d.1891, Mallarmé d.1898.
+  Early Yeats (pre-1900) also folded in as a transitional Symbolist voice.
+  Bilingual (en + fr/de where applicable) per the established pattern for
+  non-English canon.
+
+items:
+  # English Romantics
+  - id: blake-tyger
+    title: "The Tyger"
+    author: "William Blake"
+    year: 1794
+    rights_tier: public_domain
+    source: project_gutenberg
+    form: stanzaic
+    themes: [animals, mortality, craft-and-play]
+    mood: [awestruck, sharp]
+    register: [classical, oracular, iconic]
+
+  - id: blake-auguries-innocence-opening
+    title: "Auguries of Innocence (opening quatrain)"
+    author: "William Blake"
+    year: 1803
+    rights_tier: public_domain
+    source: project_gutenberg
+    form: quote
+    themes: [attention-and-listening, seasons-and-time]
+    mood: [contemplative, luminous]
+    register: [aphoristic, oracular]
+    notes: "'To see a World in a Grain of Sand...' — anchor-eligible as quote."
+
+  - id: wordsworth-world-is-too-much
+    title: "The world is too much with us"
+    author: "William Wordsworth"
+    year: 1807
+    rights_tier: public_domain
+    source: project_gutenberg
+    form: sonnet
+    themes: [sea-and-sky, decay-and-memory, weather-facing]
+    mood: [grave, wistful]
+    register: [classical, solemn]
+
+  - id: wordsworth-daffodils
+    title: "I Wandered Lonely as a Cloud"
+    author: "William Wordsworth"
+    year: 1807
+    rights_tier: public_domain
+    source: project_gutenberg
+    form: stanzaic
+    themes: [garden-and-grove, seasons-and-time, solitude]
+    mood: [serene, luminous]
+    register: [lyric, classical, iconic]
+
+  - id: coleridge-kubla-khan
+    title: "Kubla Khan (fragment)"
+    author: "Samuel Taylor Coleridge"
+    year: 1816
+    rights_tier: public_domain
+    source: project_gutenberg
+    form: fragment
+    themes: [architecture-and-structure, water-and-reflection, mountain-and-forest]
+    mood: [ecstatic, mysterious, ornate]
+    register: [ornate, oracular, iconic]
+
+  - id: keats-ode-grecian-urn
+    title: "Ode on a Grecian Urn"
+    author: "John Keats"
+    year: 1819
+    rights_tier: public_domain
+    source: project_gutenberg
+    form: stanzaic
+    themes: [architecture-and-structure, mortality, craft-and-play]
+    mood: [contemplative, luminous]
+    register: [classical, iconic]
+
+  - id: keats-bright-star
+    title: "Bright Star"
+    author: "John Keats"
+    year: 1819
+    rights_tier: public_domain
+    source: project_gutenberg
+    form: sonnet
+    themes: [night-and-lamplight, tender-companionship, mortality]
+    mood: [tender, luminous, wistful]
+    register: [lyric, classical]
+    notes: "Nocturne candidate."
+
+  - id: keats-ode-nightingale-fragment
+    title: "Ode to a Nightingale (opening stanza)"
+    author: "John Keats"
+    year: 1819
+    rights_tier: public_domain
+    source: project_gutenberg
+    form: fragment
+    themes: [night-and-lamplight, animals, attention-and-listening]
+    mood: [melancholic, luminous]
+    register: [lyric, ornate]
+
+  - id: shelley-ozymandias
+    title: "Ozymandias"
+    author: "Percy Bysshe Shelley"
+    year: 1818
+    rights_tier: public_domain
+    source: project_gutenberg
+    form: sonnet
+    themes: [decay-and-memory, mortality, architecture-and-structure]
+    mood: [grave, ironic]
+    register: [classical, iconic, solemn]
+
+  - id: shelley-music-when-soft-voices-die
+    title: "Music, when soft voices die"
+    author: "Percy Bysshe Shelley"
+    year: 1821
+    rights_tier: public_domain
+    source: project_gutenberg
+    form: lyric
+    themes: [decay-and-memory, attention-and-listening, tender-companionship]
+    mood: [wistful, tender]
+    register: [lyric, classical]
+
+  - id: byron-she-walks-in-beauty
+    title: "She Walks in Beauty"
+    author: "Lord Byron"
+    year: 1815
+    rights_tier: public_domain
+    source: project_gutenberg
+    form: stanzaic
+    themes: [portrait-and-face, night-and-lamplight, tender-companionship]
+    mood: [tender, luminous]
+    register: [lyric, classical, iconic]
+
+  - id: byron-darkness-opening
+    title: "Darkness (opening)"
+    author: "Lord Byron"
+    year: 1816
+    rights_tier: public_domain
+    source: project_gutenberg
+    form: fragment
+    themes: [night-and-lamplight, mortality, weather-facing]
+    mood: [grim, grave]
+    register: [oracular, solemn]
+    notes: "Nocturne candidate — 'I had a dream, which was not all a dream.'"
+
+  # French Symbolists
+  - id: baudelaire-correspondances
+    title: "Correspondances"
+    author: "Charles Baudelaire"
+    year: 1857
+    rights_tier: public_domain
+    source: wikisource
+    form: sonnet
+    language: [fr, en]
+    themes: [attention-and-listening, mountain-and-forest, craft-and-play]
+    mood: [mysterious, contemplative]
+    register: [classical, oracular]
+
+  - id: baudelaire-lalbatros
+    title: "L'Albatros"
+    author: "Charles Baudelaire"
+    year: 1857
+    rights_tier: public_domain
+    source: wikisource
+    form: stanzaic
+    language: [fr, en]
+    themes: [animals, sea-and-sky, craft-and-play]
+    mood: [melancholic, ironic]
+    register: [classical, lyric]
+
+  - id: baudelaire-recueillement
+    title: "Recueillement"
+    author: "Charles Baudelaire"
+    year: 1861
+    rights_tier: public_domain
+    source: wikisource
+    form: sonnet
+    language: [fr, en]
+    themes: [night-and-lamplight, mortality, solitude]
+    mood: [contemplative, dim, serene]
+    register: [lyric, solemn]
+    notes: "Nocturne candidate."
+
+  - id: verlaine-il-pleure-dans-mon-coeur
+    title: "Il pleure dans mon cœur"
+    author: "Paul Verlaine"
+    year: 1874
+    rights_tier: public_domain
+    source: wikisource
+    form: stanzaic
+    language: [fr, en]
+    themes: [weather-facing, solitude, everyday-life]
+    mood: [melancholic, quiet]
+    register: [lyric, intimate]
+
+  - id: verlaine-chanson-dautomne
+    title: "Chanson d'automne"
+    author: "Paul Verlaine"
+    year: 1866
+    rights_tier: public_domain
+    source: wikisource
+    form: lyric
+    language: [fr, en]
+    themes: [seasons-and-time, decay-and-memory, solitude]
+    mood: [melancholic, wistful]
+    register: [lyric, classical, iconic]
+
+  - id: rimbaud-voyelles
+    title: "Voyelles"
+    author: "Arthur Rimbaud"
+    year: 1883
+    rights_tier: public_domain
+    source: wikisource
+    form: sonnet
+    language: [fr, en]
+    themes: [craft-and-play, attention-and-listening]
+    mood: [ecstatic, mysterious]
+    register: [surreal, oracular]
+
+  - id: rimbaud-le-dormeur-du-val
+    title: "Le Dormeur du val"
+    author: "Arthur Rimbaud"
+    year: 1870
+    rights_tier: public_domain
+    source: wikisource
+    form: sonnet
+    language: [fr, en]
+    themes: [rural-pastoral, mortality, body-and-figure]
+    mood: [serene, haunting]
+    register: [lyric, classical]
+
+  - id: mallarme-apparition
+    title: "Apparition"
+    author: "Stéphane Mallarmé"
+    year: 1863
+    rights_tier: public_domain
+    source: wikisource
+    form: stanzaic
+    language: [fr, en]
+    themes: [night-and-lamplight, tender-companionship, reflection-and-mirror]
+    mood: [luminous, mysterious]
+    register: [ornate, lyric]
+
+  # Early Yeats (Symbolist inflection)
+  - id: yeats-when-you-are-old
+    title: "When You Are Old"
+    author: "W. B. Yeats"
+    year: 1892
+    rights_tier: public_domain
+    source: project_gutenberg
+    form: stanzaic
+    themes: [decay-and-memory, tender-companionship, mortality]
+    mood: [wistful, tender]
+    register: [lyric, intimate, iconic]
+
+  - id: yeats-lake-isle-innisfree
+    title: "The Lake Isle of Innisfree"
+    author: "W. B. Yeats"
+    year: 1890
+    rights_tier: public_domain
+    source: project_gutenberg
+    form: stanzaic
+    themes: [rural-pastoral, solitude, water-and-reflection]
+    mood: [serene, wistful]
+    register: [lyric, classical]
+
+  - id: yeats-he-wishes-cloths-heaven
+    title: "He Wishes for the Cloths of Heaven"
+    author: "W. B. Yeats"
+    year: 1899
+    rights_tier: public_domain
+    source: project_gutenberg
+    form: lyric
+    themes: [tender-companionship, night-and-lamplight]
+    mood: [tender, luminous]
+    register: [lyric, intimate]
+
+  # Famous fragments / quotes suitable as anchors
+  - id: blake-to-see-world-grain-of-sand
+    title: "To see a World in a Grain of Sand (quatrain)"
+    author: "William Blake"
+    year: 1803
+    rights_tier: public_domain
+    source: project_gutenberg
+    form: quote
+    themes: [attention-and-listening, seasons-and-time]
+    mood: [luminous, contemplative]
+    register: [aphoristic, oracular, iconic]
+    notes: "Anchor-eligible quote; shorter than the full Auguries opening."

@@ -1,0 +1,47 @@
+# Astro sensors for the Weather face footer.
+#
+# Base inputs: sun.sun, sensor.moon_phase (both from ha/integrations/zone_and_astro.yaml).
+# Derived: next full moon, daylight duration, tonight's astronomical event (scrape).
+
+- platform: template
+  sensors:
+    sunrise_today:
+      friendly_name: "Today sunrise"
+      device_class: timestamp
+      value_template: "{{ state_attr('sun.sun','next_rising') }}"
+
+    sunset_today:
+      friendly_name: "Today sunset"
+      device_class: timestamp
+      value_template: "{{ state_attr('sun.sun','next_setting') }}"
+
+    daylight_duration_minutes:
+      friendly_name: "Today daylight duration"
+      unit_of_measurement: "min"
+      value_template: >-
+        {% set rise = as_timestamp(state_attr('sun.sun','next_rising')) %}
+        {% set set_ = as_timestamp(state_attr('sun.sun','next_setting')) %}
+        {% if rise and set_ %}
+          {# If sunset comes before sunrise, we're past sunrise today; use yesterday's rise. #}
+          {% set delta = (set_ - rise) if set_ > rise else (set_ + 86400 - rise) %}
+          {{ (delta / 60) | round(0) }}
+        {% else %}
+          0
+        {% endif %}
+
+    moon_phase_name:
+      friendly_name: "Moon phase name"
+      # Renderer maps this to an SVG glyph id in shared/icons.svg.
+      value_template: "{{ states('sensor.moon_phase') }}"
+
+    next_full_moon_date:
+      friendly_name: "Next full moon"
+      # sensor.moon_phase exposes `next_full_moon` as ISO-8601 when the moon integration is v2023.
+      # Fall back to unknown if the attribute isn't present on this HA version.
+      value_template: >-
+        {% set nfm = state_attr('sensor.moon_phase','next_full_moon') %}
+        {{ nfm if nfm else 'unknown' }}
+
+# (The command_line astro_event_tonight sensor moved to
+# ha/integrations/command_line_sensors.yaml — HA 2023.6+ silently drops the
+# legacy `- platform: command_line` form under `sensor:`.)

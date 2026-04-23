@@ -1,0 +1,183 @@
+recipe: top-bw-graphic-arts-works
+lineage: german-expressionist
+generated: 2026-04-19
+defaults: {panel_fidelity: native, rights_tier: personal_library}
+
+creators:
+
+  kathe-kollwitz:
+    canon_weight: core
+    in_corpus: 0
+    works:
+    - id: kollwitz-weavers-march
+      title: "March of the Weavers (A Weavers' Revolt, plate 4)"
+      year: 1897
+      form: etching
+      themes: [ritual-and-gathering, motion-and-gesture, work-making]
+      mood: [urgent, grim]
+      register: [iconic, expressive]
+      source_hint: kollwitz_museum
+      status: pending
+    - id: kollwitz-weavers-end
+      title: "End (A Weavers' Revolt, plate 6)"
+      year: 1897
+      form: etching
+      themes: [mortality, interior-and-domestic, work-making]
+      mood: [grave, haunting]
+      register: [iconic, expressive]
+      source_hint: moma
+      status: pending
+    - id: kollwitz-peasants-war-outbreak
+      title: "Outbreak (Peasants' War, plate 5)"
+      year: 1903
+      form: etching
+      themes: [motion-and-gesture, ritual-and-gathering]
+      mood: [urgent, dynamic]
+      register: [iconic, expressive]
+      source_hint: moma
+      status: pending
+    - id: kollwitz-peasants-war-prisoners
+      title: "The Prisoners (Peasants' War, plate 7)"
+      year: 1908
+      form: etching
+      themes: [ritual-and-gathering, mortality]
+      mood: [grim, stoic]
+      register: [iconic, expressive]
+      source_hint: nga_washington
+      status: pending
+    - id: kollwitz-war-the-mothers
+      title: "The Mothers (Krieg, plate 6)"
+      year: 1923
+      form: woodblock
+      themes: [tender-companionship, ritual-and-gathering, mortality]
+      mood: [stoic, tender]
+      register: [iconic, expressive]
+      source_hint: kollwitz_museum
+      status: pending
+    - id: kollwitz-war-the-widow-i
+      title: "The Widow I (Krieg, plate 4)"
+      year: 1922
+      form: woodblock
+      themes: [solitude, mortality]
+      mood: [grim, stoic]
+      register: [iconic, expressive]
+      source_hint: moma
+      status: pending
+    - id: kollwitz-death-seizes-a-woman
+      title: "Death Seizes a Woman (Tod series)"
+      year: 1934
+      form: lithograph
+      themes: [mortality, body-and-figure]
+      mood: [grave, haunting]
+      register: [iconic, expressive]
+      source_hint: kollwitz_museum
+      status: pending
+    - id: kollwitz-self-portrait-profile-1927
+      title: "Self-Portrait in Profile to Right"
+      year: 1927
+      form: lithograph
+      themes: [portrait-and-face, reflection-and-mirror]
+      mood: [stoic, self-possessed]
+      register: [iconic, expressive]
+      source_hint: harvard_art_museums
+      status: pending
+
+  otto-dix:
+    canon_weight: canonical
+    in_corpus: 0
+    works:
+    - id: dix-krieg-stormtroops-advancing-under-gas
+      title: "Stormtroops Advancing under Gas (Der Krieg, plate 12)"
+      year: 1924
+      form: etching
+      themes: [motion-and-gesture, mortality, weather-facing]
+      mood: [grim, urgent]
+      register: [iconic, documentary]
+      source_hint: moma
+      status: pending
+    - id: dix-krieg-dead-men-before-position-tahure
+      title: "Dead Men Before the Position near Tahure (Der Krieg, plate 46)"
+      year: 1924
+      form: etching
+      themes: [mortality, light-shadow]
+      mood: [grim, unflinching]
+      register: [iconic, documentary]
+      source_hint: moma
+      status: pending
+    - id: dix-krieg-wounded-soldier
+      title: "Wounded Man (Der Krieg, plate 6)"
+      year: 1924
+      form: etching
+      themes: [mortality, portrait-and-face]
+      mood: [raw, grim]
+      register: [iconic, expressive]
+      source_hint: harvard_art_museums
+      status: pending
+    - id: dix-krieg-lens-being-bombed
+      title: "Lens Being Bombed (Der Krieg, plate 3)"
+      year: 1924
+      form: etching
+      themes: [urban, mortality, weather-facing]
+      mood: [grim, urgent]
+      register: [iconic, documentary]
+      source_hint: moma
+      status: pending
+    - id: dix-sylvia-von-harden-drawing
+      title: "Portrait of the Journalist Sylvia von Harden (preparatory drawing)"
+      year: 1926
+      form: drawing
+      themes: [portrait-and-face, interior-and-domestic]
+      mood: [sharp, wry]
+      register: [iconic, expressive]
+      source_hint: centre_pompidou
+      status: pending
+
+  ernst-ludwig-kirchner:
+    canon_weight: canonical
+    in_corpus: 0
+    works:
+    - id: kirchner-two-women-on-the-street
+      title: "Two Women on the Street"
+      year: 1914
+      form: woodblock
+      themes: [urban, body-and-figure, motion-and-gesture]
+      mood: [sharp, tense]
+      register: [iconic, expressive]
+      source_hint: moma
+      status: pending
+    - id: kirchner-five-women-street
+      title: "Five Women on the Street (woodcut)"
+      year: 1915
+      form: woodblock
+      themes: [urban, body-and-figure]
+      mood: [sharp, tense]
+      register: [iconic, expressive]
+      source_hint: brucke_museum
+      status: pending
+    - id: kirchner-head-dr-bauer
+      title: "Head of Dr. Bauer"
+      year: 1933
+      form: woodblock
+      themes: [portrait-and-face]
+      mood: [sharp, poised]
+      register: [iconic, expressive]
+      source_hint: kirchner_museum_davos
+      status: pending
+    - id: kirchner-davos-winter-landscape
+      title: "Davos in the Snow (woodcut)"
+      year: 1923
+      form: woodblock
+      themes: [winter-and-ice, mountain-and-forest]
+      mood: [austere, quiet]
+      register: [iconic, expressive]
+      source_hint: kirchner_museum_davos
+      status: pending
+    - id: kirchner-nude-dancers-woodcut
+      title: "Nude Dancers (woodcut)"
+      year: 1909
+      form: woodblock
+      themes: [body-and-figure, motion-and-gesture]
+      mood: [kinetic, raw]
+      register: [iconic, expressive]
+      source_hint: moma
+      status: pending

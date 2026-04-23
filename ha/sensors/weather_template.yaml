@@ -1,0 +1,63 @@
+# Current-conditions template sensors (temperature, condition, feels-like).
+# These still read as live attributes on the MET.no weather entity.
+#
+# Forecast-dependent sensors (high/low/rain/5-day) live in
+# ha/integrations/weather_forecast.yaml because HA 2024.4+ requires
+# calling `weather.get_forecasts` rather than reading the removed `forecast`
+# attribute.
+
+- platform: template
+  sensors:
+    # --- ${PLACE_A_NAME} ---
+    ${PLACE_A_SLUG}_temperature_c:
+      friendly_name: "${PLACE_A_NAME} temperature"
+      unit_of_measurement: "°C"
+      value_template: >-
+        {{ (state_attr('weather.${PLACE_A_SLUG}_primary','temperature') or 0) | round(0) }}
+
+    ${PLACE_A_SLUG}_condition:
+      friendly_name: "${PLACE_A_NAME} condition"
+      # Text weather: prefer Open-Meteo's current condition, fall back to
+      # MET.no's weather entity state when OM is unavailable or empty.
+      value_template: >-
+        {% set om = states('sensor.${PLACE_A_SLUG}_openmeteo_condition') %}
+        {% if om not in ['','unknown','unavailable',none] %}
+          {{ om }}
+        {% else %}
+          {{ states('weather.${PLACE_A_SLUG}_primary') }}
+        {% endif %}
+
+    ${PLACE_A_SLUG}_feels_like_c:
+      friendly_name: "${PLACE_A_NAME} feels like"
+      unit_of_measurement: "°C"
+      value_template: >-
+        {% set apparent = state_attr('weather.${PLACE_A_SLUG}_primary','apparent_temperature') %}
+        {% set current = state_attr('weather.${PLACE_A_SLUG}_primary','temperature') %}
+        {{ ((apparent if apparent is not none else current) or 0) | round(0) }}
+
+    # --- ${PLACE_B_NAME} ---
+    ${PLACE_B_SLUG}_temperature_c:
+      friendly_name: "${PLACE_B_NAME} temperature"
+      unit_of_measurement: "°C"
+      value_template: >-
+        {{ (state_attr('weather.${PLACE_B_SLUG}_primary','temperature') or 0) | round(0) }}
+
+    ${PLACE_B_SLUG}_condition:
+      friendly_name: "${PLACE_B_NAME} condition"
+      # Text weather: prefer Open-Meteo's current condition, fall back to
+      # MET.no's weather entity state when OM is unavailable or empty.
+      value_template: >-
+        {% set om = states('sensor.${PLACE_B_SLUG}_openmeteo_condition') %}
+        {% if om not in ['','unknown','unavailable',none] %}
+          {{ om }}
+        {% else %}
+          {{ states('weather.${PLACE_B_SLUG}_primary') }}
+        {% endif %}
+
+    ${PLACE_B_SLUG}_feels_like_c:
+      friendly_name: "${PLACE_B_NAME} feels like"
+      unit_of_measurement: "°C"
+      value_template: >-
+        {% set apparent = state_attr('weather.${PLACE_B_SLUG}_primary','apparent_temperature') %}
+        {% set current = state_attr('weather.${PLACE_B_SLUG}_primary','temperature') %}
+        {{ ((apparent if apparent is not none else current) or 0) | round(0) }}

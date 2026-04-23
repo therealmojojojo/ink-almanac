@@ -1,0 +1,56 @@
+# Kitchen motion → device wake pulse.
+#
+# Translates the IKEA TRADFRI motion sensor (paired via zigbee2mqtt on the NUC,
+# auto-discovered in HA as `binary_sensor.kitchen_motion_sensor_occupancy`)
+# into a non-retained pulse on `inkplate/command/wake`. The device observes
+# this on its next natural wake (timer or Sonos fast-path); latency is
+# bounded by the current period's cadence.
+#
+# Conditions:
+#   - Not within quiet hours (input_datetime.inkplate_quiet_*).
+#   - active_override == schedule (motion does NOT preempt live overrides).
+#   - 5-minute throttle via `last_triggered` — mirrors the former on-device
+#     kPirCooldownSec behavior.
+#
+# Disabled by default; operator enables after pairing the sensor and aliasing
+# it to `binary_sensor.kitchen_motion`. See
+# openspec/changes/move-pir-to-ha-motion/.
+
+- alias: "Inkplate: kitchen motion → wake"
+  id: inkplate_kitchen_motion_wake
+  initial_state: false   # operator enables post-pairing
+  mode: single
+  max_exceeded: silent
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.kitchen_motion_sensor_occupancy
+      from: "off"
+      to: "on"
+  condition:
+    # Not within quiet hours. Handle the midnight-wrap case:
+    # if start > end (e.g., 22:00–05:00), "in quiet" means time ≥ start OR time < end.
+    # If start ≤ end (the default 00:00–05:00), "in quiet" means start ≤ time < end.
+    - condition: template
+      value_template: >-
+        {% set qs = states('input_datetime.inkplate_quiet_start') %}
+        {% set qe = states('input_datetime.inkplate_quiet_end') %}
+        {% set now_t = now().strftime('%H:%M:%S') %}
+        {% if qs <= qe %}
+          {{ not (qs <= now_t < qe) }}
+        {% else %}
+          {{ not (now_t >= qs or now_t < qe) }}
+        {% endif %}
+    - condition: state
+      entity_id: input_text.inkplate_active_override
+      state: schedule
+    # 5-minute throttle: suppress if this automation last triggered under 5 min ago.
+    - condition: template
+      value_template: >-
+        {% set last = state_attr('automation.inkplate_kitchen_motion_wake', 'last_triggered') %}
+        {{ last is none or (now() - last).total_seconds() >= 300 }}
+  action:
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/wake
+        payload: ""
+        retain: false

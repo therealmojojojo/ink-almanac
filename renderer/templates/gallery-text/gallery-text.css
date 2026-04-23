@@ -1,0 +1,251 @@
+/*
+ * Gallery text-day — EXPERIMENTAL (2026-04-14).
+ *
+ * Uniform treatment:
+ *   - Fraunces Regular (never italic)
+ *   - Paragraph-level LEFT-aligned (text inside the block)
+ *   - Page-level CENTERED (block sized to content, centered horizontally)
+ *   - Multi-column flow when total lines > 8
+ *   - Stanzas kept together (break-inside: avoid)
+ *   - Max 8 lines per column
+ */
+
+.gt-root {
+  padding: calc(48 * var(--u)) calc(72 * var(--u)) calc(52 * var(--u));
+  grid-template-rows: 1fr;
+  /* Left-rag composition: title and body share the same left edge (the
+   * face padding). No page-level horizontal centering — prevents the
+   * "staircase" where a short body drifts right of the title. */
+  justify-items: start;
+  align-items: start;
+  overflow: hidden;
+  position: relative;
+}
+/* Compact content (≤5 body lines — aphorisms, quotes, haiku/tanka,
+ * quatrains, short fragments) gets "plaque" treatment: title+body
+ * cluster centered vertically, heroic title size from fitShortFormTitle.
+ * Gate is line count, not form, so a 4-line stanzaic quatrain reads the
+ * same as a 4-line aphorism. Long forms (sonnets, full-stanza poems,
+ * prose-poems) stay top-aligned — they fill the face top-down.
+ *
+ * padding-bottom 72u (not the default 52u) reserves the attribution's
+ * real footprint (36u offset + ~25u text + clearance). Without this the
+ * grid row extends to y=773 while the attribution sits at y=764–789 —
+ * so "center of the row" falls below "center of the visible area" by
+ * ~13u and the content reads as sitting low. */
+.gt-root[data-compact='true'] {
+  align-items: center;
+  /* Optical centering. Geometric center of the face is y=412, but that
+   * ignores two things: (a) the attribution row at y=764–789 is visible
+   * chrome — empty space below content is effectively bounded by its
+   * top, not the face bottom — and (b) Latin glyphs are top-heavy in
+   * their line-box (ascender taller than descender), so the ink
+   * midpoint sits ~4u below the CSS box midpoint.
+   *
+   * Setting padding-bottom = 112u pulls the content up so the empty
+   * space above the first glyph and the empty space below the last
+   * glyph (down to the attribution) read as roughly balanced. Tried
+   * 72u (v6), 80u (v7) — both still read as low against the
+   * attribution-bounded visible area. */
+  padding-bottom: calc(112 * var(--u));
+}
+.gt-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* text blocks stay left-aligned inside */
+  /* Baseline rhythm: title→body gap = 0.8 × body leading (size × 1.3 × 0.8
+   * = size × 1.04, in u). A full 1.0× leading looks cleaner but costs
+   * vertical budget on long forms (sonnets); 0.8× is still rhythmic
+   * without forcing body size down. Must stay in sync with the fit
+   * pass's TITLE_BODY_GAP_FACTOR in typography.ts. */
+  gap: calc(var(--gt-size, 42) * 1.04 * var(--u));
+  max-width: 1056px;
+  min-height: 0;
+}
+
+/* Anthology mode: Japanese original on the left, translation on the right,
+ * side-by-side — matches the Summary-face anthology layout. The Japanese
+ * uses Noto Serif JP at a larger size; the translation sits in italic,
+ * mid-tone for visual subordination. */
+.gt-body-ja {
+  font-family: 'Noto Serif JP', var(--font-serif);
+  font-style: normal;
+  font-weight: 500;
+  text-align: left;
+  /* Shared line-height with the EN body below (also fixed in u, same
+   * expression) so rows baseline-align across the JA/EN pair. */
+  line-height: calc((var(--gt-size, 42) + 8) * 1.4 * var(--u));
+  font-size: calc((var(--gt-size, 42) + 8) * var(--u));
+}
+.gt-body-ja .stanza { break-inside: avoid; }
+.gt-body-ja .stanza + .stanza { margin-top: calc(24 * var(--u)); }
+.gt-body-ja .line { white-space: pre-wrap; }
+.gt-root[data-anthology='ja'] .gt-content {
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: center;
+  align-items: start;
+  column-gap: calc(72 * var(--u));
+  /* Title→body gap = one body leading (matches .gt-content's default
+   * title→body rhythm for non-anthology forms). */
+  row-gap: calc(var(--gt-size, 42) * 1.3 * var(--u));
+  width: auto;
+  max-width: none;
+}
+.gt-root[data-anthology='ja'] .gt-body {
+  font-style: normal;
+  color: var(--mid);
+  font-size: calc(var(--gt-size, 42) * var(--u));
+  /* Shared line-height with the JA column above — forces rows to
+   * baseline-align across the pair (3 EN lines ↔ 3 JA lines). */
+  line-height: calc((var(--gt-size, 42) + 8) * 1.4 * var(--u));
+  width: auto;
+}
+/* In anthology mode the EN body is a grid cell; its internal .line
+ * wrappers shouldn't impose their own line-height (which would recreate
+ * the row-drift the shared gt-body line-height is fixing). */
+.gt-root[data-anthology='ja'] .gt-body .line {
+  line-height: inherit;
+}
+/* Anthology title spans both grid columns so it sits above BOTH the
+ * Japanese original and the translation — without the span rule,
+ * grid auto-placement puts title at (row 1, col 1) next to JA, which
+ * reads as the EN column's subtitle rather than the pair's title. */
+.gt-root[data-anthology='ja'] .gt-title {
+  grid-column: 1 / -1;
+  justify-self: center;
+}
+.gt-title {
+  font-family: var(--font-serif);
+  /* opsz scales with title size via --gt-title-opsz (see typography.ts:
+   *   titleOpsz — 96 ≤60u, 144 ≥72u, linear between). Fallback 144 for
+   * preview-only renders that don't compute the var. */
+  font-variation-settings: 'opsz' var(--gt-title-opsz, 144), 'wght' 500;
+  font-style: normal;
+  font-size: calc(var(--gt-title-size, 64) * var(--u));
+  line-height: 1.1;
+  text-align: left;
+}
+.gt-body {
+  font-family: var(--font-serif);
+  font-variation-settings: 'opsz' 36, 'wght' 500;
+  font-style: normal;
+  text-align: left;
+  line-height: 1.3;
+  column-gap: calc(72 * var(--u));
+  column-fill: balance;
+  width: 100%;
+}
+
+/* Short non-verse forms (quote, aphorism) center each line — reads as
+ * inscription/plaque, matching the centered cluster layout and the
+ * centered attribution. The parallel structure common in aphorisms
+ * (paired clauses, balanced lines) is highlighted, not fought, by
+ * centering.
+ *
+ * `fragment` stays LEFT-aligned like verse. The corpus uses "fragment"
+ * broadly — genuine excerpts, short lyric poems (Miłosz Gift, Frost
+ * Nothing Gold, Dickinson Tell All the Truth), aphoristic fragments
+ * (Heraclitus, Kafka Zürau, Laozi lines). Most read as poem-like;
+ * left-alignment + hanging indent (on the verse block below) is the
+ * right default. Items that are really inscription-style should be
+ * tagged `aphorism` instead. Prose-poem stays justified below. */
+.gt-body[data-form='quote'],
+.gt-body[data-form='aphorism'] {
+  text-align: center;
+}
+/* For the centered-body forms, also center the cluster horizontally so
+ * the title sits above a body it actually shares an axis with (instead
+ * of left-edge title + centered-inside-block body, which reads as a
+ * hierarchy break). */
+.gt-root[data-form='quote'] .gt-content,
+.gt-root[data-form='aphorism'] .gt-content {
+  align-items: center;
+}
+.gt-root[data-form='quote'] .gt-title,
+.gt-root[data-form='aphorism'] .gt-title {
+  text-align: center;
+}
+/* Center the whole cluster horizontally on the face (overriding the
+ * default left-rag `justify-items: start` on .gt-root). Without this,
+ * when the title is wider than the body (or vice versa), the narrower
+ * block is left-edge-aligned to the wider one and appears shifted. */
+.gt-root[data-form='quote'],
+.gt-root[data-form='aphorism'] {
+  justify-items: center;
+}
+.gt-body[data-form='prose-poem'] {
+  text-align: justify;
+  text-align-last: left;
+  hyphens: auto;
+}
+/* Multicol only when ≥2 cols. `columns: 1` + max-height causes browsers to
+ * auto-spawn a right-side "overflow column" for content that can't fit —
+ * which looks like a mysterious second column in the render. Apply the
+ * columns property and the balancing max-height ONLY when we genuinely
+ * want multicol layout. With cols=1 the content flows vertically; if it
+ * doesn't fit in the face, it overflows visibly and the operator flags it
+ * via reject-layout. */
+.gt-body[data-cols="2"] {
+  columns: 2;
+  max-height: calc(560 * var(--u));
+}
+
+/* Font size: driven by `--gt-size` computed by fitGalleryText() in the
+ * template, with per-form fallbacks (used when the fit pass isn't wired up,
+ * e.g., preview-only inputs). */
+.gt-body { font-size: calc(var(--gt-size, 42) * var(--u)); }
+.gt-body[data-form='haiku'],
+.gt-body[data-form='tanka']        { font-size: calc(var(--gt-size, 54) * var(--u)); }
+.gt-body[data-form='sonnet'],
+.gt-body[data-form='free-verse'],
+.gt-body[data-form='stanzaic']     { font-size: calc(var(--gt-size, 42) * var(--u)); }
+.gt-body[data-form='fragment']     { font-size: calc(var(--gt-size, 48) * var(--u)); }
+.gt-body[data-form='aphorism']     { font-size: calc(var(--gt-size, 52) * var(--u)); }
+.gt-body[data-form='prose-poem']   { font-size: calc(var(--gt-size, 36) * var(--u)); }
+.gt-body[data-form='quote']        { font-size: calc(var(--gt-size, 44) * var(--u)); }
+
+.gt-body .stanza {
+  break-inside: avoid;
+  /* Stanza gap = one body line (size × 1.3 in u). Tracks body size so
+   * rhythm stays consistent whether the fit pass ends at 42u or 28u. */
+  margin-bottom: calc(var(--gt-size, 42) * 1.3 * var(--u));
+}
+.gt-body .stanza:last-child { margin-bottom: 0; }
+.gt-body .line { white-space: pre-wrap; }
+
+/* Hanging indent on soft-wrapped lines, long-line left-aligned verse only.
+ * Excludes quote/aphorism (centered — hanging indent would misalign).
+ * Fragment is here: the corpus uses it for short poems (Miłosz Gift
+ * etc.) where a too-wide line soft-wraps; hanging indent makes the
+ * continuation read as part of the same verse line, not an orphan. */
+.gt-body[data-form='sonnet'] .line,
+.gt-body[data-form='free-verse'] .line,
+.gt-body[data-form='stanzaic'] .line,
+.gt-body[data-form='fragment'] .line {
+  padding-left: calc(40 * var(--u));
+  text-indent: calc(-40 * var(--u));
+}
+
+.gt-attrib {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(36 * var(--u));
+  font-family: var(--font-mono);
+  font-size: calc(25 * var(--u));
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--mid);
+  text-align: center;
+}
+.gt-corner-time {
+  position: absolute;
+  right: calc(48 * var(--u));
+  bottom: calc(36 * var(--u));
+  font-family: var(--font-serif);
+  font-variation-settings: 'opsz' 36, 'wght' 500;
+  font-feature-settings: 'tnum' 1;
+  font-size: calc(28 * var(--u));
+  color: var(--mid);
+}

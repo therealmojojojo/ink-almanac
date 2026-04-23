@@ -1,0 +1,111 @@
+category: modernist-poetry-essentials
+side: text
+proposed_by: claude
+proposed_at: 2026-04-16
+notes: |
+  Modernist / late-20c poetry essentials. Rights-tier routing per poet death-year:
+  - Yeats (d.1939), Rilke (d.1926), Pessoa (d.1935) → public_domain
+  - Auden (d.1973), Szymborska (d.2012), Milosz (d.2004), Transtromer (d.2015),
+    Heaney (d.2013) → personal_library
+  Non-Romanian served in English translation per operator's taste file.
+
+items:
+  - id: yeats-second-coming-fragment
+    title: "The Second Coming (fragment: 'Things fall apart...')"
+    creator: "W. B. Yeats"
+    year: 1919
+    rights_tier: public_domain
+    source: wikisource
+    form: fragment
+    language: [en]
+    themes: [decay-and-memory, ritual-and-gathering]
+    mood: [grave, foreboding]
+    register: [lyrical, iconic]
+
+  - id: rilke-duino-first-elegy-opening
+    title: "Duino Elegies I (opening: 'Who, if I cried out...')"
+    creator: "Rainer Maria Rilke"
+    year: 1922
+    rights_tier: public_domain
+    source: wikisource
+    form: fragment
+    language: [en, de]
+    themes: [solitude, attention-and-listening]
+    mood: [grave, longing]
+    register: [lyrical, classical]
+
+  - id: rilke-archaic-torso-closing
+    title: "Archaic Torso of Apollo (closing: 'You must change your life.')"
+    creator: "Rainer Maria Rilke"
+    year: 1908
+    rights_tier: public_domain
+    source: wikisource
+    form: fragment
+    language: [en, de]
+    themes: [craft-and-play, attention-and-listening, body-and-figure]
+    mood: [urgent, awestruck]
+    register: [iconic, lyrical]
+
+  - id: pessoa-tabacaria-opening
+    title: "Tabacaria (opening, as Álvaro de Campos)"
+    creator: "Fernando Pessoa"
+    year: 1928
+    rights_tier: public_domain
+    source: wikisource
+    form: fragment
+    language: [en, pt]
+    themes: [urban, solitude, decay-and-memory]
+    mood: [melancholic, wry]
+    register: [lyrical, wry]
+
+  - id: szymborska-nothing-twice
+    title: "Nothing Twice (Nic dwa razy)"
+    creator: "Wisława Szymborska"
+    year: 1957
+    rights_tier: personal_library
+    source: web
+    form: free_verse
+    language: [en]
+    citation: "Szymborska, *View with a Grain of Sand*, trans. Cavanagh & Barańczak, Harcourt, 1995"
+    themes: [seasons-and-time, decay-and-memory]
+    mood: [wry, wistful]
+    register: [lyrical, wry]
+
+  - id: milosz-gift
+    title: "Gift (Dar)"
+    creator: "Czesław Miłosz"
+    year: 1971
+    rights_tier: personal_library
+    source: web
+    form: free_verse
+    language: [en]
+    citation: "Miłosz, *New and Collected Poems 1931–2001*, Ecco, 2003"
+    themes: [morning, solitude, garden-and-grove]
+    mood: [serene, grateful]
+    register: [lyrical, classical]
+
+  - id: transtromer-after-a-death
+    title: "After a Death (Efter någons död)"
+    creator: "Tomas Tranströmer"
+    year: 1966
+    rights_tier: personal_library
+    source: web
+    form: free_verse
+    language: [en]
+    citation: "Tranströmer, *The Great Enigma*, trans. Robin Fulton, New Directions, 2006"
+    themes: [decay-and-memory, solitude, winter-and-ice]
+    mood: [grave, stark]
+    register: [lyrical]
+
+  - id: heaney-postscript
+    title: "Postscript"
+    creator: "Seamus Heaney"
+    year: 1996
+    rights_tier: personal_library
+    source: web
+    form: free_verse
+    language: [en]
+    citation: "Heaney, *The Spirit Level*, Farrar, Straus and Giroux, 1996"
+    themes: [travel, weather, motion-and-gesture]
+    mood: [awestruck, unhurried]
+    register: [lyrical]

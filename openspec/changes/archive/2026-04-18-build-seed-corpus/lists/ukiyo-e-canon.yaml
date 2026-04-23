@@ -1,0 +1,115 @@
+category: ukiyo-e-canon
+side: image
+proposed_by: claude
+proposed_at: 2026-04-16
+notes: |
+  Japanese woodblock-print canon drawn from Hokusai's "Thirty-six Views of Mt. Fuji" (1831),
+  Hiroshige's "One Hundred Famous Views of Edo" (1856-58), plus two complementary masters.
+  All PD. Met Open Access and Rijksmuseum both hold high-resolution impressions.
+
+items:
+  - id: hokusai-great-wave
+    title: "The Great Wave off Kanagawa (Kanagawa-oki Nami-ura)"
+    creator: "Katsushika Hokusai"
+    year: 1831
+    rights_tier: public_domain
+    source: met_open_access
+    form: woodblock
+    themes: [sea-and-sky, weather, travel, japan]
+    mood: [awestruck, dynamic, elemental]
+    register: [classical, iconic]
+    candidate_urls:
+      - "https://www.metmuseum.org/art/collection/search/45434"
+
+  - id: hokusai-red-fuji
+    title: "Fine Wind, Clear Morning (Gaifū Kaisei)"
+    creator: "Katsushika Hokusai"
+    year: 1831
+    rights_tier: public_domain
+    source: met_open_access
+    form: woodblock
+    themes: [mountain-and-forest, weather, morning, japan]
+    mood: [serene, grand]
+    register: [classical, iconic]
+    candidate_urls:
+      - "https://www.metmuseum.org/art/collection/search/45434"
+
+  - id: hokusai-thunderstorm-beneath-summit
+    title: "Thunderstorm Beneath the Summit (Sanka Hakuu)"
+    creator: "Katsushika Hokusai"
+    year: 1831
+    rights_tier: public_domain
+    source: met_open_access
+    form: woodblock
+    themes: [mountain-and-forest, weather, japan]
+    mood: [dramatic, elemental]
+    register: [classical]
+
+  - id: hokusai-ejiri-wind
+    title: "Ejiri in Suruga Province (Sunshū Ejiri)"
+    creator: "Katsushika Hokusai"
+    year: 1832
+    rights_tier: public_domain
+    source: met_open_access
+    form: woodblock
+    themes: [travel, weather, everyday-life, japan]
+    mood: [playful, startled, dynamic]
+    register: [classical, wry]
+
+  - id: hiroshige-shin-ohashi-shower
+    title: "Sudden Shower over Shin-Ōhashi Bridge and Atake (Ōhashi Atake no Yūdachi)"
+    creator: "Utagawa Hiroshige"
+    year: 1857
+    rights_tier: public_domain
+    source: met_open_access
+    form: woodblock
+    themes: [urban, weather, travel, japan]
+    mood: [melancholic, atmospheric]
+    register: [classical, lyrical]
+    candidate_urls:
+      - "https://www.metmuseum.org/art/collection/search/37260"
+
+  - id: hiroshige-plum-park-kameido
+    title: "Plum Park in Kameido (Kameido Umeyashiki)"
+    creator: "Utagawa Hiroshige"
+    year: 1857
+    rights_tier: public_domain
+    source: met_open_access
+    form: woodblock
+    themes: [garden-and-grove, seasons-and-time, japan]
+    mood: [contemplative, serene]
+    register: [classical, lyrical]
+
+  - id: hiroshige-asakusa-snow
+    title: "Asakusa Ricefields and Torinomachi Festival"
+    creator: "Utagawa Hiroshige"
+    year: 1857
+    rights_tier: public_domain
+    source: met_open_access
+    form: woodblock
+    themes: [seasons-and-time, urban, ritual-and-gathering, japan]
+    mood: [quiet, wistful]
+    register: [classical]
+
+  - id: hiroshige-moon-pine-ueno
+    title: "Moon Pine, Ueno (Ueno Yamauchi Tsuki no Matsu)"
+    creator: "Utagawa Hiroshige"
+    year: 1857
+    rights_tier: public_domain
+    source: met_open_access
+    form: woodblock
+    themes: [garden-and-grove, night-and-lamplight, japan]
+    mood: [serene, contemplative]
+    register: [classical, lyrical]
+    nocturne_candidate: true
+
+  - id: utamaro-three-beauties
+    title: "Three Beauties of the Present Day (Tōji San Bijin)"
+    creator: "Kitagawa Utamaro"
+    year: 1793
+    rights_tier: public_domain
+    source: met_open_access
+    form: woodblock
+    themes: [portrait-and-face, japan]
+    mood: [poised, gentle]
+    register: [classical, formal]

@@ -1,0 +1,229 @@
+# Now-Playing override coordination — turns Sonos state into an active override
+# on the Inkplate dashboard.
+#
+# State machine:
+#   Sonos → playing (outside quiet-hours) → save prior override, set active=now_playing,
+#     prefetch art + sonos input, wake device
+#   Track change while playing → re-prefetch, wake device
+#   Sonos → paused/idle/unavailable → start linger timer
+#   Linger reset: Sonos → playing during linger cancels the timer
+#   Linger fire (Sonos still not playing) → restore prior override, wake device
+#   Quiet-hours end + Sonos still playing → re-evaluate activation
+#
+# Precedence: now_playing > weather_peek > summary_gallery_toggle > schedule.
+# The schedule and gesture automations check input_text.inkplate_active_override
+# before wake-publishing, so Now-Playing naturally preempts them while active.
+
+- id: inkplate_sonos_play_start
+  alias: "Inkplate: Sonos started → activate Now-Playing"
+  trigger:
+    - platform: state
+      entity_id: media_player.kitchen_sonos
+      to: "playing"
+  condition:
+    # Quiet-hours guard. Window wraps midnight when start > end (default 00:00→05:00
+    # is the trivial non-wrap case, but operator may invert it).
+    - condition: template
+      value_template: >-
+        {% set qs = states('input_datetime.inkplate_quiet_start') %}
+        {% set qe = states('input_datetime.inkplate_quiet_end') %}
+        {% set now_t = now().strftime('%H:%M:%S') %}
+        {% if qs <= qe %}
+          {{ not (qs <= now_t < qe) }}
+        {% else %}
+          {{ not (now_t >= qs or now_t < qe) }}
+        {% endif %}
+  action:
+    - service: input_text.set_value
+      target: { entity_id: input_text.inkplate_prior_override }
+      data: { value: "{{ states('input_text.inkplate_active_override') }}" }
+    - service: input_text.set_value
+      target: { entity_id: input_text.inkplate_active_override }
+      data: { value: now_playing }
+    - service: timer.cancel
+      target: { entity_id: timer.inkplate_now_playing_linger }
+    # Remember the track identity so subsequent attribute updates can diff.
+    - service: input_text.set_value
+      target: { entity_id: input_text.inkplate_now_playing_content_id }
+      data:
+        value: >-
+          {% set s = states[states('input_text.inkplate_kitchen_sonos_entity')] %}
+          {{ s.attributes.media_content_id
+             or (s.attributes.media_title ~ '|' ~ s.attributes.media_artist ~ '|' ~ s.attributes.media_album_name) }}
+    # Renderer input is kept in sync by `inkplate_publish_sonos`
+    # in publish_inputs.yaml — no art-fetch call needed here.
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/active_mode
+        payload: now-playing
+        retain: true
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/wake
+        payload: ""
+
+- id: inkplate_sonos_track_change
+  alias: "Inkplate: Sonos track changed → re-render Now-Playing"
+  # Fires on any media_content_id change while the entity is playing. Volume/seek
+  # updates don't change media_content_id, so they don't trigger this automation.
+  trigger:
+    - platform: state
+      entity_id: media_player.kitchen_sonos
+      attribute: media_content_id
+  condition:
+    - condition: state
+      entity_id: media_player.kitchen_sonos
+      state: "playing"
+    - condition: state
+      entity_id: input_text.inkplate_active_override
+      state: now_playing
+    # Only re-render if the content id actually changed from what we have cached
+    # (guards against initial-load flicker).
+    - condition: template
+      value_template: >-
+        {{ trigger.to_state.attributes.media_content_id
+           != states('input_text.inkplate_now_playing_content_id') }}
+  action:
+    - service: input_text.set_value
+      target: { entity_id: input_text.inkplate_now_playing_content_id }
+      data:
+        value: >-
+          {{ trigger.to_state.attributes.media_content_id
+             or (trigger.to_state.attributes.media_title ~ '|'
+                 ~ trigger.to_state.attributes.media_artist ~ '|'
+                 ~ trigger.to_state.attributes.media_album_name) }}
+    # Renderer input is kept in sync by `inkplate_publish_sonos`
+    # in publish_inputs.yaml — no art-fetch call needed here.
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/wake
+        payload: ""
+
+- id: inkplate_sonos_play_stop
+  alias: "Inkplate: Sonos stopped → start linger"
+  trigger:
+    - platform: state
+      entity_id: media_player.kitchen_sonos
+      from: "playing"
+      to: ["paused", "idle", "unavailable"]
+  condition:
+    - condition: state
+      entity_id: input_text.inkplate_active_override
+      state: now_playing
+  action:
+    - service: timer.start
+      target: { entity_id: timer.inkplate_now_playing_linger }
+      data:
+        duration: >-
+          {% set s = states('input_number.inkplate_linger_seconds') | int(90) %}
+          {{ "%02d:%02d:%02d" | format(s // 3600, (s % 3600) // 60, s % 60) }}
+
+- id: inkplate_sonos_play_resumed_during_linger
+  alias: "Inkplate: playback resumed during linger → cancel linger"
+  trigger:
+    - platform: state
+      entity_id: media_player.kitchen_sonos
+      to: "playing"
+  condition:
+    - condition: state
+      entity_id: timer.inkplate_now_playing_linger
+      state: active
+  action:
+    - service: timer.cancel
+      target: { entity_id: timer.inkplate_now_playing_linger }
+
+- id: inkplate_sonos_linger_expired
+  alias: "Inkplate: linger expired → restore prior override"
+  trigger:
+    - platform: event
+      event_type: timer.finished
+      event_data: { entity_id: timer.inkplate_now_playing_linger }
+  condition:
+    - condition: template
+      value_template: "{{ states('media_player.kitchen_sonos') != 'playing' }}"
+  action:
+    # Restore the prior override if it's still time-valid. Weather-peek carries a
+    # 5-minute window (gesture automation sets `inkplate_weather_peek_expires_at`);
+    # the toggle persists until the next scheduled transition. If the prior is
+    # stale, fall back to `schedule`.
+    - variables:
+        prior: "{{ states('input_text.inkplate_prior_override') }}"
+        peek_expires: "{{ states('input_datetime.inkplate_weather_peek_expires_at') | default('', true) }}"
+        restore: >-
+          {% if prior == 'weather_peek' and peek_expires and as_timestamp(peek_expires, 0) > as_timestamp(now()) %}
+            weather_peek
+          {% elif prior == 'summary_gallery_toggle' %}
+            summary_gallery_toggle
+          {% else %}
+            schedule
+          {% endif %}
+    - service: input_text.set_value
+      target: { entity_id: input_text.inkplate_active_override }
+      data: { value: "{{ restore | trim }}" }
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/active_mode
+        payload: >-
+          {% set r = restore | trim %}
+          {% if r == 'weather_peek' %}weather
+          {% elif r == 'summary_gallery_toggle' %}{{ states('input_text.inkplate_scheduled_face') }}
+          {% else %}{{ states('input_text.inkplate_scheduled_face') }}{% endif %}
+        retain: true
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/wake
+        payload: ""
+
+- id: inkplate_sonos_quiet_hours_end_reeval
+  alias: "Inkplate: quiet-hours ended → re-evaluate Now-Playing"
+  # If music was playing during quiet-hours, activation was suppressed. When
+  # quiet-hours ends, evaluate whether to activate now.
+  trigger:
+    - platform: time
+      at: input_datetime.inkplate_quiet_end
+  condition:
+    - condition: state
+      entity_id: media_player.kitchen_sonos
+      state: "playing"
+    - condition: not
+      conditions:
+        - condition: state
+          entity_id: input_text.inkplate_active_override
+          state: now_playing
+  action:
+    # Reuse the activation by firing a synthetic state_changed via script:
+    # simpler to inline the activation here — kept in sync with play_start above.
+    - service: input_text.set_value
+      target: { entity_id: input_text.inkplate_prior_override }
+      data: { value: "{{ states('input_text.inkplate_active_override') }}" }
+    - service: input_text.set_value
+      target: { entity_id: input_text.inkplate_active_override }
+      data: { value: now_playing }
+    - service: timer.cancel
+      target: { entity_id: timer.inkplate_now_playing_linger }
+    - service: input_text.set_value
+      target: { entity_id: input_text.inkplate_now_playing_content_id }
+      data:
+        value: >-
+          {% set s = states[states('input_text.inkplate_kitchen_sonos_entity')] %}
+          {{ s.attributes.media_content_id
+             or (s.attributes.media_title ~ '|' ~ s.attributes.media_artist ~ '|' ~ s.attributes.media_album_name) }}
+    # Renderer input is kept in sync by `inkplate_publish_sonos`
+    # in publish_inputs.yaml — no art-fetch call needed here.
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/active_mode
+        payload: now-playing
+        retain: true
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/wake
+        payload: ""
+
+- id: inkplate_sonos_art_daily_purge
+  alias: "Inkplate: daily purge of stale Sonos album-art cache"
+  trigger:
+    - platform: time
+      at: "04:17:00"
+  action:
+    - service: shell_command.purge_stale_sonos_art

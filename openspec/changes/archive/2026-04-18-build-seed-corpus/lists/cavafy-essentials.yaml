@@ -1,0 +1,90 @@
+category: cavafy-essentials
+side: text
+proposed_by: claude
+proposed_at: 2026-04-16
+notes: |
+  Cavafy (d.1933) — original Greek poems are PD, but the canonical English
+  translations by Edmund Keeley and Philip Sherrard (Princeton UP, 1975 /
+  revised 1992) are personal_library. Served as bilingual pairs (English primary,
+  Greek original alongside) under personal_library tier on account of the
+  translation; PD via wikisource for Greek-only fallback.
+
+items:
+  - id: cavafy-ithaca
+    title: "Ithaca (Ιθάκη)"
+    creator: "C. P. Cavafy"
+    year: 1911
+    rights_tier: personal_library
+    source: web
+    form: free_verse
+    language: [en, el]
+    citation: "Cavafy, *C. P. Cavafy: Collected Poems*, trans. Keeley & Sherrard, Princeton UP, 1992"
+    themes: [travel, solitude, attention-and-listening]
+    mood: [contemplative, wistful]
+    register: [classical, lyrical]
+
+  - id: cavafy-god-abandons-antony
+    title: "The God Abandons Antony (Ἀπολείπειν ὁ θεὸς Ἀντώνιον)"
+    creator: "C. P. Cavafy"
+    year: 1911
+    rights_tier: personal_library
+    source: web
+    form: free_verse
+    language: [en, el]
+    citation: "Cavafy, *C. P. Cavafy: Collected Poems*, trans. Keeley & Sherrard, Princeton UP, 1992"
+    themes: [decay-and-memory, solitude]
+    mood: [grave, accepting]
+    register: [classical, lyrical]
+
+  - id: cavafy-waiting-for-the-barbarians
+    title: "Waiting for the Barbarians (Περιμένοντας τοὺς Βαρβάρους)"
+    creator: "C. P. Cavafy"
+    year: 1904
+    rights_tier: personal_library
+    source: web
+    form: free_verse
+    language: [en, el]
+    citation: "Cavafy, *C. P. Cavafy: Collected Poems*, trans. Keeley & Sherrard, Princeton UP, 1992"
+    themes: [ritual-and-gathering, decay-and-memory]
+    mood: [ironic, wry]
+    register: [classical, wry]
+
+  - id: cavafy-the-city
+    title: "The City (Ἡ Πόλις)"
+    creator: "C. P. Cavafy"
+    year: 1894
+    rights_tier: personal_library
+    source: web
+    form: free_verse
+    language: [en, el]
+    citation: "Cavafy, *C. P. Cavafy: Collected Poems*, trans. Keeley & Sherrard, Princeton UP, 1992"
+    themes: [urban, solitude, decay-and-memory]
+    mood: [melancholic, resigned]
+    register: [classical, lyrical]
+
+  - id: cavafy-candles
+    title: "Candles (Κεριά)"
+    creator: "C. P. Cavafy"
+    year: 1899
+    rights_tier: personal_library
+    source: web
+    form: free_verse
+    language: [en, el]
+    citation: "Cavafy, *C. P. Cavafy: Collected Poems*, trans. Keeley & Sherrard, Princeton UP, 1992"
+    themes: [seasons-and-time, decay-and-memory, night-and-lamplight]
+    mood: [grieving, contemplative]
+    register: [classical, lyrical]
+    nocturne_candidate: true
+
+  - id: cavafy-as-much-as-you-can
+    title: "As Much As You Can (Ὅσο Μπορεῖς)"
+    creator: "C. P. Cavafy"
+    year: 1913
+    rights_tier: personal_library
+    source: web
+    form: free_verse
+    language: [en, el]
+    citation: "Cavafy, *C. P. Cavafy: Collected Poems*, trans. Keeley & Sherrard, Princeton UP, 1992"
+    themes: [attention-and-listening, solitude]
+    mood: [grave, tender]
+    register: [classical]

@@ -1,0 +1,48 @@
+# Mood vocabulary — the affective key the item is in. Closed set.
+# Canonicalized from in-use terms 2026-04-17.
+
+contemplative: { label: "Contemplative", description: "Thoughtful, inward, sustained attention." }
+serene:        { label: "Serene",        description: "Calm, unhurried, composed." }
+quiet:         { label: "Quiet",         description: "Hushed, low-key; absence of force." }
+still:         { label: "Still",         description: "Static, held; no motion or minimal motion." }
+melancholic:   { label: "Melancholic",   description: "Sad but not grieving — tinted with loss, bittersweet." }
+wistful:       { label: "Wistful",       description: "Longing softened by resignation; tender regret." }
+stoic:         { label: "Stoic",         description: "Bearing without complaint; impassive endurance." }
+tender:        { label: "Tender",        description: "Soft-edged, affectionate, gentle." }
+intimate:      { label: "Intimate",      description: "Close, personal, private register." }
+warm:          { label: "Warm",          description: "Generous, welcoming; human warmth." }
+playful:       { label: "Playful",       description: "Light, ludic, not serious." }
+wry:           { label: "Wry",           description: "Dry humor, tilted irony." }
+ironic:        { label: "Ironic",        description: "Pointed contrast between stated and meant." }
+deadpan:       { label: "Deadpan",       description: "Straight-faced absurdity or humor." }
+absurd:        { label: "Absurd",        description: "Senseless, comic at the edge of logic (Kharms register)." }
+surreal:       { label: "Surreal",       description: "Dreamlike, impossible juxtaposition." }
+uncanny:       { label: "Uncanny",       description: "Familiar made strange; unsettled intimacy." }
+mysterious:    { label: "Mysterious",    description: "Unexplained, withheld, suggestive of depth." }
+atmospheric:   { label: "Atmospheric",   description: "Dominated by weather, mood-of-place; ambient." }
+haunting:      { label: "Haunting",      description: "Lingers; emotional afterimage." }
+stark:         { label: "Stark",         description: "Spare, severe; nothing decorative." }
+austere:       { label: "Austere",       description: "Disciplined, restrained, classical severity." }
+grave:         { label: "Grave",         description: "Serious, weighty, solemn." }
+grim:          { label: "Grim",          description: "Bleak, forbidding, unsparing." }
+tense:         { label: "Tense",         description: "Coiled; energy pent." }
+urgent:        { label: "Urgent",        description: "Immediate, pressing, demands response." }
+kinetic:       { label: "Kinetic",       description: "Full of motion; the captured instant." }
+dynamic:       { label: "Dynamic",       description: "Energetic composition, forces in play." }
+grand:         { label: "Grand",         description: "Large-scale, monumental." }
+awestruck:     { label: "Awestruck",     description: "Struck by the sublime; humbled by scale." }
+ecstatic:      { label: "Ecstatic",      description: "Carried out of the self; rapture." }
+luminous:      { label: "Luminous",      description: "Lit from within; glowing." }
+dim:           { label: "Dim",           description: "Low-light, crepuscular, shadowed." }
+ornate:        { label: "Ornate",        description: "Richly decorated, baroque abundance." }
+sharp:         { label: "Sharp",         description: "Incisive, pointed, edged." }
+alert:         { label: "Alert",         description: "Attentive, on watch, alive to surroundings." }
+attentive:     { label: "Attentive",     description: "Focused notice, the reader's posture." }
+poised:        { label: "Poised",        description: "Balanced, self-possessed, composed." }
+self-possessed: { label: "Self-possessed", description: "At home in oneself; quiet authority." }
+enigmatic:     { label: "Enigmatic",     description: "Puzzling, withholding interpretation." }
+unflinching:   { label: "Unflinching",   description: "Does not look away; honest before hardship." }
+raw:           { label: "Raw",           description: "Unguarded, exposed, unsmoothed." }
+documentary:   { label: "Documentary",   description: "Witness register, the photograph's honesty." }
+romantic:      { label: "Romantic",      description: "Heightened feeling, gesture toward the sublime." }
+unhurried:     { label: "Unhurried",     description: "Slow, takes its time, refuses urgency." }

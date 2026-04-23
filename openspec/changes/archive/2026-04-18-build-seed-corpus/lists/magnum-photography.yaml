@@ -1,0 +1,346 @@
+category: magnum-photography
+side: image
+proposed_by: claude
+proposed_at: 2026-04-17
+notes: |
+  Canonical B&W work from Magnum Photos members (agency founded 1947).
+  Pushes the B&W-photography share toward the 50% seed-corpus floor.
+  All items `panel_fidelity: native` (silver gelatin or digital B&W).
+  Tier: all `personal_library` — every photographer is post-1947 and
+  in copyright. Source: web (museum pages, Magnum's own site, publisher
+  previews). HCB and Koudelka already have partial coverage in
+  `midcentury-photography.yaml` — this list extends those plus adds
+  Capa, Chim, Rodger (founders), and the second and third generations.
+
+items:
+  # Founding members
+  - id: capa-d-day-omaha
+    title: "D-Day, Omaha Beach"
+    creator: "Robert Capa"
+    year: 1944
+    rights_tier: personal_library
+    source: web
+    citation: "Capa, *Slightly Out of Focus*, Modern Library, 2001 / Magnum"
+    form: photograph
+    panel_fidelity: native
+    themes: [weather-facing, mortality, motion-and-gesture]
+    mood: [urgent, grim, kinetic]
+    register: [documentary, iconic]
+
+  - id: capa-falling-soldier
+    title: "The Falling Soldier (Death of a Loyalist Militiaman)"
+    creator: "Robert Capa"
+    year: 1936
+    rights_tier: personal_library
+    source: web
+    citation: "Capa, *Heart of Spain: Robert Capa's Photographs of the Spanish Civil War*, Aperture, 1999"
+    form: photograph
+    panel_fidelity: native
+    themes: [mortality, motion-and-gesture, weather-facing]
+    mood: [urgent, haunting]
+    register: [documentary, iconic]
+
+  - id: chim-child-ruins-vienna
+    title: "Child in Ruins, Vienna"
+    creator: "David Seymour (Chim)"
+    year: 1948
+    rights_tier: personal_library
+    source: web
+    citation: "Chim, *David Seymour: The Humanity of Photography*, Magnum, 1996"
+    form: photograph
+    panel_fidelity: native
+    themes: [childhood-and-play, decay-and-memory, urban]
+    mood: [tender, haunting]
+    register: [documentary, lyric]
+
+  - id: rodger-korongo-nuba-wrestlers
+    title: "Korongo Nuba Wrestlers, Sudan"
+    creator: "George Rodger"
+    year: 1949
+    rights_tier: personal_library
+    source: web
+    citation: "Rodger, *Village of the Nubas*, Phaidon, 1999"
+    form: photograph
+    panel_fidelity: native
+    themes: [body-and-figure, motion-and-gesture, ritual-and-gathering]
+    mood: [poised, dynamic]
+    register: [documentary, iconic]
+
+  # HCB additional (beyond the four already ingested)
+  - id: hcb-rue-mouffetard-boy
+    title: "Rue Mouffetard (boy with wine bottles)"
+    creator: "Henri Cartier-Bresson"
+    year: 1954
+    rights_tier: personal_library
+    source: web
+    citation: "Cartier-Bresson, *The Decisive Moment*, Simon & Schuster, 1952 / Aperture 2014"
+    form: photograph
+    panel_fidelity: native
+    themes: [childhood-and-play, urban, paris-amsterdam-vintage]
+    mood: [playful, tender]
+    register: [documentary, lyric, iconic]
+
+  - id: hcb-place-de-leurope
+    title: "Place de l'Europe, Gare Saint-Lazare (puddle jumper)"
+    creator: "Henri Cartier-Bresson"
+    year: 1932
+    rights_tier: personal_library
+    source: web
+    citation: "Cartier-Bresson, *The Decisive Moment*"
+    form: photograph
+    panel_fidelity: native
+    themes: [motion-and-gesture, urban, reflection-and-mirror]
+    mood: [kinetic, poised]
+    register: [documentary, iconic]
+    notes: "Already proposed as hcb-behind-gare-saint-lazare in midcentury-photography; this one is the iconic puddle-jumper. Disambiguate ids at review time."
+
+  # Second generation Magnum
+  - id: erwitt-dogs-and-legs
+    title: "New York (dog, small dog, legs)"
+    creator: "Elliott Erwitt"
+    year: 1974
+    rights_tier: personal_library
+    source: web
+    citation: "Erwitt, *Personal Best*, teNeues, 2006"
+    form: photograph
+    panel_fidelity: native
+    themes: [animals, urban, craft-and-play]
+    mood: [wry, playful]
+    register: [documentary, sly]
+
+  - id: erwitt-kitchen-debate
+    title: "Kitchen Debate, Nixon-Khrushchev"
+    creator: "Elliott Erwitt"
+    year: 1959
+    rights_tier: personal_library
+    source: web
+    citation: "Erwitt, *Personal Best*, teNeues, 2006"
+    form: photograph
+    panel_fidelity: native
+    themes: [portrait-and-face, ritual-and-gathering, everyday-life]
+    mood: [wry, sharp]
+    register: [documentary, iconic]
+
+  - id: burri-che-havana
+    title: "Ernesto 'Che' Guevara, Havana"
+    creator: "René Burri"
+    year: 1963
+    rights_tier: personal_library
+    source: web
+    citation: "Burri, *Impossible Reminiscences*, Phaidon, 2013"
+    form: photograph
+    panel_fidelity: native
+    themes: [portrait-and-face, solitude]
+    mood: [contemplative, self-possessed]
+    register: [documentary, iconic]
+
+  - id: burri-brasilia-sao-paulo-rooftops
+    title: "Men on a Rooftop, São Paulo"
+    creator: "René Burri"
+    year: 1960
+    rights_tier: personal_library
+    source: web
+    citation: "Burri, *Impossible Reminiscences*, Phaidon, 2013"
+    form: photograph
+    panel_fidelity: native
+    themes: [architecture-and-structure, urban, body-and-figure]
+    mood: [geometric, poised]
+    register: [documentary, formal, iconic]
+
+  - id: arnold-marilyn-reading-ulysses
+    title: "Marilyn Monroe Reading Ulysses"
+    creator: "Eve Arnold"
+    year: 1955
+    rights_tier: personal_library
+    source: web
+    citation: "Arnold, *In Retrospect*, Knopf, 1996"
+    form: photograph
+    panel_fidelity: native
+    themes: [portrait-and-face, reading-and-study, tender-companionship]
+    mood: [tender, attentive]
+    register: [documentary, intimate]
+
+  - id: davidson-east-100th-street
+    title: "East 100th Street (boy on stoop)"
+    creator: "Bruce Davidson"
+    year: 1966
+    rights_tier: personal_library
+    source: web
+    citation: "Davidson, *East 100th Street*, Harvard University Press, 1970"
+    form: photograph
+    panel_fidelity: native
+    themes: [urban, childhood-and-play, solitude]
+    mood: [tender, unflinching]
+    register: [documentary, intimate]
+
+  - id: meiselas-molotov-man
+    title: "Molotov Man, Nicaragua"
+    creator: "Susan Meiselas"
+    year: 1979
+    rights_tier: personal_library
+    source: web
+    citation: "Meiselas, *Nicaragua*, Pantheon, 1981"
+    form: photograph
+    panel_fidelity: native
+    themes: [motion-and-gesture, ritual-and-gathering, body-and-figure]
+    mood: [urgent, kinetic]
+    register: [documentary, iconic]
+
+  - id: griffiths-vietnam-mother-child
+    title: "Vietnam Inc. — Mother and Child"
+    creator: "Philip Jones Griffiths"
+    year: 1967
+    rights_tier: personal_library
+    source: web
+    citation: "Griffiths, *Vietnam Inc.*, Phaidon, 2001"
+    form: photograph
+    panel_fidelity: native
+    themes: [tender-companionship, mortality, weather-facing]
+    mood: [haunting, tender]
+    register: [documentary, intimate]
+
+  - id: bischof-courtyard-of-famine-india
+    title: "Courtyard of the Famine, Bihar"
+    creator: "Werner Bischof"
+    year: 1951
+    rights_tier: personal_library
+    source: web
+    citation: "Bischof, *After the War*, Steidl, 2011"
+    form: photograph
+    panel_fidelity: native
+    themes: [ritual-and-gathering, weather-facing, mortality]
+    mood: [grave, unflinching]
+    register: [documentary, solemn]
+
+  - id: riboud-painter-eiffel-tower
+    title: "Painter on the Eiffel Tower"
+    creator: "Marc Riboud"
+    year: 1953
+    rights_tier: personal_library
+    source: web
+    citation: "Riboud, *50 Years of Photography*, Flammarion, 2004"
+    form: photograph
+    panel_fidelity: native
+    themes: [architecture-and-structure, work-making, paris-amsterdam-vintage]
+    mood: [poised, luminous]
+    register: [documentary, iconic]
+
+  # Third generation
+  - id: salgado-gold-mine-serra-pelada
+    title: "Gold Mine, Serra Pelada"
+    creator: "Sebastião Salgado"
+    year: 1986
+    rights_tier: personal_library
+    source: web
+    citation: "Salgado, *Workers*, Aperture, 1993"
+    form: photograph
+    panel_fidelity: native
+    themes: [work-making, body-and-figure, ritual-and-gathering]
+    mood: [awestruck, unflinching]
+    register: [documentary, solemn, iconic]
+
+  - id: salgado-genesis-southern-right-whale
+    title: "Southern Right Whale, Valdés Peninsula"
+    creator: "Sebastião Salgado"
+    year: 2004
+    rights_tier: personal_library
+    source: web
+    citation: "Salgado, *Genesis*, Taschen, 2013"
+    form: photograph
+    panel_fidelity: native
+    themes: [animals, sea-and-sky, attention-and-listening]
+    mood: [serene, awestruck]
+    register: [documentary, lyric]
+
+  - id: koudelka-prague-invasion-watch
+    title: "Prague, August 1968 (invasion — wrist with watch)"
+    creator: "Josef Koudelka"
+    year: 1968
+    rights_tier: personal_library
+    source: web
+    citation: "Koudelka, *Invasion 68: Prague*, Aperture, 2008"
+    form: photograph
+    panel_fidelity: native
+    themes: [ritual-and-gathering, urban, mortality]
+    mood: [urgent, haunting]
+    register: [documentary, iconic]
+
+  - id: koudelka-exiles-wall
+    title: "Wales (from Exiles)"
+    creator: "Josef Koudelka"
+    year: 1975
+    rights_tier: personal_library
+    source: web
+    citation: "Koudelka, *Exiles*, Thames & Hudson, 1988"
+    form: photograph
+    panel_fidelity: native
+    themes: [solitude, rural-pastoral, journey]
+    mood: [stoic, atmospheric]
+    register: [documentary, lyric]
+
+  - id: depardon-desert-crossroads
+    title: "Desert Crossroads (from Errance)"
+    creator: "Raymond Depardon"
+    year: 1999
+    rights_tier: personal_library
+    source: web
+    citation: "Depardon, *Errance*, Seuil, 2000"
+    form: photograph
+    panel_fidelity: native
+    themes: [journey, solitude, rural-pastoral]
+    mood: [serene, melancholic]
+    register: [documentary, lyric]
+
+  - id: pellegrin-kosovo-crowd
+    title: "Kosovo Refugees"
+    creator: "Paolo Pellegrin"
+    year: 1999
+    rights_tier: personal_library
+    source: web
+    citation: "Pellegrin, *As I Was Dying*, Contrasto, 2008"
+    form: photograph
+    panel_fidelity: native
+    themes: [ritual-and-gathering, motion-and-gesture, mortality]
+    mood: [urgent, haunting]
+    register: [documentary, atmospheric]
+
+  - id: parke-minutes-to-midnight-rain
+    title: "Minutes to Midnight (rain on windshield)"
+    creator: "Trent Parke"
+    year: 2003
+    rights_tier: personal_library
+    source: web
+    citation: "Parke, *Minutes to Midnight*, Steidl, 2013"
+    form: photograph
+    panel_fidelity: native
+    themes: [weather-facing, urban, solitude]
+    mood: [atmospheric, mysterious]
+    register: [lyric, atmospheric]
+    notes: "Nocturne candidate."
+
+  - id: soth-sleeping-mississippi-charles
+    title: "Charles, Vasa, Minnesota (from Sleeping by the Mississippi)"
+    creator: "Alec Soth"
+    year: 2002
+    rights_tier: personal_library
+    source: web
+    citation: "Soth, *Sleeping by the Mississippi*, Steidl, 2004 / MACK, 2017"
+    form: photograph
+    panel_fidelity: native
+    themes: [portrait-and-face, solitude, rural-pastoral]
+    mood: [quiet, enigmatic]
+    register: [documentary, lyric]
+
+  - id: webb-tehuantepec-parade
+    title: "Tehuantepec (shadow parade)"
+    creator: "Alex Webb"
+    year: 1985
+    rights_tier: personal_library
+    source: web
+    citation: "Webb, *Hot Light / Half-Made Worlds*, Thames & Hudson, 1986"
+    form: photograph
+    panel_fidelity: robust
+    themes: [ritual-and-gathering, urban, light-shadow]
+    mood: [atmospheric, dynamic]
+    register: [documentary, atmospheric]
+    notes: "Webb typically works in color; this list proposes a tonally strong B&W print or the few B&W series. Review at list-approval."

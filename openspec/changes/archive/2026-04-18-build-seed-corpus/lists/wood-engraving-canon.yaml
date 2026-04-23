@@ -1,0 +1,232 @@
+category: wood-engraving-canon
+side: image
+proposed_by: claude
+proposed_at: 2026-04-17
+notes: |
+  Modern wood engraving — fine-line relief prints from end-grain wood blocks,
+  distinct from the earlier woodblock tradition. Introduced as its own
+  `form: wood-engraving` vocab entry 2026-04-17. Always monochrome, cut with
+  burins. All `panel_fidelity: native`.
+
+  Dominant 20c canon: Lynd Ward's wordless novels (US), Leonard Baskin,
+  Paul Landacre, Eric Gill, Clare Leighton, Rockwell Kent, Gwen Raverat.
+  Gill d.1940, Landacre d.1963, Ward d.1985, Baskin d.2000, Kent d.1971,
+  Leighton d.1989, Raverat d.1957 — all in copyright → personal_library.
+
+items:
+  # Lynd Ward — wordless novels are the core canon
+  - id: ward-gods-man-opening-plate
+    title: "Opening plate (from God's Man)"
+    creator: "Lynd Ward"
+    year: 1929
+    rights_tier: personal_library
+    source: web
+    citation: "Ward, *God's Man*, Jonathan Cape & Harrison Smith, 1929 / *Six Novels in Woodcuts*, Library of America, 2010"
+    form: wood-engraving
+    panel_fidelity: native
+    themes: [urban, craft-and-play, journey]
+    mood: [haunting, urgent]
+    register: [expressive, iconic]
+
+  - id: ward-madmans-drum-city
+    title: "City plate (from Madman's Drum)"
+    creator: "Lynd Ward"
+    year: 1930
+    rights_tier: personal_library
+    source: web
+    citation: "Ward, *Six Novels in Woodcuts*, Library of America, 2010"
+    form: wood-engraving
+    panel_fidelity: native
+    themes: [urban, mortality, architecture-and-structure]
+    mood: [haunting, grim]
+    register: [expressive, atmospheric]
+
+  - id: ward-wild-pilgrimage-forest
+    title: "Forest plate (from Wild Pilgrimage)"
+    creator: "Lynd Ward"
+    year: 1932
+    rights_tier: personal_library
+    source: web
+    citation: "Ward, *Six Novels in Woodcuts*, Library of America, 2010"
+    form: wood-engraving
+    panel_fidelity: native
+    themes: [mountain-and-forest, journey, solitude]
+    mood: [atmospheric, mysterious]
+    register: [expressive, lyric]
+
+  - id: ward-song-without-words-moonlight
+    title: "Moonlight plate (from Song Without Words)"
+    creator: "Lynd Ward"
+    year: 1936
+    rights_tier: personal_library
+    source: web
+    citation: "Ward, *Six Novels in Woodcuts*, Library of America, 2010"
+    form: wood-engraving
+    panel_fidelity: native
+    themes: [night-and-lamplight, solitude, mortality]
+    mood: [haunting, dim, grave]
+    register: [expressive, atmospheric]
+    notes: "Nocturne candidate."
+
+  # Leonard Baskin
+  - id: baskin-man-of-peace
+    title: "Man of Peace"
+    creator: "Leonard Baskin"
+    year: 1952
+    rights_tier: personal_library
+    source: web
+    citation: "Baskin, *Iconologia*, Gehenna Press / *Leonard Baskin: The Graphic Work*, 2013"
+    form: wood-engraving
+    panel_fidelity: native
+    themes: [portrait-and-face, body-and-figure, mortality]
+    mood: [grave, unflinching]
+    register: [expressive, iconic]
+
+  - id: baskin-dead-crow
+    title: "Hanged Man / Dead Crow"
+    creator: "Leonard Baskin"
+    year: 1959
+    rights_tier: personal_library
+    source: web
+    citation: "Baskin, *Leonard Baskin: The Graphic Work*, 2013"
+    form: wood-engraving
+    panel_fidelity: native
+    themes: [animals, mortality, decay-and-memory]
+    mood: [grim, haunting]
+    register: [expressive, solemn]
+
+  - id: baskin-tobias-and-angel
+    title: "Tobias and the Angel"
+    creator: "Leonard Baskin"
+    year: 1957
+    rights_tier: personal_library
+    source: web
+    citation: "Baskin, *Leonard Baskin: The Graphic Work*, 2013"
+    form: wood-engraving
+    panel_fidelity: native
+    themes: [tender-companionship, ritual-and-gathering, journey]
+    mood: [grave, tender]
+    register: [expressive, classical]
+
+  # Paul Landacre
+  - id: landacre-smoke-tree
+    title: "Smoke Tree"
+    creator: "Paul Landacre"
+    year: 1936
+    rights_tier: personal_library
+    source: web
+    citation: "Landacre, *Paul Landacre: A Life and a Legacy*, Pasadena Museum of California Art, 2003"
+    form: wood-engraving
+    panel_fidelity: native
+    themes: [mountain-and-forest, rural-pastoral, weather-facing]
+    mood: [atmospheric, dynamic]
+    register: [lyric, iconic]
+
+  - id: landacre-desert-horizon
+    title: "Desert Horizon"
+    creator: "Paul Landacre"
+    year: 1934
+    rights_tier: personal_library
+    source: web
+    citation: "Landacre, *California Hills and Other Wood Engravings*, Bruce McCallister, 1931"
+    form: wood-engraving
+    panel_fidelity: native
+    themes: [mountain-and-forest, light-shadow, solitude]
+    mood: [austere, luminous]
+    register: [lyric, formal]
+
+  # Eric Gill
+  - id: gill-adam-and-eve
+    title: "Adam and Eve"
+    creator: "Eric Gill"
+    year: 1926
+    rights_tier: personal_library
+    source: web
+    citation: "Gill, *The Engravings of Eric Gill*, Christopher Skelton, 1990"
+    form: wood-engraving
+    panel_fidelity: native
+    themes: [body-and-figure, garden-and-grove, tender-companionship]
+    mood: [poised, classical]
+    register: [classical, iconic]
+
+  - id: gill-the-plowman
+    title: "The Plowman"
+    creator: "Eric Gill"
+    year: 1929
+    rights_tier: personal_library
+    source: web
+    citation: "Gill, *The Engravings of Eric Gill*, Christopher Skelton, 1990"
+    form: wood-engraving
+    panel_fidelity: native
+    themes: [work-making, rural-pastoral, body-and-figure]
+    mood: [stoic, grand]
+    register: [classical, iconic]
+
+  # Clare Leighton
+  - id: leighton-wheat-sheaves
+    title: "The Wheat Sheaves (from The Farmer's Year)"
+    creator: "Clare Leighton"
+    year: 1933
+    rights_tier: personal_library
+    source: web
+    citation: "Leighton, *The Farmer's Year*, Collins, 1933"
+    form: wood-engraving
+    panel_fidelity: native
+    themes: [work-making, rural-pastoral, seasons-and-time]
+    mood: [stoic, serene]
+    register: [lyric, classical]
+
+  - id: leighton-stooking
+    title: "Stooking"
+    creator: "Clare Leighton"
+    year: 1932
+    rights_tier: personal_library
+    source: web
+    citation: "Leighton, *The Farmer's Year*, Collins, 1933"
+    form: wood-engraving
+    panel_fidelity: native
+    themes: [work-making, rural-pastoral, body-and-figure]
+    mood: [kinetic, warm]
+    register: [documentary, lyric]
+
+  # Rockwell Kent
+  - id: kent-starry-night-wood-engraving
+    title: "Starry Night (from Wilderness: A Journal of Quiet Adventure in Alaska)"
+    creator: "Rockwell Kent"
+    year: 1920
+    rights_tier: personal_library
+    source: web
+    citation: "Kent, *Wilderness*, G.P. Putnam's Sons, 1920"
+    form: wood-engraving
+    panel_fidelity: native
+    themes: [night-and-lamplight, mountain-and-forest, solitude]
+    mood: [awestruck, luminous]
+    register: [lyric, iconic]
+    notes: "Nocturne candidate."
+
+  - id: kent-moby-dick-ahab
+    title: "Ahab (from Moby-Dick illustrations)"
+    creator: "Rockwell Kent"
+    year: 1930
+    rights_tier: personal_library
+    source: web
+    citation: "Melville / Kent, *Moby-Dick*, Lakeside Press / Random House, 1930"
+    form: wood-engraving
+    panel_fidelity: native
+    themes: [portrait-and-face, sea-and-sky, mortality]
+    mood: [grim, grand]
+    register: [classical, iconic]
+
+  # Gwen Raverat
+  - id: raverat-winter-cambridge
+    title: "Winter in Cambridge"
+    creator: "Gwen Raverat"
+    year: 1935
+    rights_tier: personal_library
+    source: web
+    citation: "Raverat, *The Wood Engravings of Gwen Raverat*, Silent Books, 1989"
+    form: wood-engraving
+    panel_fidelity: native
+    themes: [urban, winter-and-ice, architecture-and-structure]
+    mood: [quiet, atmospheric]
+    register: [lyric, intimate]

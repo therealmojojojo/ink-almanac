@@ -1,0 +1,512 @@
+category: iconic-photography-expansion
+side: image
+proposed_by: claude
+proposed_at: 2026-04-17
+notes: |
+  Non-Magnum iconic B&W photographers — the canon outside (or overlapping)
+  Magnum. Together with `magnum-photography.yaml` and the existing
+  `midcentury-photography.yaml`, this list drives the seed corpus past the
+  50% B&W-photography floor and builds a real 20c canon.
+
+  All items `panel_fidelity: native` (silver gelatin or equivalent B&W).
+  Almost all in copyright → `personal_library`, source: web.
+
+  Exceptions: Stieglitz d.1946, Strand d.1976 → PD (70y from d.1946 reached
+  2017); Weston d.1958 → PD as of 2029 — kept personal_library here.
+  August Sander d.1964, Lartigue d.1986, Lange d.1965, Evans d.1975,
+  Mapplethorpe d.1989, Avedon d.2004, Arbus d.1971, Frank d.2019, Winogrand
+  d.1984, Adams d.1984, Levitt d.2009, Brandt d.1983, Sudek d.1976, Parks
+  d.2006, DeCarava d.2009, Álvarez Bravo d.2002, Iturbide b.1942,
+  Moriyama b.1938, Tōmatsu d.2012, Fan Ho d.2016, Penn d.2009, Turnley b.1955,
+  Salgado b.1944, Friedlander b.1934, Smith d.1978, Mann b.1951 — all
+  in-copyright; personal_library tier with cited monographs.
+
+  Overlap note: Salgado appears in `magnum-photography.yaml` with *Gold
+  Mine* and *Southern Right Whale*. The two entries below are additional
+  canonical works, different series; keep or consolidate at list-approval.
+
+items:
+  # Mapplethorpe — still lifes, portraits (graphic B&W canon)
+  - id: mapplethorpe-calla-lily
+    title: "Calla Lily"
+    creator: "Robert Mapplethorpe"
+    year: 1988
+    rights_tier: personal_library
+    source: web
+    citation: "Mapplethorpe, *Flowers*, Bulfinch, 1990"
+    form: photograph
+    panel_fidelity: native
+    themes: [still-life, craft-and-play, light-shadow]
+    mood: [austere, poised, luminous]
+    register: [formal, iconic]
+
+  - id: mapplethorpe-patti-smith-horses
+    title: "Patti Smith, Horses cover portrait"
+    creator: "Robert Mapplethorpe"
+    year: 1975
+    rights_tier: personal_library
+    source: web
+    citation: "Mapplethorpe, *Patti Smith: 1975–1978*, Gagosian Gallery, 2013"
+    form: photograph
+    panel_fidelity: native
+    themes: [portrait-and-face, craft-and-play]
+    mood: [self-possessed, sharp]
+    register: [iconic, formal]
+
+  # Peter Turnley — Paris humanism, documentary
+  - id: turnley-paris-embrace
+    title: "Couple embracing on the banks of the Seine"
+    creator: "Peter Turnley"
+    year: 2000
+    rights_tier: personal_library
+    source: web
+    citation: "Turnley, *French Kiss — A Love Letter to Paris*, 2013"
+    form: photograph
+    panel_fidelity: native
+    themes: [tender-companionship, water-and-reflection, paris-amsterdam-vintage]
+    mood: [tender, warm]
+    register: [documentary, lyric]
+
+  - id: turnley-cuba-man-on-malecon
+    title: "Man on the Malecón, Havana"
+    creator: "Peter Turnley"
+    year: 1998
+    rights_tier: personal_library
+    source: web
+    citation: "Turnley, *Cuba: A Grace of Spirit*, Roberts Rinehart, 1999"
+    form: photograph
+    panel_fidelity: native
+    themes: [solitude, sea-and-sky, urban]
+    mood: [contemplative, atmospheric]
+    register: [documentary, lyric]
+
+  # Avedon
+  - id: avedon-boyd-fortin-texas
+    title: "Boyd Fortin, thirteen-year-old rattlesnake skinner (In the American West)"
+    creator: "Richard Avedon"
+    year: 1979
+    rights_tier: personal_library
+    source: web
+    citation: "Avedon, *In the American West*, Abrams, 1985"
+    form: photograph
+    panel_fidelity: native
+    themes: [portrait-and-face, body-and-figure, rural-pastoral]
+    mood: [unflinching, stark]
+    register: [formal, documentary, iconic]
+
+  - id: avedon-ronald-fischer-beekeeper
+    title: "Ronald Fischer, beekeeper, Davis, California"
+    creator: "Richard Avedon"
+    year: 1981
+    rights_tier: personal_library
+    source: web
+    citation: "Avedon, *In the American West*, Abrams, 1985"
+    form: photograph
+    panel_fidelity: native
+    themes: [portrait-and-face, animals, body-and-figure]
+    mood: [austere, unflinching, enigmatic]
+    register: [formal, iconic]
+
+  # Arbus
+  - id: arbus-identical-twins-roselle
+    title: "Identical Twins, Roselle, New Jersey"
+    creator: "Diane Arbus"
+    year: 1967
+    rights_tier: personal_library
+    source: web
+    citation: "Arbus, *Diane Arbus: An Aperture Monograph*, Aperture, 1972"
+    form: photograph
+    panel_fidelity: native
+    themes: [portrait-and-face, childhood-and-play, reflection-and-mirror]
+    mood: [enigmatic, uncanny, unflinching]
+    register: [formal, iconic]
+
+  # Dorothea Lange
+  - id: lange-migrant-mother
+    title: "Migrant Mother, Nipomo, California"
+    creator: "Dorothea Lange"
+    year: 1936
+    rights_tier: personal_library
+    source: web
+    citation: "Lange, *An American Exodus*, 1939 / *Dorothea Lange: A Life Beyond Limits*, Norton, 2009"
+    form: photograph
+    panel_fidelity: native
+    themes: [portrait-and-face, tender-companionship, mortality]
+    mood: [grave, unflinching, stoic]
+    register: [documentary, iconic]
+
+  # Walker Evans
+  - id: evans-allie-mae-burroughs
+    title: "Allie Mae Burroughs, Hale County, Alabama"
+    creator: "Walker Evans"
+    year: 1936
+    rights_tier: personal_library
+    source: web
+    citation: "Agee & Evans, *Let Us Now Praise Famous Men*, Houghton Mifflin, 1941"
+    form: photograph
+    panel_fidelity: native
+    themes: [portrait-and-face, rural-pastoral, mortality]
+    mood: [stoic, austere, haunting]
+    register: [documentary, iconic]
+
+  # Robert Frank
+  - id: frank-trolley-new-orleans
+    title: "Trolley, New Orleans (from The Americans)"
+    creator: "Robert Frank"
+    year: 1955
+    rights_tier: personal_library
+    source: web
+    citation: "Frank, *The Americans*, Steidl, 2008 (1st ed. Delpire, 1958)"
+    form: photograph
+    panel_fidelity: native
+    themes: [urban, portrait-and-face, decay-and-memory]
+    mood: [melancholic, unflinching]
+    register: [documentary, iconic]
+
+  - id: frank-parade-hoboken
+    title: "Parade, Hoboken, New Jersey (from The Americans)"
+    creator: "Robert Frank"
+    year: 1955
+    rights_tier: personal_library
+    source: web
+    citation: "Frank, *The Americans*, Steidl, 2008"
+    form: photograph
+    panel_fidelity: native
+    themes: [ritual-and-gathering, urban, solitude]
+    mood: [melancholic, ironic]
+    register: [documentary, lyric]
+
+  # Winogrand & Friedlander
+  - id: winogrand-world-fair-ny
+    title: "New York World's Fair"
+    creator: "Garry Winogrand"
+    year: 1964
+    rights_tier: personal_library
+    source: web
+    citation: "Winogrand, *Figments from the Real World*, MoMA, 1988"
+    form: photograph
+    panel_fidelity: native
+    themes: [urban, everyday-life, motion-and-gesture]
+    mood: [wry, kinetic]
+    register: [documentary, sly]
+
+  - id: friedlander-self-shadow-new-york
+    title: "New York City (self-portrait with shadow)"
+    creator: "Lee Friedlander"
+    year: 1966
+    rights_tier: personal_library
+    source: web
+    citation: "Friedlander, *Self Portrait*, MoMA, 2005 (1st ed. Haywire, 1970)"
+    form: photograph
+    panel_fidelity: native
+    themes: [reflection-and-mirror, urban, light-shadow]
+    mood: [wry, enigmatic]
+    register: [documentary, sly]
+
+  # Ansel Adams
+  - id: adams-moonrise-hernandez
+    title: "Moonrise, Hernandez, New Mexico"
+    creator: "Ansel Adams"
+    year: 1941
+    rights_tier: personal_library
+    source: web
+    citation: "Adams, *Examples: The Making of 40 Photographs*, Little Brown, 1983"
+    form: photograph
+    panel_fidelity: native
+    themes: [night-and-lamplight, rural-pastoral, decay-and-memory]
+    mood: [grand, luminous, haunting]
+    register: [formal, iconic]
+    notes: "Nocturne candidate."
+
+  - id: adams-clearing-winter-storm
+    title: "Clearing Winter Storm, Yosemite"
+    creator: "Ansel Adams"
+    year: 1944
+    rights_tier: personal_library
+    source: web
+    citation: "Adams, *Yosemite and the Range of Light*, NYGS, 1979"
+    form: photograph
+    panel_fidelity: native
+    themes: [mountain-and-forest, weather-facing, winter-and-ice]
+    mood: [awestruck, grand, dynamic]
+    register: [formal, iconic]
+
+  # Edward Weston
+  - id: weston-pepper-no-30
+    title: "Pepper No. 30"
+    creator: "Edward Weston"
+    year: 1930
+    rights_tier: personal_library
+    source: web
+    citation: "Weston, *Edward Weston: The Flame of Recognition*, Aperture, 1958"
+    form: photograph
+    panel_fidelity: native
+    themes: [still-life, body-and-figure, light-shadow]
+    mood: [austere, luminous, sensual]
+    register: [formal, iconic]
+
+  - id: weston-dunes-oceano
+    title: "Dunes, Oceano"
+    creator: "Edward Weston"
+    year: 1936
+    rights_tier: personal_library
+    source: web
+    citation: "Weston, *Edward Weston: The Flame of Recognition*, Aperture, 1958"
+    form: photograph
+    panel_fidelity: native
+    themes: [sea-and-sky, light-shadow, rural-pastoral]
+    mood: [serene, austere, luminous]
+    register: [formal, iconic]
+
+  # Paul Strand
+  - id: strand-blind-woman-new-york
+    title: "Blind Woman, New York"
+    creator: "Paul Strand"
+    year: 1916
+    rights_tier: personal_library
+    source: web
+    citation: "Strand, *Paul Strand: Sixty Years of Photographs*, Aperture, 1976"
+    form: photograph
+    panel_fidelity: native
+    themes: [portrait-and-face, urban, mortality]
+    mood: [unflinching, grave]
+    register: [documentary, iconic]
+
+  # Alfred Stieglitz
+  - id: stieglitz-the-steerage
+    title: "The Steerage"
+    creator: "Alfred Stieglitz"
+    year: 1907
+    rights_tier: personal_library
+    source: web
+    citation: "Stieglitz, *Alfred Stieglitz: The Key Set*, NGA Washington, 2002"
+    form: photograph
+    panel_fidelity: native
+    themes: [journey, ritual-and-gathering, travel]
+    mood: [grave, atmospheric]
+    register: [documentary, iconic]
+
+  # Roy DeCarava
+  - id: decarava-graduation
+    title: "Graduation"
+    creator: "Roy DeCarava"
+    year: 1949
+    rights_tier: personal_library
+    source: web
+    citation: "DeCarava, *the sound i saw*, Phaidon, 2001"
+    form: photograph
+    panel_fidelity: native
+    themes: [urban, solitude, ritual-and-gathering]
+    mood: [tender, wistful]
+    register: [lyric, intimate, iconic]
+
+  - id: decarava-coltrane-elvin
+    title: "Coltrane and Elvin"
+    creator: "Roy DeCarava"
+    year: 1960
+    rights_tier: personal_library
+    source: web
+    citation: "DeCarava, *the sound i saw*, Phaidon, 2001"
+    form: photograph
+    panel_fidelity: native
+    themes: [craft-and-play, motion-and-gesture, tender-companionship]
+    mood: [ecstatic, dim, atmospheric]
+    register: [lyric, intimate]
+    notes: "Nocturne candidate — dim stage-light atmosphere."
+
+  # Gordon Parks
+  - id: parks-american-gothic-washington
+    title: "American Gothic (Ella Watson), Washington, D.C."
+    creator: "Gordon Parks"
+    year: 1942
+    rights_tier: personal_library
+    source: web
+    citation: "Parks, *A Choice of Weapons*, Harper & Row, 1966"
+    form: photograph
+    panel_fidelity: native
+    themes: [portrait-and-face, work-making, architecture-and-structure]
+    mood: [stoic, unflinching]
+    register: [documentary, iconic]
+
+  # Manuel Álvarez Bravo
+  - id: alvarez-bravo-buena-fama-durmiendo
+    title: "La Buena Fama Durmiendo (The Good Reputation Sleeping)"
+    creator: "Manuel Álvarez Bravo"
+    year: 1938
+    rights_tier: personal_library
+    source: web
+    citation: "Álvarez Bravo, *Photographs of Manuel Álvarez Bravo*, NGA Washington, 2001"
+    form: photograph
+    panel_fidelity: native
+    themes: [body-and-figure, still-life, solitude]
+    mood: [enigmatic, mysterious]
+    register: [surreal, iconic]
+
+  # Graciela Iturbide
+  - id: iturbide-nuestra-senora-iguanas
+    title: "Nuestra Señora de las Iguanas, Juchitán"
+    creator: "Graciela Iturbide"
+    year: 1979
+    rights_tier: personal_library
+    source: web
+    citation: "Iturbide, *Images of the Spirit*, Aperture, 1996"
+    form: photograph
+    panel_fidelity: native
+    themes: [portrait-and-face, animals, ritual-and-gathering]
+    mood: [enigmatic, poised]
+    register: [documentary, iconic]
+
+  # Daidō Moriyama
+  - id: moriyama-stray-dog-misawa
+    title: "Stray Dog, Misawa"
+    creator: "Daidō Moriyama"
+    year: 1971
+    rights_tier: personal_library
+    source: web
+    citation: "Moriyama, *A Hunter*, Chūō Kōronsha, 1972 / *Daido Moriyama*, Phaidon, 2001"
+    form: photograph
+    panel_fidelity: native
+    themes: [animals, urban, solitude]
+    mood: [grim, haunting, sharp]
+    register: [documentary, atmospheric, iconic]
+
+  # Fan Ho
+  - id: fan-ho-approaching-shadow
+    title: "Approaching Shadow"
+    creator: "Fan Ho"
+    year: 1954
+    rights_tier: personal_library
+    source: web
+    citation: "Fan Ho, *Hong Kong Yesterday*, Asia One, 2006"
+    form: photograph
+    panel_fidelity: native
+    themes: [urban, light-shadow, solitude]
+    mood: [atmospheric, luminous, mysterious]
+    register: [formal, iconic]
+
+  # Josef Sudek
+  - id: sudek-window-of-my-studio
+    title: "The Window of My Studio"
+    creator: "Josef Sudek"
+    year: 1950
+    rights_tier: personal_library
+    source: web
+    citation: "Sudek, *Josef Sudek: The Legacy of a Deeper Vision*, RIT Press, 2012"
+    form: photograph
+    panel_fidelity: native
+    themes: [still-life, interior-and-domestic, solitude]
+    mood: [serene, dim, contemplative]
+    register: [lyric, intimate, iconic]
+
+  # August Sander
+  - id: sander-young-farmers
+    title: "Young Farmers on their way to a Dance, Westerwald"
+    creator: "August Sander"
+    year: 1914
+    rights_tier: personal_library
+    source: web
+    citation: "Sander, *People of the Twentieth Century*, Abrams / SK Kultur, 2002"
+    form: photograph
+    panel_fidelity: native
+    themes: [portrait-and-face, rural-pastoral, ritual-and-gathering]
+    mood: [poised, stoic]
+    register: [formal, documentary, iconic]
+
+  # Helen Levitt
+  - id: levitt-kids-chalk-nyc
+    title: "New York (kids with chalk-frame)"
+    creator: "Helen Levitt"
+    year: 1940
+    rights_tier: personal_library
+    source: web
+    citation: "Levitt, *A Way of Seeing*, Viking, 1965"
+    form: photograph
+    panel_fidelity: native
+    themes: [childhood-and-play, urban, craft-and-play]
+    mood: [playful, tender]
+    register: [documentary, lyric]
+
+  # Lartigue
+  - id: lartigue-zissou-balancoire
+    title: "Bibi, Biarritz (or Zissou on the Swing)"
+    creator: "Jacques Henri Lartigue"
+    year: 1905
+    rights_tier: personal_library
+    source: web
+    citation: "Lartigue, *The Photographs of Jacques-Henri Lartigue*, Abrams, 1986"
+    form: photograph
+    panel_fidelity: native
+    themes: [childhood-and-play, motion-and-gesture, tender-companionship]
+    mood: [playful, kinetic, luminous]
+    register: [lyric, iconic]
+
+  # Irving Penn
+  - id: penn-small-trades-coal-man
+    title: "Coal Man (from Small Trades series)"
+    creator: "Irving Penn"
+    year: 1950
+    rights_tier: personal_library
+    source: web
+    citation: "Penn, *Small Trades*, Getty, 2009"
+    form: photograph
+    panel_fidelity: native
+    themes: [portrait-and-face, work-making]
+    mood: [stoic, austere]
+    register: [formal, documentary, iconic]
+
+  # W. Eugene Smith
+  - id: smith-country-doctor-walking
+    title: "Country Doctor (Dr. Ceriani walking)"
+    creator: "W. Eugene Smith"
+    year: 1948
+    rights_tier: personal_library
+    source: web
+    citation: "Smith, *Let Truth Be the Prejudice*, Aperture, 1985"
+    form: photograph
+    panel_fidelity: native
+    themes: [work-making, solitude, rural-pastoral]
+    mood: [stoic, atmospheric]
+    register: [documentary, lyric, iconic]
+
+  # Sally Mann
+  - id: mann-deep-south-untitled-creek
+    title: "Deep South, Untitled (creek with tree)"
+    creator: "Sally Mann"
+    year: 1998
+    rights_tier: personal_library
+    source: web
+    citation: "Mann, *Deep South*, Bulfinch, 2005"
+    form: photograph
+    panel_fidelity: native
+    themes: [rural-pastoral, decay-and-memory, water-and-reflection]
+    mood: [atmospheric, haunting, dim]
+    register: [lyric, atmospheric]
+    notes: "Nocturne candidate — collodion-wet-plate atmosphere."
+
+  # Salgado — additional beyond magnum-photography.yaml cross-ref
+  - id: salgado-kuwait-oil-fires
+    title: "Kuwait, A Desert on Fire (firefighter)"
+    creator: "Sebastião Salgado"
+    year: 1991
+    rights_tier: personal_library
+    source: web
+    citation: "Salgado, *Kuwait: A Desert on Fire*, Taschen, 2016"
+    form: photograph
+    panel_fidelity: native
+    themes: [weather-facing, work-making, mortality]
+    mood: [grim, awestruck, unflinching]
+    register: [documentary, iconic]
+
+  - id: salgado-church-gate-station-bombay
+    title: "Churchgate Station, Bombay (from Migrations)"
+    creator: "Sebastião Salgado"
+    year: 1995
+    rights_tier: personal_library
+    source: web
+    citation: "Salgado, *Migrations: Humanity in Transition*, Aperture, 2000"
+    form: photograph
+    panel_fidelity: native
+    themes: [motion-and-gesture, urban, ritual-and-gathering]
+    mood: [kinetic, awestruck, grand]
+    register: [documentary, iconic]
+    notes: "Cross-ref: Salgado also in magnum-photography.yaml (*Gold Mine*, *Whale*). Keep all or consolidate at review."

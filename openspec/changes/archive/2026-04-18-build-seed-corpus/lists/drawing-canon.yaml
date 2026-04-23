@@ -1,0 +1,324 @@
+category: drawing-canon
+side: image
+proposed_by: claude
+proposed_at: 2026-04-17
+notes: |
+  First list authored under the native-B&W pivot. Absorbs the five survivors
+  from the retired modern-painting-canon (Modigliani/Schiele drawings, Klee
+  Twittering Machine, Matisse Blue Nude II, Warhol blotted-line) and adds
+  Dürer, Kollwitz, Redon charcoal, Steinberg, Gorey, Beardsley, Hokusai Manga
+  pages. All items are pure line or tonal-only graphite/charcoal/ink — full
+  panel-native fidelity.
+
+  Tier routing: Dürer d.1528, Beardsley d.1898, Kollwitz d.1945, Redon d.1916,
+  Schiele d.1918, Modigliani d.1920, Klee d.1940, Matisse d.1954, Hokusai
+  d.1849 — all past 70y, so all PD where the reproduction source allows.
+  Steinberg d.1999, Gorey d.2000, Warhol d.1987 — personal_library (web).
+
+items:
+  # Survivors from retired modern-painting-canon
+  - id: modigliani-jeanne-drawing
+    title: "Portrait of Jeanne Hébuterne (pencil drawing)"
+    creator: "Amedeo Modigliani"
+    year: 1919
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: drawing
+    panel_fidelity: native
+    themes: [portrait-and-face, tender-companionship]
+    mood: [tender, wistful]
+    register: [lyric]
+    notes: "Already on disk; needs high-res re-fetch (current 778×1450 below floor)."
+
+  - id: schiele-seated-woman-bent-knee
+    title: "Seated Woman with Bent Knee"
+    creator: "Egon Schiele"
+    year: 1917
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: drawing
+    panel_fidelity: native
+    themes: [portrait-and-face, body-and-figure]
+    mood: [raw, poised]
+    register: [expressive]
+    notes: "Already on disk."
+
+  - id: klee-twittering-machine
+    title: "Twittering Machine (Die Zwitschermaschine)"
+    creator: "Paul Klee"
+    year: 1922
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: drawing
+    panel_fidelity: native
+    themes: [machines-and-mechanisms, craft-and-play]
+    mood: [playful, uncanny]
+    register: [wry]
+    notes: "Already on disk (994×1350, below floor); high-res re-fetch needed."
+
+  - id: matisse-blue-nude-II
+    title: "Blue Nude II (Nu bleu II)"
+    creator: "Henri Matisse"
+    year: 1952
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: drawing
+    panel_fidelity: native
+    themes: [body-and-figure, craft-and-play]
+    mood: [poised, dynamic]
+    register: [iconic, formal]
+    notes: "Cutout / gouache-on-paper; pure silhouette — ideal for B&W."
+
+  - id: warhol-blotted-line-portrait
+    title: "Blotted-Line Portrait (1950s commercial illustration)"
+    creator: "Andy Warhol"
+    year: 1955
+    rights_tier: personal_library
+    source: web
+    citation: "Warhol, *Andy Warhol: Drawings and Illustrations of the 1950s*, Prestel, 2000"
+    form: drawing
+    panel_fidelity: native
+    themes: [craft-and-play, portrait-and-face]
+    mood: [wry, deadpan]
+    register: [iconic]
+    notes: "Already on disk."
+
+  # Dürer — engravings + silverpoint drawings
+  - id: durer-melencolia-i
+    title: "Melencolia I"
+    creator: "Albrecht Dürer"
+    year: 1514
+    rights_tier: public_domain
+    source: met_open_access
+    form: engraving
+    panel_fidelity: native
+    themes: [craft-and-play, mortality, machines-and-mechanisms]
+    mood: [contemplative, grave, enigmatic]
+    register: [classical, oracular]
+
+  - id: durer-knight-death-devil
+    title: "Knight, Death, and the Devil"
+    creator: "Albrecht Dürer"
+    year: 1513
+    rights_tier: public_domain
+    source: met_open_access
+    form: engraving
+    panel_fidelity: native
+    themes: [journey, mortality]
+    mood: [grim, stoic]
+    register: [classical, solemn]
+
+  - id: durer-st-jerome-in-study
+    title: "Saint Jerome in His Study"
+    creator: "Albrecht Dürer"
+    year: 1514
+    rights_tier: public_domain
+    source: met_open_access
+    form: engraving
+    panel_fidelity: native
+    themes: [reading-and-study, interior-and-domestic, solitude]
+    mood: [serene, attentive]
+    register: [classical, intimate]
+
+  - id: durer-praying-hands
+    title: "Praying Hands (study)"
+    creator: "Albrecht Dürer"
+    year: 1508
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: drawing
+    panel_fidelity: native
+    themes: [body-and-figure, ritual-and-gathering]
+    mood: [stoic, still]
+    register: [iconic, classical]
+
+  - id: durer-young-hare
+    title: "Young Hare"
+    creator: "Albrecht Dürer"
+    year: 1502
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: drawing
+    panel_fidelity: native
+    themes: [animals, attention-and-listening]
+    mood: [alert, still]
+    register: [iconic]
+
+  # Kollwitz — self-portraits, Weavers' Cycle
+  - id: kollwitz-self-portrait-charcoal
+    title: "Self-Portrait (charcoal)"
+    creator: "Käthe Kollwitz"
+    year: 1924
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: drawing
+    panel_fidelity: native
+    themes: [portrait-and-face, solitude]
+    mood: [unflinching, grave]
+    register: [expressive, confessional]
+
+  - id: kollwitz-mother-dead-child
+    title: "Woman with Dead Child"
+    creator: "Käthe Kollwitz"
+    year: 1903
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: etching
+    panel_fidelity: native
+    themes: [mortality, tender-companionship, body-and-figure]
+    mood: [haunting, raw]
+    register: [expressive, solemn]
+
+  - id: kollwitz-weavers-storm
+    title: "Storming of the Gate (from Weavers' Cycle)"
+    creator: "Käthe Kollwitz"
+    year: 1897
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: etching
+    panel_fidelity: native
+    themes: [work-making, motion-and-gesture, ritual-and-gathering]
+    mood: [urgent, unflinching]
+    register: [documentary, expressive]
+
+  # Redon — charcoal (noirs)
+  - id: redon-eye-balloon
+    title: "The Eye, Like a Strange Balloon, Mounts Toward Infinity"
+    creator: "Odilon Redon"
+    year: 1882
+    rights_tier: public_domain
+    source: moma
+    form: lithograph
+    panel_fidelity: native
+    themes: [sea-and-sky, journey]
+    mood: [surreal, mysterious]
+    register: [surreal, oracular]
+
+  - id: redon-closed-eyes
+    title: "Closed Eyes"
+    creator: "Odilon Redon"
+    year: 1890
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: lithograph
+    panel_fidelity: native
+    themes: [portrait-and-face, solitude]
+    mood: [dim, serene, mysterious]
+    register: [atmospheric, lyric]
+
+  # Steinberg
+  - id: steinberg-view-world-9th-avenue
+    title: "View of the World from 9th Avenue (drawing study)"
+    creator: "Saul Steinberg"
+    year: 1976
+    rights_tier: personal_library
+    source: web
+    citation: "Steinberg, *The Inspector*, Viking, 1973 / Saul Steinberg Foundation"
+    form: drawing
+    panel_fidelity: native
+    themes: [urban, craft-and-play]
+    mood: [wry, playful]
+    register: [sly, wry]
+
+  - id: steinberg-self-drawing-himself
+    title: "Self Drawing Himself"
+    creator: "Saul Steinberg"
+    year: 1948
+    rights_tier: personal_library
+    source: web
+    citation: "Steinberg, *The Art of Living*, Harper, 1949"
+    form: drawing
+    panel_fidelity: native
+    themes: [reflection-and-mirror, craft-and-play]
+    mood: [wry, playful]
+    register: [sly]
+
+  # Gorey
+  - id: gorey-gashlycrumb-a
+    title: "A is for Amy who fell down the stairs (from Gashlycrumb Tinies)"
+    creator: "Edward Gorey"
+    year: 1963
+    rights_tier: personal_library
+    source: web
+    citation: "Gorey, *The Gashlycrumb Tinies*, Simon & Schuster, 1963"
+    form: drawing
+    panel_fidelity: native
+    themes: [childhood-and-play, mortality]
+    mood: [deadpan, uncanny]
+    register: [deadpan-absurd]
+
+  - id: gorey-doubtful-guest
+    title: "The Doubtful Guest (arrival plate)"
+    creator: "Edward Gorey"
+    year: 1957
+    rights_tier: personal_library
+    source: web
+    citation: "Gorey, *The Doubtful Guest*, Doubleday, 1957"
+    form: drawing
+    panel_fidelity: native
+    themes: [interior-and-domestic, uncanny]
+    mood: [deadpan, uncanny]
+    register: [deadpan-absurd]
+
+  # Beardsley
+  - id: beardsley-salome-peacock-skirt
+    title: "The Peacock Skirt (from Salome)"
+    creator: "Aubrey Beardsley"
+    year: 1893
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: drawing
+    panel_fidelity: native
+    themes: [body-and-figure, ornate]
+    mood: [ornate, sharp]
+    register: [baroque, iconic]
+
+  - id: beardsley-salome-climax
+    title: "The Climax (from Salome)"
+    creator: "Aubrey Beardsley"
+    year: 1893
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: drawing
+    panel_fidelity: native
+    themes: [body-and-figure, mortality]
+    mood: [sharp, ecstatic]
+    register: [baroque, iconic]
+
+  # Hokusai Manga — ink-line sketchbook pages (distinct from color prints)
+  - id: hokusai-manga-wrestlers
+    title: "Wrestlers (from Hokusai Manga Vol. 3)"
+    creator: "Katsushika Hokusai"
+    year: 1815
+    rights_tier: public_domain
+    source: met_open_access
+    form: woodblock
+    panel_fidelity: native
+    themes: [body-and-figure, motion-and-gesture, japan]
+    mood: [kinetic, playful]
+    register: [classical]
+    notes: "Manga pages are monochrome ink-line relief prints — native B&W."
+
+  - id: hokusai-manga-birds-flight
+    title: "Studies of Birds in Flight (from Hokusai Manga)"
+    creator: "Katsushika Hokusai"
+    year: 1815
+    rights_tier: public_domain
+    source: met_open_access
+    form: woodblock
+    panel_fidelity: native
+    themes: [animals, motion-and-gesture, japan]
+    mood: [attentive, kinetic]
+    register: [classical]
+
+  - id: hokusai-manga-waves
+    title: "Wave studies (from Hokusai Manga)"
+    creator: "Katsushika Hokusai"
+    year: 1815
+    rights_tier: public_domain
+    source: met_open_access
+    form: woodblock
+    panel_fidelity: native
+    themes: [water-and-reflection, sea-and-sky, japan]
+    mood: [kinetic, dynamic]
+    register: [classical]

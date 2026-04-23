@@ -1,0 +1,329 @@
+category: romanian-poetry-expansion
+side: text
+proposed_by: claude
+proposed_at: 2026-04-17
+notes: |
+  Canonical Romanian poetry beyond Brumaru and Dinescu — Eminescu, Bacovia,
+  Arghezi, Blaga, Barbu, Nichita Stănescu, Marin Sorescu, Ana Blandiana,
+  Mircea Cărtărescu. Reinforces the 25% Romanian-text floor and adds depth
+  to the household voice.
+
+  Tier by d-date + 70y:
+    Eminescu d.1889, Bacovia d.1957, Arghezi d.1967, Blaga d.1961,
+    Barbu d.1961 — mix (Eminescu PD; mid-century in copyright as of 2026).
+    Stănescu d.1983, Sorescu d.1996, Blandiana b.1942, Cărtărescu b.1956 —
+    all personal_library.
+
+  Language: all items `language: [ro]` (Romanian original); English
+  translation variants optional at fetch (available for Blaga, Sorescu,
+  Blandiana, Stănescu via canonical anglophone editions).
+
+items:
+  # Eminescu (d.1889, PD)
+  - id: eminescu-glossa
+    title: "Glossă"
+    author: "Mihai Eminescu"
+    year: 1883
+    rights_tier: public_domain
+    source: wikisource
+    form: stanzaic
+    language: [ro]
+    themes: [mortality, decay-and-memory, attention-and-listening]
+    mood: [contemplative, grave]
+    register: [classical, oracular, iconic]
+
+  - id: eminescu-luceafarul-opening
+    title: "Luceafărul (opening strophes)"
+    author: "Mihai Eminescu"
+    year: 1883
+    rights_tier: public_domain
+    source: wikisource
+    form: fragment
+    language: [ro]
+    themes: [night-and-lamplight, tender-companionship, mortality]
+    mood: [luminous, wistful]
+    register: [classical, oracular, iconic]
+    notes: "Nocturne candidate."
+
+  - id: eminescu-sara-pe-deal
+    title: "Sara pe deal"
+    author: "Mihai Eminescu"
+    year: 1885
+    rights_tier: public_domain
+    source: wikisource
+    form: stanzaic
+    language: [ro]
+    themes: [rural-pastoral, night-and-lamplight, tender-companionship]
+    mood: [serene, wistful]
+    register: [lyric, classical]
+    notes: "Nocturne candidate — evening on the hill."
+
+  # Bacovia (d.1957, personal_library)
+  - id: bacovia-lacustra
+    title: "Lacustră"
+    author: "George Bacovia"
+    year: 1916
+    rights_tier: personal_library
+    source: web
+    citation: "Bacovia, *Plumb*, 1916 / Editura Minerva reprint"
+    form: stanzaic
+    language: [ro]
+    themes: [weather-facing, decay-and-memory, solitude]
+    mood: [melancholic, haunting, dim]
+    register: [lyric, expressive, iconic]
+
+  - id: bacovia-plumb
+    title: "Plumb"
+    author: "George Bacovia"
+    year: 1916
+    rights_tier: personal_library
+    source: web
+    citation: "Bacovia, *Plumb*, 1916"
+    form: stanzaic
+    language: [ro]
+    themes: [mortality, night-and-lamplight, decay-and-memory]
+    mood: [grave, haunting]
+    register: [lyric, expressive, iconic]
+
+  - id: bacovia-decembre
+    title: "Decembre"
+    author: "George Bacovia"
+    year: 1930
+    rights_tier: personal_library
+    source: web
+    citation: "Bacovia, *Cu voi*, 1930"
+    form: stanzaic
+    language: [ro]
+    themes: [winter-and-ice, interior-and-domestic, solitude]
+    mood: [quiet, wistful]
+    register: [lyric, intimate]
+
+  # Arghezi (d.1967, personal_library)
+  - id: arghezi-testament
+    title: "Testament"
+    author: "Tudor Arghezi"
+    year: 1927
+    rights_tier: personal_library
+    source: web
+    citation: "Arghezi, *Cuvinte potrivite*, Editura Cultura Națională, 1927"
+    form: stanzaic
+    language: [ro]
+    themes: [work-making, craft-and-play, decay-and-memory]
+    mood: [stoic, grand]
+    register: [classical, oracular, iconic]
+
+  - id: arghezi-psalm-iii
+    title: "Psalm (Tare sunt singur, Doamne, și pieziș)"
+    author: "Tudor Arghezi"
+    year: 1927
+    rights_tier: personal_library
+    source: web
+    citation: "Arghezi, *Cuvinte potrivite*, 1927"
+    form: stanzaic
+    language: [ro]
+    themes: [solitude, mortality, attention-and-listening]
+    mood: [grave, unflinching]
+    register: [oracular, confessional]
+
+  - id: arghezi-belsug
+    title: "Belșug"
+    author: "Tudor Arghezi"
+    year: 1939
+    rights_tier: personal_library
+    source: web
+    citation: "Arghezi, *Hore*, Editura Cultura Națională, 1939"
+    form: stanzaic
+    language: [ro]
+    themes: [food-and-gathering, rural-pastoral, everyday-life]
+    mood: [warm, serene]
+    register: [lyric, classical]
+
+  # Blaga (d.1961, personal_library)
+  - id: blaga-eu-nu-strivesc-corola
+    title: "Eu nu strivesc corola de minuni a lumii"
+    author: "Lucian Blaga"
+    year: 1919
+    rights_tier: personal_library
+    source: web
+    citation: "Blaga, *Poemele luminii*, 1919"
+    form: free-verse
+    language: [ro]
+    themes: [attention-and-listening, craft-and-play]  # TODO operator: 'mystery' theme not in taxonomy; pick a substitute or propose amendment
+    mood: [contemplative, luminous]
+    register: [lyric, oracular, iconic]
+    notes: "Arguably the single most-cited Blaga poem; original taste tag 'mystery' (not in taxonomy) dropped for now — operator to pick a substitute theme or amend the vocabulary."
+
+  - id: blaga-gorunul
+    title: "Gorunul"
+    author: "Lucian Blaga"
+    year: 1919
+    rights_tier: personal_library
+    source: web
+    citation: "Blaga, *Poemele luminii*, 1919"
+    form: stanzaic
+    language: [ro]
+    themes: [mountain-and-forest, mortality, solitude]
+    mood: [serene, grave]
+    register: [lyric, classical]
+
+  - id: blaga-lumina
+    title: "Lumina"
+    author: "Lucian Blaga"
+    year: 1919
+    rights_tier: personal_library
+    source: web
+    citation: "Blaga, *Poemele luminii*, 1919"
+    form: lyric
+    language: [ro]
+    themes: [light-shadow, attention-and-listening, tender-companionship]
+    mood: [luminous, tender]
+    register: [lyric, intimate]
+
+  # Ion Barbu (d.1961)
+  - id: barbu-riga-crypto
+    title: "Riga Crypto și lapona Enigel"
+    author: "Ion Barbu"
+    year: 1930
+    rights_tier: personal_library
+    source: web
+    citation: "Barbu, *Joc secund*, Editura Cultura Națională, 1930"
+    form: stanzaic
+    language: [ro]
+    themes: [mountain-and-forest, tender-companionship, mortality]
+    mood: [mysterious]  # TODO operator: 'lyric' is register/form, not mood — propose replacement ('tender'? 'wistful'?) before fetch
+    register: [ornate, oracular]
+
+  # Nichita Stănescu (d.1983)
+  - id: stanescu-leoaica-tanara
+    title: "Leoaică tânără, iubirea"
+    author: "Nichita Stănescu"
+    year: 1964
+    rights_tier: personal_library
+    source: web
+    citation: "Stănescu, *O viziune a sentimentelor*, Editura pentru Literatură, 1964"
+    form: stanzaic
+    language: [ro]
+    themes: [tender-companionship, animals, body-and-figure]
+    mood: [kinetic, sharp]
+    register: [lyric, iconic]
+
+  - id: stanescu-lectia-despre-cerc
+    title: "Lecția despre cerc"
+    author: "Nichita Stănescu"
+    year: 1970
+    rights_tier: personal_library
+    source: web
+    citation: "Stănescu, *În dulcele stil clasic*, Cartea Românească, 1970"
+    form: free-verse
+    language: [ro]
+    themes: [craft-and-play, attention-and-listening]
+    mood: [contemplative, playful]
+    register: [lyric, wry]
+
+  - id: stanescu-cantec-de-izgonire
+    title: "Cântec de izgonire"
+    author: "Nichita Stănescu"
+    year: 1972
+    rights_tier: personal_library
+    source: web
+    citation: "Stănescu, *Necuvintele*, Editura Tineretului, 1969"
+    form: lyric
+    language: [ro]
+    themes: [mortality, solitude, decay-and-memory]
+    mood: [wistful, grave]
+    register: [lyric, oracular]
+
+  # Marin Sorescu (d.1996)
+  - id: sorescu-shakespeare
+    title: "Shakespeare"
+    author: "Marin Sorescu"
+    year: 1965
+    rights_tier: personal_library
+    source: web
+    citation: "Sorescu, *Singur printre poeți*, Editura pentru Literatură, 1964"
+    form: stanzaic
+    language: [ro]
+    themes: [craft-and-play, mortality]
+    mood: [wry, playful]
+    register: [wry, sly, iconic]
+
+  - id: sorescu-iona-fragment
+    title: "Iona (fragment)"
+    author: "Marin Sorescu"
+    year: 1968
+    rights_tier: personal_library
+    source: web
+    citation: "Sorescu, *Iona*, Editura pentru Literatură, 1968"
+    form: fragment
+    language: [ro]
+    themes: [solitude, mortality, journey]
+    mood: [absurd, grave]
+    register: [deadpan-absurd, oracular]
+
+  - id: sorescu-scara-la-cer
+    title: "Scara la cer"
+    author: "Marin Sorescu"
+    year: 1988
+    rights_tier: personal_library
+    source: web
+    citation: "Sorescu, *Poezii alese de cenzură*, Editura Roza Vânturilor, 1991"
+    form: stanzaic
+    language: [ro]
+    themes: [mortality, journey, attention-and-listening]
+    mood: [wistful, grave]
+    register: [lyric, aphoristic]
+
+  # Ana Blandiana (b.1942)
+  - id: blandiana-inchideti-ochii
+    title: "Închideți ochii"
+    author: "Ana Blandiana"
+    year: 1985
+    rights_tier: personal_library
+    source: web
+    citation: "Blandiana, *Stea de pradă*, Cartea Românească, 1985"
+    form: stanzaic
+    language: [ro]
+    themes: [attention-and-listening, solitude]
+    mood: [contemplative, tender]
+    register: [lyric, intimate]
+
+  - id: blandiana-totul
+    title: "Totul"
+    author: "Ana Blandiana"
+    year: 1984
+    rights_tier: personal_library
+    source: web
+    citation: "Blandiana, *Stea de pradă*, 1985"
+    form: free-verse
+    language: [ro]
+    themes: [decay-and-memory, everyday-life, ritual-and-gathering]
+    mood: [grave, unflinching]
+    register: [reportorial, solemn, iconic]
+    notes: "The famous anti-Ceaușescu enumeration — iconic Romanian dissent text."
+
+  # Cărtărescu (b.1956)
+  - id: cartarescu-poem-din-totul
+    title: "Poem (din *Totul*)"
+    author: "Mircea Cărtărescu"
+    year: 1985
+    rights_tier: personal_library
+    source: web
+    citation: "Cărtărescu, *Totul*, Cartea Românească, 1985"
+    form: fragment
+    language: [ro]
+    themes: [urban, everyday-life, craft-and-play]
+    mood: [wry, luminous]
+    register: [lyric, sly]
+
+  - id: cartarescu-levantul-fragment
+    title: "Levantul (opening canto fragment)"
+    author: "Mircea Cărtărescu"
+    year: 1990
+    rights_tier: personal_library
+    source: web
+    citation: "Cărtărescu, *Levantul*, Cartea Românească, 1990"
+    form: fragment
+    language: [ro]
+    themes: [journey, sea-and-sky, craft-and-play]
+    mood: [ornate, playful]
+    register: [baroque, ornate]

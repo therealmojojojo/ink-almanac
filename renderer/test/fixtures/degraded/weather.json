@@ -1,0 +1,9 @@
+{
+  "locations": [
+    {
+      "name": "Cluj",
+      "current": { "condition": "", "temp": { "c": 0 } },
+      "forecast": []
+    }
+  ]
+}

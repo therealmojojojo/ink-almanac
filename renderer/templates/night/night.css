@@ -1,0 +1,130 @@
+/*
+ * Night: stacked clock (hour over mid-grey minute) with nocturne image.
+ * Per dashboard-faces/spec.md (Night face layout).
+ *
+ * Minute region has a stable bounding rect so partial refreshes update only
+ * those pixels each minute.
+ */
+
+.night-root.with-image {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr;
+  gap: 0;
+  padding: 0;
+}
+.night-root.no-image {
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+}
+
+.night-left {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  padding: calc(48 * var(--u));
+  min-height: 0;
+  min-width: 0;
+}
+.night-top {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: calc(18 * var(--u));
+  min-height: 0;
+}
+
+.night-caption {
+  padding-top: calc(24 * var(--u));
+  border-top: 1px solid var(--faint);
+  display: flex;
+  flex-direction: column;
+  gap: calc(8 * var(--u));
+}
+/* Length-based top slack so the caption block sits at a consistent height
+ * from the bottom of the column regardless of how many lines the title
+ * occupies. Short titles (≤ 28 chars, 1 line) get the most slack; long
+ * titles (wrapping to 2 lines) get none. */
+.night-caption[data-size='short']  { margin-top: calc(80 * var(--u)); }
+.night-caption[data-size='medium'] { margin-top: calc(40 * var(--u)); }
+.night-caption[data-size='long']   { margin-top: 0; }
+.night-caption .title {
+  font-family: var(--font-serif);
+  font-variation-settings: 'opsz' 36, 'wght' 500;
+  font-style: normal;
+  font-size: calc(34 * var(--u));
+  line-height: 1.15;
+  color: var(--ink);
+}
+.night-caption .attrib {
+  font-family: var(--font-mono);
+  font-size: calc(22 * var(--u));
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--mid);
+}
+
+/*
+ * Approximate-time phrase — replaces the previous stacked precise clock.
+ * Per add-local-clock-tick spec: Night face uses phrase like
+ * "quarter past two" instead of "02:15". Fraunces Italic display size.
+ * The zone has a stable bounding rectangle so firmware local-tick partial
+ * refreshes can overwrite it without disturbing surrounding content.
+ */
+.night-phrase {
+  font-family: var(--font-serif);
+  font-variation-settings: 'opsz' 144, 'wght' 400;
+  font-style: italic;
+  font-size: calc(96 * var(--u));
+  line-height: 1.05;
+  color: var(--ink);
+  /* Fixed height so surrounding content doesn't shift when the phrase
+     changes length (e.g., "two o'clock" 14 → "quarter past twelve" 19). */
+  min-height: calc(220 * var(--u));
+  display: flex;
+  align-items: center;
+}
+
+.night-weekday {
+  font-family: var(--font-mono);
+  font-size: calc(28 * var(--u));
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--ink);
+}
+
+.night-poetic {
+  font-family: var(--font-serif);
+  font-variation-settings: 'opsz' 36, 'wght' 500;
+  font-style: normal;
+  font-size: calc(48 * var(--u));
+  color: var(--mid);
+  line-height: 1.2;
+  max-width: 90%;
+}
+
+.night-hard {
+  font-family: var(--font-mono);
+  font-size: calc(25 * var(--u));
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ink);
+}
+
+/* Nocturne image — ~70% of remaining area, tall-format. When no image is
+   available, render a faint-bordered empty panel with the fragment caption
+   in normal ink — graceful degradation rather than mix-blend weirdness. */
+.night-nocturne {
+  grid-column: 2;
+  grid-row: 1;
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+  min-width: 0;
+}
+.night-nocturne img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

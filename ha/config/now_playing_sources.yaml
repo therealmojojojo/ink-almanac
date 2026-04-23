@@ -1,0 +1,23 @@
+# Source → indicator label mapping for the Now-Playing face.
+#
+# Keys are lowercased substrings matched against the Sonos `source` attribute
+# (or `app_name`/`media_content_id` if `source` is absent). First matching key
+# wins. Unmatched sources fall back to the empty label and the renderer shows
+# just "SONOS".
+#
+# The mapping is consumed by ha/scripts/fetch_sonos_art.sh when it writes the
+# renderer input (renderer/inputs/sonos.json). Edit this file to add or rename
+# services; no restart required — the script re-reads it each run.
+
+sources:
+  spotify: SPOTIFY
+  "apple music": APPLE MUSIC
+  applemusic: APPLE MUSIC
+  itunes: APPLE MUSIC
+  airplay: AIRPLAY
+  tunein: RADIO
+  radio: RADIO
+  line-in: LINE IN
+  "line in": LINE IN
+
+default: ""  # empty → renderer shows "SONOS" alone

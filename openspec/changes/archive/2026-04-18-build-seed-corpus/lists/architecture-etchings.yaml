@@ -1,0 +1,42 @@
+category: architecture-etchings
+side: image
+proposed_by: claude
+proposed_at: 2026-04-16
+notes: |
+  Architectural / structural canon. Piranesi anchors (PD); Cassandre travel posters
+  are personal_library (Cassandre d.1968 → personal_library until 2039).
+
+items:
+  - id: piranesi-carceri-vii-drawbridge
+    title: "The Drawbridge (Carceri d'Invenzione, Plate VII)"
+    creator: "Giovanni Battista Piranesi"
+    year: 1761
+    rights_tier: public_domain
+    source: met_open_access
+    form: etching
+    themes: [architecture-and-structure, machines-and-mechanisms]
+    mood: [dramatic, mysterious]
+    register: [formal, iconic]
+
+  - id: piranesi-pantheon-interior
+    title: "Interior of the Pantheon (Vedute di Roma)"
+    creator: "Giovanni Battista Piranesi"
+    year: 1768
+    rights_tier: public_domain
+    source: met_open_access
+    form: etching
+    themes: [architecture-and-structure, ritual-and-gathering, decay-and-memory]
+    mood: [grand, contemplative]
+    register: [formal, iconic]
+
+  - id: cassandre-normandie
+    title: "Normandie (French Line)"
+    creator: "A.M. Cassandre (Adolphe Mouron)"
+    year: 1935
+    rights_tier: personal_library
+    source: web
+    form: poster
+    citation: "Cassandre, *A.M. Cassandre*, Rizzoli, 1985"
+    themes: [travel, machines-and-mechanisms, sea-and-sky]
+    mood: [grand, dynamic]
+    register: [iconic, formal]

@@ -1,0 +1,132 @@
+category: midcentury-photography
+side: image
+proposed_by: claude
+proposed_at: 2026-04-16
+notes: |
+  Midcentury (1928-1970s) B&W photography canon. All personal_library tier — creators
+  died after 1954, in EU copyright. Web-fetched from museum / agency pages (Magnum,
+  MoMA, Fondation HCB, Atelier Doisneau). Citations point to canonical monographs.
+
+items:
+  - id: hcb-hyeres
+    title: "Hyères, France, 1932"
+    creator: "Henri Cartier-Bresson"
+    year: 1932
+    rights_tier: personal_library
+    source: web
+    form: photograph
+    citation: "Cartier-Bresson, *The Decisive Moment*, Simon & Schuster, 1952"
+    themes: [urban, motion-and-gesture, travel]
+    mood: [poised, geometric, playful]
+    register: [lyrical, iconic]
+    candidate_urls:
+      - "https://www.henricartierbresson.org/en/photographs/hyeres-france-1932/"
+
+  - id: hcb-behind-gare-saint-lazare
+    title: "Behind the Gare Saint-Lazare, Paris, 1932"
+    creator: "Henri Cartier-Bresson"
+    year: 1932
+    rights_tier: personal_library
+    source: web
+    form: photograph
+    citation: "Cartier-Bresson, *The Decisive Moment*, Simon & Schuster, 1952"
+    themes: [urban, motion-and-gesture, paris-amsterdam-vintage]
+    mood: [suspenseful, mysterious]
+    register: [iconic, lyrical]
+
+  - id: hcb-seville-ruins
+    title: "Seville, Spain, 1933"
+    creator: "Henri Cartier-Bresson"
+    year: 1933
+    rights_tier: personal_library
+    source: web
+    form: photograph
+    citation: "Cartier-Bresson, *The Decisive Moment*, Simon & Schuster, 1952"
+    themes: [childhood-and-play, urban, decay-and-memory]
+    mood: [haunting, playful]
+    register: [lyrical]
+
+  - id: hcb-sunday-marne
+    title: "Sunday on the Banks of the Marne, 1938"
+    creator: "Henri Cartier-Bresson"
+    year: 1938
+    rights_tier: personal_library
+    source: web
+    form: photograph
+    citation: "Cartier-Bresson, *The Decisive Moment*, Simon & Schuster, 1952"
+    themes: [everyday-life, food-and-gathering, ritual-and-gathering]
+    mood: [warm, unhurried]
+    register: [tender, lyrical]
+
+  - id: doisneau-baiser-hotel-ville
+    title: "Le Baiser de l'Hôtel de Ville, 1950"
+    creator: "Robert Doisneau"
+    year: 1950
+    rights_tier: personal_library
+    source: web
+    form: photograph
+    citation: "Doisneau, *Paris*, Flammarion, 2005"
+    themes: [urban, motion-and-gesture, paris-amsterdam-vintage]
+    mood: [warm, romantic]
+    register: [iconic, tender]
+
+  - id: kertesz-meudon
+    title: "Meudon, 1928"
+    creator: "André Kertész"
+    year: 1928
+    rights_tier: personal_library
+    source: web
+    form: photograph
+    citation: "Kertész, *On Reading* / *Sixty Years of Photography*, Knopf, 1994"
+    themes: [urban, travel, paris-amsterdam-vintage]
+    mood: [surreal, quiet]
+    register: [lyrical, formal]
+
+  - id: kertesz-esztergom-reader
+    title: "A Boy Reading, Esztergom, Hungary, 1915"
+    creator: "André Kertész"
+    year: 1915
+    rights_tier: personal_library
+    source: web
+    form: photograph
+    citation: "Kertész, *On Reading*, W.W. Norton, 1971"
+    themes: [reading-and-study, childhood-and-play]
+    mood: [tender, quiet]
+    register: [intimate, lyrical]
+
+  - id: brassai-paris-nuit-steps
+    title: "Escalier de la rue Rollin (Paris de Nuit)"
+    creator: "Brassaï (Gyula Halász)"
+    year: 1933
+    rights_tier: personal_library
+    source: web
+    form: photograph
+    citation: "Brassaï, *Paris de Nuit*, Arts et Métiers Graphiques, 1933"
+    themes: [urban, night-and-lamplight, paris-amsterdam-vintage]
+    mood: [mysterious, nocturnal]
+    register: [iconic, atmospheric]
+    nocturne_candidate: true
+
+  - id: vivian-maier-self-portrait-1954
+    title: "Self-Portrait, New York, 1954"
+    creator: "Vivian Maier"
+    year: 1954
+    rights_tier: personal_library
+    source: web
+    form: photograph
+    citation: "Maier, *Vivian Maier: Self-Portraits*, powerHouse Books, 2013"
+    themes: [portrait-and-face, reflection-and-mirror, urban]
+    mood: [enigmatic, self-possessed]
+    register: [wry, intimate]
+
+  - id: koudelka-gypsies-horse
+    title: "Romania (from *Gypsies*)"
+    creator: "Josef Koudelka"
+    year: 1968
+    rights_tier: personal_library
+    source: web
+    form: photograph
+    citation: "Koudelka, *Gypsies*, Aperture, 2011 (orig. 1975)"
+    themes: [travel, motion-and-gesture, ritual-and-gathering]
+    mood: [unflinching, stark]
+    register: [documentary, lyrical]

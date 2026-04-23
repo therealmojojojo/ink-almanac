@@ -1,0 +1,333 @@
+recipe: top-bw-graphic-arts-works
+lineage: 19c-print
+generated: 2026-04-19
+defaults: {panel_fidelity: native, rights_tier: public_domain}
+
+creators:
+
+  william-blake:
+    canon_weight: core
+    in_corpus: 0
+    works:
+    - id: blake-ancient-of-days
+      title: "The Ancient of Days (Europe: A Prophecy frontispiece)"
+      year: 1794
+      form: etching
+      themes: [mysterious, light-shadow]
+      mood: [grand, oracular]
+      register: [iconic, oracular]
+      source_hint: william_blake_archive
+      status: pending
+    - id: blake-newton
+      title: "Newton"
+      year: 1795
+      form: etching
+      themes: [reading-and-study, body-and-figure]
+      mood: [contemplative, grand]
+      register: [iconic, classical]
+      source_hint: tate
+      status: pending
+    - id: blake-nebuchadnezzar
+      title: "Nebuchadnezzar"
+      year: 1795
+      form: etching
+      themes: [body-and-figure, mortality]
+      mood: [grim, haunting]
+      register: [iconic, oracular]
+      source_hint: tate
+      status: pending
+    - id: blake-great-red-dragon-woman-clothed-in-sun
+      title: "The Great Red Dragon and the Woman Clothed in Sun"
+      year: 1805
+      form: drawing
+      themes: [mortality, mysterious, motion-and-gesture]
+      mood: [grand, haunting]
+      register: [iconic, oracular]
+      source_hint: nga_washington
+      status: pending
+    - id: blake-job-when-morning-stars-sang
+      title: "When the Morning Stars Sang Together (Book of Job, plate 14)"
+      year: 1826
+      form: engraving
+      themes: [ritual-and-gathering, mysterious]
+      mood: [awestruck, ecstatic]
+      register: [iconic, oracular]
+      source_hint: william_blake_archive
+      status: pending
+    - id: blake-job-satan-smiting
+      title: "Satan Smiting Job with Sore Boils (Book of Job, plate 6)"
+      year: 1826
+      form: engraving
+      themes: [mortality, light-shadow]
+      mood: [grim, haunting]
+      register: [iconic, oracular]
+      source_hint: william_blake_archive
+      status: pending
+    - id: blake-dante-whirlwind-of-lovers
+      title: "The Whirlwind of Lovers (Dante Illustrations)"
+      year: 1826
+      form: engraving
+      themes: [motion-and-gesture, mysterious]
+      mood: [dynamic, haunting]
+      register: [iconic, baroque]
+      source_hint: nga_washington
+      status: pending
+
+  honore-daumier:
+    canon_weight: core
+    in_corpus: 3
+    works:
+    - {id: daumier-rue-transnonain,         in_corpus: true, form: lithograph}
+    - {id: daumier-lawyers-gens-de-justice, in_corpus: true, form: lithograph}
+    - {id: daumier-third-class-carriage,    in_corpus: true, form: lithograph}
+    - id: daumier-gargantua
+      title: "Gargantua"
+      year: 1831
+      form: lithograph
+      themes: [ritual-and-gathering, urban]
+      mood: [grim, ironic]
+      register: [iconic, wry]
+      source_hint: loc_ppoc
+      status: pending
+    - id: daumier-legislative-belly
+      title: "Le Ventre législatif (The Legislative Belly)"
+      year: 1834
+      form: lithograph
+      themes: [ritual-and-gathering, portrait-and-face]
+      mood: [ironic, wry]
+      register: [iconic, wry]
+      source_hint: loc_ppoc
+      status: pending
+    - id: daumier-ratapoil
+      title: "Ratapoil"
+      year: 1851
+      form: lithograph
+      themes: [portrait-and-face, urban]
+      mood: [wry, sly]
+      register: [iconic, wry]
+      source_hint: loc_ppoc
+      status: pending
+    - id: daumier-actualites-past-present
+      title: "Passé, Présent, Avenir (Actualités)"
+      year: 1834
+      form: lithograph
+      themes: [portrait-and-face, reflection-and-mirror]
+      mood: [ironic, wry]
+      register: [wry, iconic]
+      source_hint: loc_ppoc
+      status: pending
+    - id: daumier-les-baigneurs
+      title: "Les Baigneurs (Bathers)"
+      year: 1840
+      form: lithograph
+      themes: [water-and-reflection, everyday-life]
+      mood: [playful, wry]
+      register: [wry, iconic]
+      source_hint: loc_ppoc
+      status: pending
+
+  gustave-dore:
+    canon_weight: canonical
+    in_corpus: 0
+    works:
+    - id: dore-inferno-minotaur
+      title: "The Minotaur (Dante's Inferno)"
+      year: 1857
+      form: wood-engraving
+      themes: [mortality, mysterious]
+      mood: [grim, haunting]
+      register: [iconic, baroque]
+      source_hint: archive_org
+      status: pending
+    - id: dore-inferno-paolo-francesca
+      title: "Paolo and Francesca (Dante's Inferno)"
+      year: 1857
+      form: wood-engraving
+      themes: [tender-companionship, mortality, motion-and-gesture]
+      mood: [romantic, haunting]
+      register: [iconic, romantic]
+      source_hint: archive_org
+      status: pending
+    - id: dore-don-quixote-library
+      title: "Don Quixote in his Library"
+      year: 1863
+      form: wood-engraving
+      themes: [reading-and-study, interior-and-domestic]
+      mood: [contemplative, atmospheric]
+      register: [iconic, baroque]
+      source_hint: archive_org
+      status: pending
+    - id: dore-london-over-london-by-rail
+      title: "Over London by Rail (London: A Pilgrimage)"
+      year: 1872
+      form: wood-engraving
+      themes: [urban, architecture-and-structure, paris-amsterdam-vintage]
+      mood: [atmospheric, grim]
+      register: [iconic, documentary]
+      source_hint: archive_org
+      status: pending
+    - id: dore-london-ludgate-hill
+      title: "Ludgate Hill (London: A Pilgrimage)"
+      year: 1872
+      form: wood-engraving
+      themes: [urban, motion-and-gesture]
+      mood: [dynamic, atmospheric]
+      register: [iconic, documentary]
+      source_hint: archive_org
+      status: pending
+    - id: dore-raven-perched-bust-pallas
+      title: "Perched and Sat and Nothing More (The Raven)"
+      year: 1884
+      form: wood-engraving
+      themes: [mortality, mysterious, interior-and-domestic]
+      mood: [haunting, mysterious]
+      register: [iconic, oracular]
+      source_hint: archive_org
+      status: pending
+
+  charles-meryon:
+    canon_weight: canonical
+    in_corpus: 0
+    works:
+    - id: meryon-le-stryge
+      title: "Le Stryge"
+      year: 1853
+      form: etching
+      themes: [architecture-and-structure, urban, paris-amsterdam-vintage, mysterious]
+      mood: [haunting, atmospheric]
+      register: [iconic, atmospheric]
+      source_hint: nga_washington
+      status: pending
+    - id: meryon-abside-notre-dame
+      title: "L'Abside de Notre-Dame"
+      year: 1854
+      form: etching
+      themes: [architecture-and-structure, paris-amsterdam-vintage, water-and-reflection]
+      mood: [grand, atmospheric]
+      register: [iconic, classical]
+      source_hint: nga_washington
+      status: pending
+    - id: meryon-la-morgue
+      title: "La Morgue"
+      year: 1854
+      form: etching
+      themes: [urban, mortality, paris-amsterdam-vintage]
+      mood: [grim, atmospheric]
+      register: [iconic, documentary]
+      source_hint: nga_washington
+      status: pending
+    - id: meryon-le-pont-neuf
+      title: "Le Pont-Neuf"
+      year: 1853
+      form: etching
+      themes: [architecture-and-structure, urban, paris-amsterdam-vintage, water-and-reflection]
+      mood: [atmospheric, grand]
+      register: [iconic, classical]
+      source_hint: met_open_access
+      status: pending
+    - id: meryon-tourelle-rue-ecole-medecine
+      title: "La Tourelle, Rue de l'École-de-Médecine"
+      year: 1861
+      form: etching
+      themes: [architecture-and-structure, paris-amsterdam-vintage]
+      mood: [atmospheric, still]
+      register: [iconic, classical]
+      source_hint: nga_washington
+      status: pending
+
+  odilon-redon:
+    canon_weight: core
+    in_corpus: 5
+    works:
+    - {id: redon-cyclops,                       in_corpus: true, form: lithograph}
+    - {id: redon-eye-balloon,                   in_corpus: true, form: lithograph}
+    - {id: redon-closed-eyes,                   in_corpus: true, form: lithograph}
+    - {id: redon-spider-man-smiling,            in_corpus: true, form: lithograph}
+    - {id: redon-pilgrim-of-the-sublunary-world, in_corpus: true, form: lithograph}
+    - id: redon-origins-germination
+      title: "Germination (Les Origines, plate 2)"
+      year: 1883
+      form: lithograph
+      themes: [mysterious, mortality]
+      mood: [haunting, atmospheric]
+      register: [iconic, oracular]
+      source_hint: artic
+      status: pending
+    - id: redon-origins-gnome
+      title: "Il y eut peut-être une vision première... (Les Origines, plate 1)"
+      year: 1883
+      form: lithograph
+      themes: [mysterious]
+      mood: [mysterious, haunting]
+      register: [oracular, iconic]
+      source_hint: artic
+      status: pending
+    - id: redon-hommage-a-goya-marsh-flower
+      title: "Il y eut aussi des êtres embryonnaires (Hommage à Goya)"
+      year: 1885
+      form: lithograph
+      themes: [mysterious, mortality]
+      mood: [haunting, grim]
+      register: [iconic, oracular]
+      source_hint: moma
+      status: pending
+
+  james-mcneill-whistler:
+    canon_weight: canonical
+    in_corpus: 1
+    works:
+    - {id: whistler-limehouse-lithograph, in_corpus: true, form: lithograph}
+    - id: whistler-black-lion-wharf
+      title: "Black Lion Wharf (Thames Set)"
+      year: 1859
+      form: etching
+      themes: [water-and-reflection, urban, architecture-and-structure]
+      mood: [atmospheric, quiet]
+      register: [iconic, classical]
+      source_hint: nga_washington
+      status: pending
+    - id: whistler-rotherhithe
+      title: "Rotherhithe (Thames Set)"
+      year: 1860
+      form: etching
+      themes: [water-and-reflection, urban, everyday-life]
+      mood: [atmospheric, tender]
+      register: [iconic, intimate]
+      source_hint: nga_washington
+      status: pending
+    - id: whistler-venice-nocturne-palaces
+      title: "Nocturne: Palaces (Venice Set)"
+      year: 1880
+      form: etching
+      themes: [night-and-lamplight, water-and-reflection, architecture-and-structure]
+      mood: [atmospheric, quiet]
+      register: [iconic, atmospheric]
+      source_hint: freer_sackler
+      status: pending
+    - id: whistler-venice-doorway
+      title: "The Doorway (Venice Set)"
+      year: 1880
+      form: etching
+      themes: [architecture-and-structure, water-and-reflection]
+      mood: [atmospheric, quiet]
+      register: [iconic, atmospheric]
+      source_hint: freer_sackler
+      status: pending
+    - id: whistler-venice-piazzetta
+      title: "The Piazzetta (Venice Set)"
+      year: 1880
+      form: etching
+      themes: [architecture-and-structure, urban]
+      mood: [atmospheric, poised]
+      register: [iconic, classical]
+      source_hint: nga_washington
+      status: pending
+    - id: whistler-nocturne-river-at-battersea
+      title: "Nocturne: The River at Battersea (lithotint)"
+      year: 1878
+      form: lithograph
+      themes: [night-and-lamplight, water-and-reflection, atmospheric]
+      mood: [atmospheric, quiet, dim]
+      register: [iconic, atmospheric]
+      source_hint: nga_washington
+      status: pending

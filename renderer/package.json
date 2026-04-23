@@ -1,0 +1,39 @@
+{
+  "name": "@inkplate/renderer",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "build": "tsc -p .",
+    "test": "vitest run",
+    "test:snapshot": "vitest run test/snapshot.test.ts",
+    "dither-test": "tsx src/tools/dither-test.ts",
+    "check-zones": "tsx src/tools/check-zones.ts",
+    "lint:templates": "tsx src/tools/lint-templates.ts",
+    "lint:fonts": "tsx src/tools/lint-fonts.ts",
+    "validate:corpus-fit": "tsx src/tools/validate-corpus-fit.ts",
+    "verify": "npm run lint:templates && npm run lint:fonts && npm run check-zones && npm run validate:corpus-fit",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "hono": "4.6.14",
+    "@hono/node-server": "1.13.7",
+    "pino": "9.5.0",
+    "pino-pretty": "13.0.0",
+    "playwright": "1.49.1",
+    "sharp": "0.33.5",
+    "zod": "3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.2",
+    "prettier": "3.4.2",
+    "tsx": "4.19.2",
+    "typescript": "5.7.2",
+    "vitest": "2.1.8"
+  }
+}

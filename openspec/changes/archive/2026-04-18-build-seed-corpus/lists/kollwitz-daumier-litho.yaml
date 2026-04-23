@@ -1,0 +1,237 @@
+category: kollwitz-daumier-litho
+side: image
+proposed_by: claude
+proposed_at: 2026-04-17
+notes: |
+  Monochrome lithograph canon — Kollwitz, Daumier, Toulouse-Lautrec sketch
+  work, and Goya's *Bulls of Bordeaux* series. All `panel_fidelity: native`.
+  Daumier d.1879, Toulouse-Lautrec d.1901, Goya d.1828, Kollwitz d.1945 —
+  all PD. Kollwitz drawings/etchings already appear in `drawing-canon.yaml`
+  (kollwitz-self-portrait-charcoal, kollwitz-mother-dead-child, kollwitz-weavers-storm);
+  this list focuses on her lithographs specifically plus Daumier/Lautrec/Goya
+  additions.
+
+items:
+  # Kollwitz lithographs
+  - id: kollwitz-death-and-mother
+    title: "Death and the Mother (from Death series)"
+    creator: "Käthe Kollwitz"
+    year: 1934
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: lithograph
+    panel_fidelity: native
+    themes: [mortality, tender-companionship, body-and-figure]
+    mood: [haunting, grave, tender]
+    register: [expressive, solemn, iconic]
+
+  - id: kollwitz-the-mothers
+    title: "The Mothers (from War series)"
+    creator: "Käthe Kollwitz"
+    year: 1922
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: lithograph
+    panel_fidelity: native
+    themes: [tender-companionship, mortality, ritual-and-gathering]
+    mood: [grave, unflinching]
+    register: [expressive, solemn]
+    notes: "Technically woodcut in one edition, lithograph in another. Verify form at fetch."
+
+  - id: kollwitz-bread-bread
+    title: "Bread! (Brot!)"
+    creator: "Käthe Kollwitz"
+    year: 1924
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: lithograph
+    panel_fidelity: native
+    themes: [tender-companionship, mortality, childhood-and-play]
+    mood: [haunting, raw]
+    register: [expressive, solemn]
+
+  - id: kollwitz-never-again-war
+    title: "Never Again War (Nie wieder Krieg)"
+    creator: "Käthe Kollwitz"
+    year: 1924
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: lithograph
+    panel_fidelity: native
+    themes: [ritual-and-gathering, motion-and-gesture, body-and-figure]
+    mood: [urgent, sharp]
+    register: [expressive, iconic]
+
+  - id: kollwitz-self-portrait-lithograph-1934
+    title: "Self-Portrait (lithograph)"
+    creator: "Käthe Kollwitz"
+    year: 1934
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: lithograph
+    panel_fidelity: native
+    themes: [portrait-and-face, solitude, decay-and-memory]
+    mood: [unflinching, grave]
+    register: [expressive, confessional]
+
+  # Daumier — legal theatre and political
+  - id: daumier-gargantua
+    title: "Gargantua"
+    creator: "Honoré Daumier"
+    year: 1831
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: lithograph
+    panel_fidelity: native
+    themes: [ritual-and-gathering, body-and-figure, decay-and-memory]
+    mood: [wry, sharp]
+    register: [wry, iconic]
+
+  - id: daumier-rue-transnonain
+    title: "Rue Transnonain, 15 April 1834"
+    creator: "Honoré Daumier"
+    year: 1834
+    rights_tier: public_domain
+    source: met_open_access
+    form: lithograph
+    panel_fidelity: native
+    themes: [mortality, urban, decay-and-memory]
+    mood: [grim, haunting]
+    register: [documentary, iconic]
+
+  - id: daumier-third-class-carriage
+    title: "The Third-Class Carriage"
+    creator: "Honoré Daumier"
+    year: 1864
+    rights_tier: public_domain
+    source: met_open_access
+    form: lithograph
+    panel_fidelity: native
+    themes: [urban, tender-companionship, body-and-figure]
+    mood: [tender, unflinching]
+    register: [documentary, lyric, iconic]
+
+  - id: daumier-lawyers-gens-de-justice
+    title: "Les Gens de Justice (lawyer plates)"
+    creator: "Honoré Daumier"
+    year: 1845
+    rights_tier: public_domain
+    source: met_open_access
+    form: lithograph
+    panel_fidelity: native
+    themes: [portrait-and-face, work-making, ritual-and-gathering]
+    mood: [wry, sharp]
+    register: [wry, sly, iconic]
+
+  - id: daumier-ratapoil
+    title: "Ratapoil"
+    creator: "Honoré Daumier"
+    year: 1851
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: lithograph
+    panel_fidelity: native
+    themes: [portrait-and-face, decay-and-memory]
+    mood: [wry, sharp]
+    register: [wry, iconic]
+
+  # Toulouse-Lautrec — sketch work (his color lithograph posters are colored; these
+  # are monochrome sketch lithographs)
+  - id: lautrec-jane-avril-lithograph
+    title: "Jane Avril (crayon lithograph study)"
+    creator: "Henri de Toulouse-Lautrec"
+    year: 1893
+    rights_tier: public_domain
+    source: met_open_access
+    form: lithograph
+    panel_fidelity: native
+    themes: [portrait-and-face, body-and-figure, craft-and-play]
+    mood: [kinetic, sharp]
+    register: [lyric, iconic]
+
+  - id: lautrec-yvette-guilbert
+    title: "Yvette Guilbert (lithograph album)"
+    creator: "Henri de Toulouse-Lautrec"
+    year: 1894
+    rights_tier: public_domain
+    source: met_open_access
+    form: lithograph
+    panel_fidelity: native
+    themes: [portrait-and-face, craft-and-play]
+    mood: [sharp, sly]
+    register: [lyric, wry]
+
+  - id: lautrec-elles-femme-couchee
+    title: "Femme couchée (from Elles)"
+    creator: "Henri de Toulouse-Lautrec"
+    year: 1896
+    rights_tier: public_domain
+    source: met_open_access
+    form: lithograph
+    panel_fidelity: native
+    themes: [body-and-figure, interior-and-domestic, solitude]
+    mood: [tender, quiet]
+    register: [intimate, lyric]
+
+  # Goya — Bulls of Bordeaux (late lithographs, 1825)
+  - id: goya-bulls-bordeaux-famoso-americano
+    title: "El famoso americano, Mariano Ceballos (Bulls of Bordeaux)"
+    creator: "Francisco de Goya"
+    year: 1825
+    rights_tier: public_domain
+    source: met_open_access
+    form: lithograph
+    panel_fidelity: native
+    themes: [ritual-and-gathering, motion-and-gesture, animals]
+    mood: [kinetic, dynamic]
+    register: [documentary, iconic]
+
+  - id: goya-bulls-bordeaux-plaza-partida
+    title: "Bullfight in a Divided Ring (Bulls of Bordeaux)"
+    creator: "Francisco de Goya"
+    year: 1825
+    rights_tier: public_domain
+    source: met_open_access
+    form: lithograph
+    panel_fidelity: native
+    themes: [ritual-and-gathering, motion-and-gesture, animals]
+    mood: [kinetic, grand]
+    register: [documentary, iconic]
+
+  # Odilon Redon — noirs (already one in drawing-canon — adding two)
+  - id: redon-spider-man-smiling
+    title: "The Smiling Spider"
+    creator: "Odilon Redon"
+    year: 1881
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: lithograph
+    panel_fidelity: native
+    themes: [animals, craft-and-play, uncanny]
+    mood: [uncanny, wry]
+    register: [surreal, iconic]
+
+  - id: redon-pilgrim-of-the-sublunary-world
+    title: "The Pilgrim of the Sublunary World"
+    creator: "Odilon Redon"
+    year: 1891
+    rights_tier: public_domain
+    source: met_open_access
+    form: lithograph
+    panel_fidelity: native
+    themes: [journey, solitude, mortality]
+    mood: [mysterious, contemplative]
+    register: [surreal, oracular]
+
+  # Whistler lithographs (d.1903, PD)
+  - id: whistler-limehouse-lithograph
+    title: "Limehouse (lithograph)"
+    creator: "James Abbott McNeill Whistler"
+    year: 1878
+    rights_tier: public_domain
+    source: met_open_access
+    form: lithograph
+    panel_fidelity: native
+    themes: [urban, water-and-reflection, work-making]
+    mood: [atmospheric, dim]
+    register: [lyric, atmospheric]

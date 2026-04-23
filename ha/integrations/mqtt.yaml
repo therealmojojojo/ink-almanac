@@ -1,0 +1,36 @@
+# MQTT integration config — the Mosquitto add-on is the broker.
+# The device (firmware) publishes to inkplate/state/* and subscribes to inkplate/command/*.
+# Sleep-strategy bundle is published by HA to inkplate/command/sleep_strategy (retained).
+
+mqtt:
+  sensor:
+    # Mirror the device's retained state payload into HA sensors so other automations
+    # (low-battery, diagnostics) can consume it declaratively.
+    - name: "Inkplate device battery"
+      unique_id: inkplate_device_battery
+      state_topic: "inkplate/state/device"
+      value_template: "{{ value_json.percentage }}"
+      unit_of_measurement: "%"
+      device_class: battery
+
+    - name: "Inkplate device voltage"
+      unique_id: inkplate_device_voltage
+      state_topic: "inkplate/state/device"
+      value_template: "{{ value_json.voltage }}"
+      unit_of_measurement: "V"
+      device_class: voltage
+
+    - name: "Inkplate device wake reason"
+      unique_id: inkplate_device_wake_reason
+      state_topic: "inkplate/state/device"
+      value_template: "{{ value_json.wake_reason }}"
+
+    - name: "Inkplate device active mode"
+      unique_id: inkplate_device_active_mode
+      state_topic: "inkplate/state/device"
+      value_template: "{{ value_json.active_mode }}"
+
+    - name: "Inkplate device build"
+      unique_id: inkplate_device_build
+      state_topic: "inkplate/state/device"
+      value_template: "{{ value_json.build }}"

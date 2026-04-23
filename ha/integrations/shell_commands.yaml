@@ -1,0 +1,29 @@
+# Registered shell_command: entries. Loaded via the packages mechanism
+# (homeassistant.packages: !include_dir_named custom/inkplate/integrations),
+# so the top-level key MUST be the domain (`shell_command`).
+# Paths are the in-container /config/custom/inkplate/ layout after deploy.
+
+shell_command:
+  generate_pairings_week: >-
+    /usr/bin/env bash -c '
+    cd /config/custom/inkplate/scripts &&
+    ./generate_pairings_week.sh
+    '
+
+  generate_poetic_weather_line: >-
+    /usr/bin/env bash -c '
+    cd /config/custom/inkplate/scripts &&
+    ./generate_poetic_weather_line.sh "{{ summary }}" "{{ temp_c }}" "{{ wind }}" "{{ bucket }}"
+    '
+
+  fetch_sonos_art: >-
+    /usr/bin/env bash -c '
+    cd /config/custom/inkplate/scripts &&
+    ./fetch_sonos_art.sh "{{ url }}" "{{ title }}" "{{ artist }}" "{{ album }}" "{{ source }}" "{{ ha_base }}" "{{ token }}"
+    '
+
+  purge_stale_sonos_art: >-
+    /usr/bin/env bash -c '
+    cd /config/custom/inkplate/scripts &&
+    ./purge_stale_sonos_art.sh
+    '

@@ -1,0 +1,132 @@
+category: japanese-haiku-canon
+side: text
+proposed_by: claude
+proposed_at: 2026-04-16
+notes: |
+  Classical haiku canon — Bashō (d.1694), Buson (d.1784), Issa (d.1828), Ryōkan
+  (d.1831). All PD. Served bilingual where possible: English translation primary,
+  Japanese original retained as a second language variant. Translations: Robert
+  Hass (*The Essential Haiku*, Ecco, 1994) where used; Sam Hamill elsewhere.
+
+items:
+  - id: basho-old-pond
+    title: "Old pond"
+    creator: "Matsuo Bashō"
+    year: 1686
+    rights_tier: public_domain
+    source: wikisource
+    form: haiku
+    language: [en, ja]
+    themes: [water-and-reflection, attention-and-listening, japan]
+    mood: [quiet, contemplative]
+    register: [classical, lyrical]
+
+  - id: basho-summer-grasses
+    title: "Summer grasses"
+    creator: "Matsuo Bashō"
+    year: 1689
+    rights_tier: public_domain
+    source: wikisource
+    form: haiku
+    language: [en, ja]
+    themes: [seasons-and-time, decay-and-memory, japan]
+    mood: [melancholic, grand]
+    register: [classical, lyrical]
+
+  - id: basho-withered-branch
+    title: "On a withered branch"
+    creator: "Matsuo Bashō"
+    year: 1680
+    rights_tier: public_domain
+    source: wikisource
+    form: haiku
+    language: [en, ja]
+    themes: [seasons-and-time, solitude, japan]
+    mood: [stark, quiet]
+    register: [classical, lyrical]
+    nocturne_candidate: true
+
+  - id: basho-stillness
+    title: "Such stillness"
+    creator: "Matsuo Bashō"
+    year: 1689
+    rights_tier: public_domain
+    source: wikisource
+    form: haiku
+    language: [en, ja]
+    themes: [attention-and-listening, mountain-and-forest, japan]
+    mood: [serene, contemplative]
+    register: [classical, lyrical]
+
+  - id: buson-mustard-blossoms
+    title: "Yellow mustard blossoms"
+    creator: "Yosa Buson"
+    year: 1770
+    rights_tier: public_domain
+    source: wikisource
+    form: haiku
+    language: [en, ja]
+    themes: [seasons-and-time, garden-and-grove, japan]
+    mood: [serene, wistful]
+    register: [classical, lyrical]
+
+  - id: buson-summer-rains
+    title: "Summer rains"
+    creator: "Yosa Buson"
+    year: 1770
+    rights_tier: public_domain
+    source: wikisource
+    form: haiku
+    language: [en, ja]
+    themes: [weather, water-and-reflection, japan]
+    mood: [melancholic, atmospheric]
+    register: [classical, lyrical]
+
+  - id: issa-scrawny-frog
+    title: "Scrawny frog, stand your ground"
+    creator: "Kobayashi Issa"
+    year: 1816
+    rights_tier: public_domain
+    source: wikisource
+    form: haiku
+    language: [en, ja]
+    themes: [attention-and-listening, craft-and-play]
+    mood: [wry, tender]
+    register: [classical, wry]
+
+  - id: issa-world-of-dew
+    title: "This world of dew"
+    creator: "Kobayashi Issa"
+    year: 1819
+    rights_tier: public_domain
+    source: wikisource
+    form: haiku
+    language: [en, ja]
+    themes: [decay-and-memory, solitude, japan]
+    mood: [grieving, accepting]
+    register: [classical, lyrical]
+
+  - id: issa-snail-fuji
+    title: "O snail / climb Mount Fuji"
+    creator: "Kobayashi Issa"
+    year: 1817
+    rights_tier: public_domain
+    source: wikisource
+    form: haiku
+    language: [en, ja]
+    themes: [mountain-and-forest, craft-and-play, japan]
+    mood: [wry, tender]
+    register: [classical, wry]
+
+  - id: ryokan-thief-left-moon
+    title: "The thief left it behind: / the moon at the window"
+    creator: "Ryōkan Taigu"
+    year: 1800
+    rights_tier: public_domain
+    source: wikisource
+    form: haiku
+    language: [en, ja]
+    themes: [solitude, night-and-lamplight, interior-and-domestic, japan]
+    mood: [wry, serene]
+    register: [classical, lyrical]
+    nocturne_candidate: true

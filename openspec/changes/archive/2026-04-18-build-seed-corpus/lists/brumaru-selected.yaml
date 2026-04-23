@@ -1,0 +1,95 @@
+category: brumaru-selected
+side: text
+proposed_by: claude
+proposed_at: 2026-04-16
+notes: |
+  Emil Brumaru (1938–2019). All personal_library. Served in Romanian.
+  Specific poem titles proposed from the major volumes; operator may swap in
+  preferred pieces at list-review time — Brumaru has a large corpus of short
+  forms, erotic idylls, and miniatures, and "the canon" for a household is the
+  operator's own canon as much as the critical one.
+
+items:
+  - id: brumaru-julien-ospitalierul-i
+    title: "Julien Ospitalierul I"
+    creator: "Emil Brumaru"
+    year: 1974
+    rights_tier: personal_library
+    source: web
+    form: free-verse
+    language: [ro]
+    citation: "Brumaru, *Julien Ospitalierul*, Cartea Românească, 1974"
+    themes: [solitude, interior-and-domestic, food-and-gathering]
+    mood: [tender, wistful]
+    register: [lyric, wry]
+    operator_pick_expected: true
+
+  - id: brumaru-cintece-naive-1
+    title: "Cântec naiv (selected)"
+    creator: "Emil Brumaru"
+    year: 1970
+    rights_tier: personal_library
+    source: web
+    form: free-verse
+    language: [ro]
+    citation: "Brumaru, *Cântece naive*, Cartea Românească, 1970"
+    themes: [tender-companionship, garden-and-grove, everyday-life]
+    mood: [tender, playful]
+    register: [lyric, tender]
+    operator_pick_expected: true
+
+  - id: brumaru-detectiv-arthur
+    title: "Detectiv Arthur (fragment)"
+    creator: "Emil Brumaru"
+    year: 1995
+    rights_tier: personal_library
+    source: web
+    form: fragment
+    language: [ro]
+    citation: "Brumaru, *Detectiv Arthur*, Cartea Românească, 1995"
+    themes: [solitude, interior-and-domestic]
+    mood: [wry, tender]
+    register: [wry, lyric]
+    operator_pick_expected: true
+
+  - id: brumaru-infernala-comedie-fragment
+    title: "Infernala comedie (fragment)"
+    creator: "Emil Brumaru"
+    year: 2005
+    rights_tier: personal_library
+    source: web
+    form: fragment
+    language: [ro]
+    citation: "Brumaru, *Infernala comedie*, Brumar, 2005"
+    themes: [decay-and-memory, craft-and-play]
+    mood: [wry, melancholic]
+    register: [wry, lyric]
+    operator_pick_expected: true
+
+  - id: brumaru-adio-robinson
+    title: "Adio, Robinson Crusoe (fragment)"
+    creator: "Emil Brumaru"
+    year: 1982
+    rights_tier: personal_library
+    source: web
+    form: fragment
+    language: [ro]
+    citation: "Brumaru, *Adio, Robinson Crusoe*, Cartea Românească, 1982"
+    themes: [solitude, travel, decay-and-memory]
+    mood: [wistful, tender]
+    register: [lyric]
+    operator_pick_expected: true
+
+  - id: brumaru-opere-antimagice-fragment
+    title: "Opere anti-magice ale lui Julien Ospitalierul (fragment)"
+    creator: "Emil Brumaru"
+    year: 1983
+    rights_tier: personal_library
+    source: web
+    form: fragment
+    language: [ro]
+    citation: "Brumaru, *Opere anti-magice ale lui Julien Ospitalierul*, Cartea Românească, 1983"
+    themes: [craft-and-play, solitude]
+    mood: [playful, tender]
+    register: [wry, lyric]
+    operator_pick_expected: true

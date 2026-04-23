@@ -1,0 +1,61 @@
+# Renderer-input publishers. HA POSTs each of these to the renderer's
+# `POST /inputs/:name` endpoint; the renderer writes the JSON body atomically.
+#
+# URLs are hardcoded below — they're LAN coordinates, not secrets.
+# If you ever move the renderer host/port, edit this file and redeploy.
+# Keep `renderer_input_auth_header` in secrets.yaml (it's the actual credential).
+#
+# Triggers and the master kill-switch live in ha/automations/publish_inputs.yaml.
+# No retry on failure — a connection-refused or 5xx response is logged at
+# `warning` and the next natural trigger re-publishes. HA's rest_command does
+# not back off.
+
+rest_command:
+  inkplate_publish_clock:
+    url: "http://${RENDERER_HOST}:8575/inputs/clock"
+    method: post
+    headers:
+      authorization: !secret renderer_input_auth_header
+    content_type: "application/json"
+    payload: >-
+      {
+        "time": "{{ now().strftime('%H:%M') }}",
+        "date": "{{ now().strftime('%A · %B %-d') }}"
+      }
+
+  inkplate_publish_weather:
+    url: "http://${RENDERER_HOST}:8575/inputs/weather"
+    method: post
+    headers:
+      authorization: !secret renderer_input_auth_header
+    content_type: "application/json"
+    # Body assembled by the driving automation and passed as `body`.
+    payload: "{{ body }}"
+
+  inkplate_publish_hn:
+    url: "http://${RENDERER_HOST}:8575/inputs/hn"
+    method: post
+    headers:
+      authorization: !secret renderer_input_auth_header
+    content_type: "application/json"
+    payload: "{{ body }}"
+
+  inkplate_publish_device:
+    url: "http://${RENDERER_HOST}:8575/inputs/device"
+    method: post
+    headers:
+      authorization: !secret renderer_input_auth_header
+    content_type: "application/json"
+    payload: "{{ body }}"
+
+  inkplate_publish_sonos:
+    # Replaces the old shell_command.fetch_sonos_art path. Body built by the
+    # driving automation (inkplate_publish_sonos in publish_inputs.yaml) and
+    # includes the absolute entity_picture URL so Chromium fetches the art at
+    # render time — no file download on the HA side, no SSH to the renderer.
+    url: "http://${RENDERER_HOST}:8575/inputs/sonos"
+    method: post
+    headers:
+      authorization: !secret renderer_input_auth_header
+    content_type: "application/json"
+    payload: "{{ body }}"

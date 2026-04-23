@@ -1,0 +1,52 @@
+category: science-illustration
+side: image
+proposed_by: claude
+proposed_at: 2026-04-16
+notes: |
+  Canonical scientific illustration plates. All PD. Cajal died 1934 → PD 2005;
+  Haeckel died 1919 → PD 1990.
+
+items:
+  - id: cajal-purkinje-cells
+    title: "Purkinje cells of the cerebellum"
+    creator: "Santiago Ramón y Cajal"
+    year: 1899
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: drawing
+    themes: [science-and-measurement, body-and-figure]
+    mood: [contemplative, precise]
+    register: [formal, lyrical]
+
+  - id: cajal-pyramidal-cortex
+    title: "Pyramidal neurons of cerebral cortex"
+    creator: "Santiago Ramón y Cajal"
+    year: 1904
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: drawing
+    themes: [science-and-measurement, body-and-figure]
+    mood: [contemplative, precise]
+    register: [formal]
+
+  - id: haeckel-discomedusae
+    title: "Discomedusae (Kunstformen der Natur, plate 8)"
+    creator: "Ernst Haeckel"
+    year: 1904
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: lithograph
+    themes: [science-and-measurement, sea-and-sky, craft-and-play]
+    mood: [grand, ornate]
+    register: [formal, iconic]
+
+  - id: haeckel-radiolaria
+    title: "Radiolaria (Kunstformen der Natur, plate 1)"
+    creator: "Ernst Haeckel"
+    year: 1904
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: lithograph
+    themes: [science-and-measurement, craft-and-play]
+    mood: [ornate, precise]
+    register: [formal, iconic]

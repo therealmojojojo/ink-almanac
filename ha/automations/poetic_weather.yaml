@@ -1,0 +1,51 @@
+# Hourly poetic-weather-line generation for Night mode.
+# Active window: 21:00 → 07:00 (an hour-ahead of Night mode's start, so the first
+# render after 22:00 already has a fresh line).
+
+- id: inkplate_poetic_weather_hourly
+  alias: "Inkplate: poetic-weather-line hourly"
+  trigger:
+    - platform: time_pattern
+      minutes: "0"
+  condition:
+    - condition: template
+      value_template: >-
+        {% set h = now().hour %}
+        {{ h >= 21 or h < 7 }}
+  variables:
+    condition: "{{ states('sensor.${PLACE_A_SLUG}_condition') }}"
+    temp_c: "{{ states('sensor.${PLACE_A_SLUG}_temperature_c') | int(0) }}"
+    wind_kph: "{{ state_attr('weather.${PLACE_A_SLUG}_primary','wind_speed') | default(0) }}"
+    wind_desc: >-
+      {% if wind_kph | float(0) >= 25 %}windy
+      {% elif wind_kph | float(0) >= 10 %}breeze
+      {% else %}still{% endif %}
+    # Bucket computation — emits one of the keys defined in
+    # ha/config/night_fallback_lines.yaml. Unknown buckets fall through
+    # to `cloudy` in generate_poetic_weather_line.sh.
+    bucket: >-
+      {% set c = condition %}
+      {% set t = temp_c | int(0) %}
+      {%- if c in ['clear-night','sunny','clear'] -%}
+        {% if t <= 5 %}clear_cold
+        {%- elif t <= 18 %}clear_mild
+        {%- else %}clear_warm{% endif %}
+      {%- elif c == 'partlycloudy' -%}partly_cloudy
+      {%- elif c in ['cloudy','overcast'] -%}
+        {% if t <= 5 %}cloudy_cold{% else %}cloudy{% endif %}
+      {%- elif c == 'fog' -%}fog
+      {%- elif c == 'rainy' -%}rain
+      {%- elif c == 'pouring' -%}pouring
+      {%- elif c in ['lightning','lightning-rainy','hail','exceptional'] -%}thunderstorm
+      {%- elif c == 'snowy' -%}snow
+      {%- elif c == 'snowy-rainy' -%}sleet
+      {%- elif c in ['windy','windy-variant'] -%}windy_dry
+      {%- else -%}cloudy
+      {%- endif %}
+  action:
+    - service: shell_command.generate_poetic_weather_line
+      data:
+        summary: "{{ condition }}"
+        temp_c: "{{ temp_c }}"
+        wind: "{{ wind_desc }}"
+        bucket: "{{ bucket | trim }}"

@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "inkplate-corpus"
+version = "0.1.0"
+description = "Inkplate corpus tooling: validate, audit, refetch. Fetch / propose / prune / restore pending."
+requires-python = ">=3.10"
+dependencies = [
+    "pyyaml>=6.0",
+    "Pillow>=10.3",
+    "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+# Required for `corpus harvest --commit` (Claude-vision tagging). The harvest
+# read-side (query, gate, pHash, contact sheet) works without these.
+harvest-commit = [
+    "anthropic>=0.40",
+]
+# Pulled in by later subcommands planned under add-ingestion-automation.
+ingestion = [
+    "httpx>=0.27",
+    "anthropic>=0.40",
+    "pydantic>=2.6",
+    "rich>=13.7",
+]
+
+[project.scripts]
+corpus = "inkplate_corpus_cli:main"
+
+[tool.setuptools]
+py-modules = [
+    "inkplate_corpus_cli",
+    "corpus_validate",
+    "corpus_audit",
+    "corpus_refetch",
+    "corpus_ingest_personal",
+    "corpus_restore",
+    "corpus_review",
+    "corpus_web_search",
+    "corpus_harvest",
+    "corpus_reconcile",
+    "corpus_fetch_work",
+    "corpus_dedup",
+]
+package-dir = {"" = "."}

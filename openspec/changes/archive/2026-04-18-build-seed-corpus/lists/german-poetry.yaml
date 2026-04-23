@@ -1,0 +1,327 @@
+category: german-poetry
+side: text
+proposed_by: claude
+proposed_at: 2026-04-17
+notes: |
+  Canonical German-language poetry from Goethe through the 20c.
+  Tier routing by death-date + 70y:
+    Goethe d.1832, Schiller d.1805, Novalis d.1801, Hölderlin d.1843,
+    Heine d.1856, Eichendorff d.1857, Mörike d.1875, Rilke d.1926,
+    Trakl d.1914 — all PD.
+    Celan d.1970, Benn d.1956, Bachmann d.1973, Brecht d.1956 —
+    personal_library (still in copyright under EU 70y rule as of 2026).
+  Bilingual (de + en) where canonical translations exist — Hamburger
+  for Hölderlin/Celan, Middleton for Goethe/Brecht, Stephen Mitchell
+  or Gary Miranda for Rilke, Michael Hofmann for Trakl/Benn.
+
+items:
+  # Goethe
+  - id: goethe-wanderers-nachtlied-ii
+    title: "Wanderers Nachtlied II (Über allen Gipfeln)"
+    author: "Johann Wolfgang von Goethe"
+    year: 1780
+    rights_tier: public_domain
+    source: wikisource
+    form: lyric
+    language: [de, en]
+    themes: [night-and-lamplight, mountain-and-forest, solitude]
+    mood: [serene, still, wistful]
+    register: [lyric, classical, iconic]
+    notes: "Anchor-eligible as lyric. Nocturne candidate."
+
+  - id: goethe-erlkoenig
+    title: "Erlkönig"
+    author: "Johann Wolfgang von Goethe"
+    year: 1782
+    rights_tier: public_domain
+    source: wikisource
+    form: stanzaic
+    language: [de, en]
+    themes: [night-and-lamplight, weather-facing, childhood-and-play, mortality]
+    mood: [urgent, haunting, kinetic]
+    register: [classical, oracular, iconic]
+
+  - id: goethe-heidenroeslein
+    title: "Heidenröslein"
+    author: "Johann Wolfgang von Goethe"
+    year: 1789
+    rights_tier: public_domain
+    source: wikisource
+    form: stanzaic
+    language: [de, en]
+    themes: [garden-and-grove, tender-companionship, mortality]
+    mood: [playful, wistful]
+    register: [lyric, classical]
+
+  - id: goethe-prometheus
+    title: "Prometheus (opening)"
+    author: "Johann Wolfgang von Goethe"
+    year: 1774
+    rights_tier: public_domain
+    source: wikisource
+    form: fragment
+    language: [de, en]
+    themes: [craft-and-play, weather-facing]
+    mood: [grand, urgent]
+    register: [oracular, classical]
+
+  # Schiller
+  - id: schiller-an-die-freude-opening
+    title: "An die Freude (opening)"
+    author: "Friedrich Schiller"
+    year: 1785
+    rights_tier: public_domain
+    source: wikisource
+    form: fragment
+    language: [de, en]
+    themes: [ritual-and-gathering, tender-companionship]
+    mood: [ecstatic, grand]
+    register: [classical, oracular, iconic]
+
+  - id: schiller-der-handschuh
+    title: "Der Handschuh"
+    author: "Friedrich Schiller"
+    year: 1797
+    rights_tier: public_domain
+    source: wikisource
+    form: stanzaic
+    language: [de, en]
+    themes: [ritual-and-gathering, body-and-figure, animals]
+    mood: [suspenseful, sharp, ironic]
+    register: [classical, iconic]
+
+  # Hölderlin
+  - id: hoelderlin-haelfte-des-lebens
+    title: "Hälfte des Lebens"
+    author: "Friedrich Hölderlin"
+    year: 1805
+    rights_tier: public_domain
+    source: wikisource
+    form: stanzaic
+    language: [de, en]
+    themes: [seasons-and-time, decay-and-memory, water-and-reflection]
+    mood: [grave, haunting]
+    register: [lyric, oracular, iconic]
+
+  - id: hoelderlin-brot-und-wein-opening
+    title: "Brot und Wein (opening strophe)"
+    author: "Friedrich Hölderlin"
+    year: 1801
+    rights_tier: public_domain
+    source: wikisource
+    form: fragment
+    language: [de, en]
+    themes: [night-and-lamplight, urban, ritual-and-gathering]
+    mood: [serene, contemplative]
+    register: [lyric, oracular]
+    notes: "Nocturne candidate — opening is one of the great night-poems."
+
+  # Novalis
+  - id: novalis-hymnen-an-die-nacht-i-opening
+    title: "Hymnen an die Nacht I (opening)"
+    author: "Novalis"
+    year: 1800
+    rights_tier: public_domain
+    source: wikisource
+    form: fragment
+    language: [de, en]
+    themes: [night-and-lamplight, mortality, attention-and-listening]
+    mood: [mysterious, ecstatic, grave]
+    register: [ornate, oracular]
+    notes: "Nocturne candidate."
+
+  # Eichendorff
+  - id: eichendorff-mondnacht
+    title: "Mondnacht"
+    author: "Joseph von Eichendorff"
+    year: 1837
+    rights_tier: public_domain
+    source: wikisource
+    form: stanzaic
+    language: [de, en]
+    themes: [night-and-lamplight, rural-pastoral, solitude]
+    mood: [serene, luminous, wistful]
+    register: [lyric, classical, iconic]
+    notes: "Nocturne candidate — 'und meine Seele spannte / weit ihre Flügel aus.'"
+
+  - id: eichendorff-sehnsucht
+    title: "Sehnsucht"
+    author: "Joseph von Eichendorff"
+    year: 1834
+    rights_tier: public_domain
+    source: wikisource
+    form: stanzaic
+    language: [de, en]
+    themes: [night-and-lamplight, journey, solitude]
+    mood: [wistful, atmospheric]
+    register: [lyric, classical]
+
+  # Heine
+  - id: heine-ich-weiss-nicht-was-soll-es-bedeuten
+    title: "Die Lore-Ley (Ich weiß nicht, was soll es bedeuten)"
+    author: "Heinrich Heine"
+    year: 1824
+    rights_tier: public_domain
+    source: wikisource
+    form: stanzaic
+    language: [de, en]
+    themes: [water-and-reflection, mortality, rural-pastoral]
+    mood: [melancholic, ironic]
+    register: [lyric, classical, iconic]
+
+  - id: heine-ein-fichtenbaum-steht-einsam
+    title: "Ein Fichtenbaum steht einsam"
+    author: "Heinrich Heine"
+    year: 1822
+    rights_tier: public_domain
+    source: wikisource
+    form: lyric
+    language: [de, en]
+    themes: [solitude, winter-and-ice, journey]
+    mood: [wistful, dim]
+    register: [lyric, classical]
+
+  # Mörike
+  - id: moerike-er-ists
+    title: "Er ist's"
+    author: "Eduard Mörike"
+    year: 1829
+    rights_tier: public_domain
+    source: wikisource
+    form: lyric
+    language: [de, en]
+    themes: [seasons-and-time, morning, attention-and-listening]
+    mood: [luminous, playful]
+    register: [lyric, classical]
+
+  # Trakl
+  - id: trakl-grodek
+    title: "Grodek"
+    author: "Georg Trakl"
+    year: 1914
+    rights_tier: public_domain
+    source: wikisource
+    form: stanzaic
+    language: [de, en]
+    themes: [mortality, weather-facing, decay-and-memory]
+    mood: [grim, haunting]
+    register: [expressive, solemn]
+
+  - id: trakl-verfall
+    title: "Verfall"
+    author: "Georg Trakl"
+    year: 1913
+    rights_tier: public_domain
+    source: wikisource
+    form: sonnet
+    language: [de, en]
+    themes: [seasons-and-time, decay-and-memory, night-and-lamplight]
+    mood: [melancholic, dim]
+    register: [lyric, expressive]
+
+  # Rilke (additional beyond the two already in modernist list plan)
+  - id: rilke-herbsttag
+    title: "Herbsttag"
+    author: "Rainer Maria Rilke"
+    year: 1902
+    rights_tier: public_domain
+    source: wikisource
+    form: stanzaic
+    language: [de, en]
+    themes: [seasons-and-time, solitude, weather-facing]
+    mood: [contemplative, grave, luminous]
+    register: [lyric, classical, iconic]
+
+  - id: rilke-panther
+    title: "Der Panther"
+    author: "Rainer Maria Rilke"
+    year: 1902
+    rights_tier: public_domain
+    source: wikisource
+    form: stanzaic
+    language: [de, en]
+    themes: [animals, solitude, body-and-figure]
+    mood: [kinetic, grave]
+    register: [lyric, iconic]
+
+  # Benn (personal_library — d.1956)
+  - id: benn-nur-zwei-dinge
+    title: "Nur zwei Dinge"
+    author: "Gottfried Benn"
+    year: 1953
+    rights_tier: personal_library
+    source: web
+    citation: "Benn, *Sämtliche Werke*, Klett-Cotta, 1986"
+    form: stanzaic
+    language: [de, en]
+    themes: [mortality, solitude]
+    mood: [austere, grave]
+    register: [aphoristic, solemn]
+
+  # Celan (personal_library — d.1970)
+  - id: celan-todesfuge-opening
+    title: "Todesfuge (opening)"
+    author: "Paul Celan"
+    year: 1948
+    rights_tier: personal_library
+    source: web
+    citation: "Celan, *Gedichte*, Suhrkamp, 1975 / trans. Michael Hamburger, *Selected Poems*, Persea, 2002"
+    form: fragment
+    language: [de, en]
+    themes: [mortality, ritual-and-gathering, decay-and-memory]
+    mood: [grave, haunting, urgent]
+    register: [oracular, solemn, iconic]
+
+  - id: celan-corona
+    title: "Corona"
+    author: "Paul Celan"
+    year: 1948
+    rights_tier: personal_library
+    source: web
+    citation: "Celan, *Mohn und Gedächtnis*, DVA, 1952"
+    form: stanzaic
+    language: [de, en]
+    themes: [seasons-and-time, tender-companionship, mortality]
+    mood: [wistful, haunting]
+    register: [lyric, oracular]
+
+  # Brecht (personal_library — d.1956)
+  - id: brecht-fragen-eines-lesenden-arbeiters
+    title: "Fragen eines lesenden Arbeiters"
+    author: "Bertolt Brecht"
+    year: 1935
+    rights_tier: personal_library
+    source: web
+    citation: "Brecht, *Gedichte*, Suhrkamp, 1976 / trans. Michael Hamburger"
+    form: stanzaic
+    language: [de, en]
+    themes: [work-making, decay-and-memory, reading-and-study]
+    mood: [wry, sharp]
+    register: [wry, reportorial, iconic]
+
+  - id: brecht-an-die-nachgeborenen-opening
+    title: "An die Nachgeborenen (opening)"
+    author: "Bertolt Brecht"
+    year: 1939
+    rights_tier: personal_library
+    source: web
+    citation: "Brecht, *Gedichte*, Suhrkamp, 1976"
+    form: fragment
+    language: [de, en]
+    themes: [decay-and-memory, mortality, ritual-and-gathering]
+    mood: [grave, unflinching]
+    register: [reportorial, solemn]
+
+  # Bachmann (personal_library — d.1973)
+  - id: bachmann-die-gestundete-zeit
+    title: "Die gestundete Zeit"
+    author: "Ingeborg Bachmann"
+    year: 1953
+    rights_tier: personal_library
+    source: web
+    citation: "Bachmann, *Werke*, Piper, 1978"
+    form: stanzaic
+    language: [de, en]
+    themes: [seasons-and-time, mortality, weather-facing]
+    mood: [grave, urgent]
+    register: [lyric, oracular]

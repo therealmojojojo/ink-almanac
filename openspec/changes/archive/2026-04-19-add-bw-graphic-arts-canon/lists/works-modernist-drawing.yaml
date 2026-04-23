@@ -1,0 +1,178 @@
+recipe: top-bw-graphic-arts-works
+lineage: modernist-drawing
+generated: 2026-04-19
+defaults: {panel_fidelity: native, form: drawing}
+
+creators:
+
+  georges-seurat:
+    canon_weight: core
+    in_corpus: 0
+    defaults: {rights_tier: public_domain}
+    works:
+    - id: seurat-seated-boy-straw-hat
+      title: "Seated Boy with Straw Hat"
+      year: 1882
+      themes: [portrait-and-face, childhood-and-play, light-shadow]
+      mood: [quiet, contemplative]
+      register: [iconic, classical]
+      source_hint: yale_university_art_gallery
+      status: pending
+    - id: seurat-at-the-concert-europeen
+      title: "At the Concert Européen"
+      year: 1887
+      themes: [ritual-and-gathering, urban, paris-amsterdam-vintage, light-shadow]
+      mood: [atmospheric, still]
+      register: [iconic, atmospheric]
+      source_hint: moma
+      status: pending
+    - id: seurat-cafe-concert
+      title: "Café-Concert"
+      year: 1887
+      themes: [urban, paris-amsterdam-vintage, night-and-lamplight]
+      mood: [atmospheric, quiet]
+      register: [iconic, atmospheric]
+      source_hint: harvard_art_museums
+      status: pending
+    - id: seurat-le-noeud-noir
+      title: "Le Noeud Noir (The Black Bow)"
+      year: 1882
+      themes: [portrait-and-face, body-and-figure]
+      mood: [quiet, enigmatic]
+      register: [iconic, lyric]
+      source_hint: musee_dorsay
+      status: pending
+    - id: seurat-echo-grande-jatte-study
+      title: "The Echo (study for La Grande Jatte)"
+      year: 1883
+      themes: [body-and-figure, water-and-reflection]
+      mood: [quiet, contemplative]
+      register: [iconic, classical]
+      source_hint: yale_university_art_gallery
+      status: pending
+    - id: seurat-gleaner
+      title: "The Gleaner"
+      year: 1882
+      themes: [rural-pastoral, work-making]
+      mood: [stoic, atmospheric]
+      register: [iconic, lyric]
+      source_hint: met_open_access
+      status: pending
+
+  egon-schiele:
+    canon_weight: canonical
+    in_corpus: 2
+    defaults: {rights_tier: public_domain}
+    works:
+    - {id: schiele-seated-woman-bent-knee, in_corpus: true}
+    - {id: schiele-portrait-of-wally,      in_corpus: true}
+    - id: schiele-self-portrait-raised-arms
+      title: "Self-Portrait with Raised Arms"
+      year: 1914
+      themes: [portrait-and-face, body-and-figure, reflection-and-mirror]
+      mood: [raw, sharp]
+      register: [iconic, expressive]
+      source_hint: albertina
+      status: pending
+    - id: schiele-reclining-female-nude
+      title: "Reclining Female Nude"
+      year: 1915
+      themes: [body-and-figure]
+      mood: [intimate, raw]
+      register: [iconic, expressive]
+      source_hint: albertina
+      status: pending
+    - id: schiele-kneeling-girl-resting-elbows
+      title: "Kneeling Girl, Resting on Both Elbows"
+      year: 1917
+      themes: [body-and-figure]
+      mood: [intimate, poised]
+      register: [iconic, expressive]
+      source_hint: leopold_museum
+      status: pending
+    - id: schiele-embrace
+      title: "Embrace (drawing variant)"
+      year: 1917
+      themes: [tender-companionship, body-and-figure]
+      mood: [intimate, tender]
+      register: [iconic, expressive]
+      source_hint: albertina
+      status: pending
+
+  pablo-picasso:
+    canon_weight: core
+    in_corpus: 0
+    defaults: {rights_tier: personal_library}
+    works:
+    - id: picasso-frugal-repast
+      title: "The Frugal Repast (Le Repas frugal)"
+      year: 1904
+      form: etching
+      themes: [tender-companionship, food-and-gathering, body-and-figure]
+      mood: [melancholic, tender]
+      register: [iconic, expressive]
+      source_hint: moma
+      status: pending
+    - id: picasso-minotauromachy
+      title: "Minotauromachy"
+      year: 1935
+      form: etching
+      themes: [mortality, mysterious, motion-and-gesture]
+      mood: [haunting, dynamic]
+      register: [iconic, baroque]
+      source_hint: moma
+      status: pending
+    - id: picasso-vollard-minotaur-caresses-sleeping-woman
+      title: "Minotaur Caresses Sleeping Woman (Vollard Suite 93)"
+      year: 1933
+      form: etching
+      themes: [tender-companionship, body-and-figure, mysterious]
+      mood: [intimate, mysterious]
+      register: [iconic, baroque]
+      source_hint: musee_picasso_paris
+      status: pending
+    - id: picasso-vollard-sculptors-studio
+      title: "Sculptor's Studio (Vollard Suite)"
+      year: 1933
+      form: etching
+      themes: [craft-and-play, body-and-figure, interior-and-domestic]
+      mood: [contemplative, quiet]
+      register: [iconic, classical]
+      source_hint: moma
+      status: pending
+    - id: picasso-bull-lithograph-state-xi
+      title: "The Bull (Le Taureau, lithograph state XI)"
+      year: 1946
+      form: lithograph
+      themes: [animals]
+      mood: [austere, sharp]
+      register: [iconic, classical]
+      source_hint: moma
+      status: pending
+    - id: picasso-dove-of-peace
+      title: "Dove of Peace (La Colombe)"
+      year: 1949
+      form: lithograph
+      themes: [animals]
+      mood: [quiet, poised]
+      register: [iconic, classical]
+      source_hint: moma
+      status: pending
+    - id: picasso-three-nudes
+      title: "Three Nudes (Vollard Suite 2)"
+      year: 1930
+      form: etching
+      themes: [body-and-figure]
+      mood: [poised, classical]
+      register: [iconic, classical]
+      source_hint: cleveland_museum_of_art
+      status: pending
+    - id: picasso-guernica-weeping-woman-study
+      title: "Weeping Woman (Guernica preparatory drawing)"
+      year: 1937
+      form: drawing
+      themes: [portrait-and-face, mortality]
+      mood: [raw, urgent]
+      register: [iconic, expressive]
+      source_hint: museo_reina_sofia
+      status: pending

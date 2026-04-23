@@ -1,0 +1,76 @@
+# Scheduled-mode transitions: 06:30 Summary, 10:00 Gallery, 22:00 Night.
+#
+# One automation with a trigger id per slot; a single `choose` maps the id
+# to the target face. The scheduled_face helper is always updated (so Now-Playing
+# can return to the right face when music stops).
+#
+# Device-wake publish rules at a schedule boundary:
+#   * active_override == schedule                → publish new active_mode + wake
+#   * active_override == summary_gallery_toggle  → toggle's lifetime ends here
+#                                                   (per spec: "persists until next
+#                                                   scheduled transition"); clear
+#                                                   the override, publish new
+#                                                   active_mode + wake
+#   * active_override == weather_peek            → leave alone; peek has its own
+#                                                   5-min expiry automation
+#   * active_override == now_playing             → leave alone; now_playing
+#                                                   supersedes the schedule until
+#                                                   linger expires and restores
+#                                                   prior (which will then use
+#                                                   the updated scheduled_face)
+
+- id: inkplate_schedule_transitions
+  alias: "Inkplate: scheduled-mode transitions"
+  mode: queued
+  trigger:
+    - platform: time
+      at: "06:30:00"
+      id: summary
+    - platform: time
+      at: "10:00:00"
+      id: gallery
+    - platform: time
+      at: "22:00:00"
+      id: night
+  variables:
+    face: "{{ trigger.id }}"
+  action:
+    - service: input_text.set_value
+      target: { entity_id: input_text.inkplate_scheduled_face }
+      data: { value: "{{ face }}" }
+    - choose:
+        # Normal path — schedule is the active override; advance the device.
+        - conditions:
+            - condition: state
+              entity_id: input_text.inkplate_active_override
+              state: schedule
+          sequence:
+            - service: mqtt.publish
+              data:
+                topic: inkplate/command/active_mode
+                payload: "{{ face }}"
+                retain: true
+            - service: mqtt.publish
+              data:
+                topic: inkplate/command/wake
+                payload: ""
+        # Double-tap toggle's lifetime ends at a scheduled transition. Clear
+        # the override and advance the device to the new scheduled face.
+        - conditions:
+            - condition: state
+              entity_id: input_text.inkplate_active_override
+              state: summary_gallery_toggle
+          sequence:
+            - service: input_text.set_value
+              target: { entity_id: input_text.inkplate_active_override }
+              data: { value: schedule }
+            - service: mqtt.publish
+              data:
+                topic: inkplate/command/active_mode
+                payload: "{{ face }}"
+                retain: true
+            - service: mqtt.publish
+              data:
+                topic: inkplate/command/wake
+                payload: ""
+      # weather_peek and now_playing: no action; let their own expiry paths run.

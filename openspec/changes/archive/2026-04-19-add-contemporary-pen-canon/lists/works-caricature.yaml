@@ -1,0 +1,174 @@
+recipe: top-contemporary-pen-works
+lineage: caricature
+generated: 2026-04-19
+defaults: {panel_fidelity: native, rights_tier: personal_library, form: drawing, medium: pen-and-ink on paper, source: web}
+
+creators:
+
+  al-hirschfeld:
+    canon_weight: core
+    in_corpus: 0
+    works:
+    - id: hirschfeld-gershwin
+      title: "George Gershwin at the piano"
+      year: 1935
+      themes: [portrait-and-face, craft-and-play, interior-and-domestic]
+      mood: [poised, atmospheric]
+      register: [iconic, lyric]
+    - id: hirschfeld-bernstein
+      title: "Leonard Bernstein conducting"
+      year: 1960
+      themes: [portrait-and-face, ritual-and-gathering, motion-and-gesture]
+      mood: [dynamic, poised]
+      register: [iconic, expressive]
+    - id: hirschfeld-nureyev
+      title: "Rudolf Nureyev in flight"
+      year: 1963
+      themes: [portrait-and-face, motion-and-gesture, body-and-figure]
+      mood: [kinetic, poised]
+      register: [iconic, expressive]
+    - id: hirschfeld-the-beatles
+      title: "The Beatles group portrait"
+      year: 1964
+      themes: [portrait-and-face, ritual-and-gathering]
+      mood: [playful, poised]
+      register: [iconic, wry]
+    - id: hirschfeld-chaplin
+      title: "Charlie Chaplin as the Tramp"
+      year: 1936
+      themes: [portrait-and-face, body-and-figure]
+      mood: [wry, tender]
+      register: [iconic, intimate]
+
+  ronald-searle:
+    canon_weight: canonical
+    in_corpus: 0
+    works:
+    - id: searle-st-trinians-classroom
+      title: "St Trinian's — classroom chaos"
+      year: 1949
+      themes: [childhood-and-play, ritual-and-gathering, interior-and-domestic]
+      mood: [absurd, playful]
+      register: [iconic, wry]
+    - id: searle-molesworth-as-any-fule-kno
+      title: "Molesworth — 'as any fule kno' portrait"
+      year: 1953
+      themes: [childhood-and-play, portrait-and-face]
+      mood: [wry, deadpan]
+      register: [iconic, wry]
+    - id: searle-cats
+      title: "A Feast of Cats — drawing"
+      year: 1975
+      themes: [animals, interior-and-domestic]
+      mood: [wry, playful]
+      register: [iconic, wry]
+    - id: searle-st-trinians-hockey
+      title: "St Trinian's — hockey massacre"
+      year: 1953
+      themes: [ritual-and-gathering, motion-and-gesture]
+      mood: [absurd, kinetic]
+      register: [iconic, wry]
+
+  sempe:
+    canon_weight: canonical
+    in_corpus: 0
+    works:
+    - id: sempe-petit-nicolas-football
+      title: "Petit Nicolas — playground football"
+      year: 1959
+      themes: [childhood-and-play, ritual-and-gathering, motion-and-gesture]
+      mood: [playful, wry]
+      register: [iconic, tender]
+    - id: sempe-new-yorker-cyclists
+      title: "New Yorker — cyclists in Paris"
+      year: 1985
+      themes: [urban, motion-and-gesture, paris-amsterdam-vintage]
+      mood: [wry, atmospheric]
+      register: [iconic, tender]
+    - id: sempe-concert-audience
+      title: "Audience at a concert"
+      year: 1970
+      themes: [ritual-and-gathering, attention-and-listening]
+      mood: [wry, quiet]
+      register: [iconic, tender]
+    - id: sempe-new-yorker-cover-umbrella
+      title: "New Yorker cover — umbrella rain"
+      year: 1982
+      themes: [urban, weather-facing]
+      mood: [tender, atmospheric]
+      register: [iconic, tender]
+
+  david-shrigley:
+    canon_weight: canonical
+    in_corpus: 0
+    works:
+    - id: shrigley-i-am-not-interested
+      title: "I Am Not Interested"
+      year: 2010
+      themes: [portrait-and-face]
+      mood: [deadpan, wry]
+      register: [iconic, deadpan-absurd]
+    - id: shrigley-cat-help
+      title: "Cat asking for help"
+      year: 2012
+      themes: [animals, everyday-life]
+      mood: [deadpan, absurd]
+      register: [iconic, deadpan-absurd]
+    - id: shrigley-dead-thing
+      title: "Dead Thing drawing"
+      year: 2008
+      themes: [mortality, animals]
+      mood: [deadpan, grim]
+      register: [iconic, deadpan-absurd]
+
+  ralph-steadman:
+    canon_weight: canonical
+    in_corpus: 0
+    works:
+    - id: steadman-fear-and-loathing-bat-country
+      title: "Fear and Loathing in Las Vegas — bat country"
+      year: 1971
+      themes: [journey, mysterious]
+      mood: [absurd, urgent]
+      register: [iconic, expressive]
+    - id: steadman-fear-and-loathing-duke
+      title: "Fear and Loathing — Raoul Duke"
+      year: 1971
+      themes: [portrait-and-face, journey]
+      mood: [absurd, kinetic]
+      register: [iconic, expressive]
+    - id: steadman-nixon-caricature
+      title: "Nixon caricature"
+      year: 1974
+      themes: [portrait-and-face]
+      mood: [ironic, grim]
+      register: [iconic, expressive]
+    - id: steadman-gonzo-fist
+      title: "Gonzo fist symbol"
+      year: 1971
+      themes: [craft-and-play]
+      mood: [sharp, urgent]
+      register: [iconic, expressive]
+
+  art-spiegelman:
+    canon_weight: canonical
+    in_corpus: 0
+    works:
+    - id: spiegelman-maus-cover
+      title: "Maus — cover, mice under swastika"
+      year: 1986
+      themes: [mortality, portrait-and-face]
+      mood: [grim, haunting]
+      register: [iconic, expressive]
+    - id: spiegelman-maus-father-bike
+      title: "Maus — Vladek on the bicycle"
+      year: 1986
+      themes: [portrait-and-face, tender-companionship, decay-and-memory]
+      mood: [wistful, intimate]
+      register: [iconic, intimate]
+    - id: spiegelman-in-the-shadow-of-no-towers
+      title: "In the Shadow of No Towers — 9/11 panel"
+      year: 2004
+      themes: [urban, mortality, architecture-and-structure]
+      mood: [grim, urgent]
+      register: [iconic, expressive]

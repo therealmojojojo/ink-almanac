@@ -1,0 +1,105 @@
+<!--
+  Reusable SVG primitives. Inlined into every mode's HTML via htmlShell so
+  <use href="#id"> resolves within the same document (external <use> doesn't
+  work reliably across Chromium + screenshot in a no-network context).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- Weather condition icons -->
+    <symbol id="icon-sun" viewBox="0 0 48 48">
+      <circle cx="24" cy="24" r="9" fill="currentColor"/>
+      <g stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="24" y1="3"  x2="24" y2="10"/>
+        <line x1="24" y1="38" x2="24" y2="45"/>
+        <line x1="3"  y1="24" x2="10" y2="24"/>
+        <line x1="38" y1="24" x2="45" y2="24"/>
+        <line x1="9"  y1="9"  x2="14" y2="14"/>
+        <line x1="34" y1="34" x2="39" y2="39"/>
+        <line x1="39" y1="9"  x2="34" y2="14"/>
+        <line x1="14" y1="34" x2="9"  y2="39"/>
+      </g>
+    </symbol>
+    <symbol id="icon-cloud" viewBox="0 0 48 48">
+      <path d="M13 34h22a6 6 0 0 0 1-12 9 9 0 0 0-17-3 7 7 0 0 0-6 15z"
+            fill="currentColor"/>
+    </symbol>
+    <symbol id="icon-rain" viewBox="0 0 48 48">
+      <path d="M13 26h22a6 6 0 0 0 1-12 9 9 0 0 0-17-3 7 7 0 0 0-6 15z"
+            fill="currentColor"/>
+      <g stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="15" y1="32" x2="13" y2="42"/>
+        <line x1="24" y1="32" x2="22" y2="42"/>
+        <line x1="33" y1="32" x2="31" y2="42"/>
+      </g>
+    </symbol>
+    <symbol id="icon-snow" viewBox="0 0 48 48">
+      <path d="M13 26h22a6 6 0 0 0 1-12 9 9 0 0 0-17-3 7 7 0 0 0-6 15z"
+            fill="currentColor"/>
+      <g fill="currentColor">
+        <circle cx="15" cy="37" r="2"/>
+        <circle cx="24" cy="40" r="2"/>
+        <circle cx="33" cy="37" r="2"/>
+      </g>
+    </symbol>
+    <symbol id="icon-partly-cloudy" viewBox="0 0 48 48">
+      <circle cx="17" cy="17" r="7" fill="currentColor"/>
+      <path d="M15 32h22a6 6 0 0 0 1-12 9 9 0 0 0-17-3 7 7 0 0 0-6 15z"
+            fill="currentColor" opacity="0.55"/>
+    </symbol>
+    <symbol id="icon-overcast" viewBox="0 0 48 48">
+      <g stroke="currentColor" stroke-width="3" stroke-linecap="round">
+        <line x1="6"  y1="16" x2="42" y2="16"/>
+        <line x1="6"  y1="24" x2="42" y2="24"/>
+        <line x1="6"  y1="32" x2="42" y2="32"/>
+      </g>
+    </symbol>
+
+    <!-- Sunrise / sunset: half-sun over a horizon line, with an up/down arrow. -->
+    <symbol id="icon-sunrise" viewBox="0 0 48 48">
+      <path d="M12 30 A12 12 0 0 1 36 30" fill="none" stroke="currentColor" stroke-width="2"/>
+      <line x1="4"  y1="36" x2="44" y2="36" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <g stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none">
+        <path d="M24 14 L24 6 M20 10 L24 6 L28 10"/>
+      </g>
+    </symbol>
+    <symbol id="icon-sunset" viewBox="0 0 48 48">
+      <path d="M12 30 A12 12 0 0 1 36 30" fill="none" stroke="currentColor" stroke-width="2"/>
+      <line x1="4"  y1="36" x2="44" y2="36" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <g stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none">
+        <path d="M24 6 L24 14 M20 10 L24 14 L28 10"/>
+      </g>
+    </symbol>
+
+    <!-- Moon phases — base circle + mask. Uses clip shapes with currentColor fill. -->
+    <symbol id="moon-new" viewBox="0 0 48 48">
+      <circle cx="24" cy="24" r="16" fill="none" stroke="currentColor" stroke-width="2"/>
+    </symbol>
+    <symbol id="moon-full" viewBox="0 0 48 48">
+      <circle cx="24" cy="24" r="16" fill="currentColor"/>
+    </symbol>
+    <symbol id="moon-first-quarter" viewBox="0 0 48 48">
+      <circle cx="24" cy="24" r="16" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M24 8 A16 16 0 0 1 24 40 Z" fill="currentColor"/>
+    </symbol>
+    <symbol id="moon-last-quarter" viewBox="0 0 48 48">
+      <circle cx="24" cy="24" r="16" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M24 8 A16 16 0 0 0 24 40 Z" fill="currentColor"/>
+    </symbol>
+    <symbol id="moon-waxing-crescent" viewBox="0 0 48 48">
+      <circle cx="24" cy="24" r="16" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M28 8 A16 16 0 0 1 28 40 A10 16 0 0 0 28 8 Z" fill="currentColor"/>
+    </symbol>
+    <symbol id="moon-waxing-gibbous" viewBox="0 0 48 48">
+      <circle cx="24" cy="24" r="16" fill="currentColor"/>
+      <path d="M20 8 A16 16 0 0 0 20 40 A8 16 0 0 1 20 8 Z" fill="var(--paper)"/>
+    </symbol>
+    <symbol id="moon-waning-gibbous" viewBox="0 0 48 48">
+      <circle cx="24" cy="24" r="16" fill="currentColor"/>
+      <path d="M28 8 A16 16 0 0 1 28 40 A8 16 0 0 0 28 8 Z" fill="var(--paper)"/>
+    </symbol>
+    <symbol id="moon-waning-crescent" viewBox="0 0 48 48">
+      <circle cx="24" cy="24" r="16" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M20 8 A16 16 0 0 0 20 40 A10 16 0 0 1 20 8 Z" fill="currentColor"/>
+    </symbol>
+  </defs>
+</svg>

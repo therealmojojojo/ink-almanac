@@ -1,0 +1,95 @@
+recipe: top-bw-graphic-arts
+generated: 2026-04-19
+note: |
+  Stage-1 shortlist for native-black-and-white graphic art — the non-photograph
+  spine of the gallery pool. Each item is a creator; stage-2 fans out to one
+  works list per creator (5–10 works each).
+
+  "Native B&W" means the work was authored in a monochrome medium — etching,
+  engraving, wood engraving, lithograph (B&W), drypoint, aquatint, pen-and-ink
+  drawing, graphite/charcoal/conté drawing, ink wash (sumi-e). Paintings whose
+  colour has been desaturated to greyscale are explicitly excluded; they do
+  not render faithfully on a 3-bit panel and produced the quality failure that
+  motivated this list.
+
+  `in_corpus` counts are items currently on disk per creator BEFORE stage-2
+  fetch. Rights tier is `public_domain` via museum API wherever an archival
+  scan exists; `personal_library` (web) only for 20th/21st-c creators whose
+  works are behind copyright and not available via PD museum APIs.
+
+  Canon weight: core (must-include), canonical (strongly canonical, minor
+  taste variance), strong (solid inclusion with some taste dependence).
+
+items:
+
+  # ── Old Master printmakers (pre-1800) ─────────────────────────────
+  - { id: albrecht-durer,           name: "Albrecht Dürer",              years: [1471, 1528], lineage: old-master-print,       rights_tier: public_domain,    source: rijksmuseum,           in_corpus: 8, canon_weight: core,      note: "Engraving + woodcut + drawing. Melencolia I; Knight, Death & Devil; St Jerome; Four Horsemen; Young Hare; Rhinoceros." }
+  - { id: rembrandt-van-rijn,       name: "Rembrandt van Rijn",          years: [1606, 1669], lineage: old-master-print,       rights_tier: public_domain,    source: rijksmuseum,           in_corpus: 1, canon_weight: core,      note: "Etching + drypoint. Hundred Guilder Print; Three Crosses; The Three Trees; Christ Preaching; Self-Portrait with Saskia; Jan Six." }
+  - { id: jacques-callot,           name: "Jacques Callot",              years: [1592, 1635], lineage: old-master-print,       rights_tier: public_domain,    source: bnf_gallica,           in_corpus: 2, canon_weight: canonical, note: "Etching. Misères de la Guerre; Capricci; Balli di Sfessania; Fair at Impruneta." }
+  - { id: giovanni-battista-piranesi, name: "Giovanni Battista Piranesi", years: [1720, 1778], lineage: old-master-print,       rights_tier: public_domain,    source: nga_washington,        in_corpus: 2, canon_weight: core,      note: "Etching. Carceri d'Invenzione (I–XVI); Vedute di Roma; Antichità Romane." }
+  - { id: francisco-goya,           name: "Francisco Goya",              years: [1746, 1828], lineage: old-master-print,       rights_tier: public_domain,    source: museo_del_prado,       in_corpus: 5, canon_weight: core,      note: "Etching + aquatint. Los Caprichos (80); Desastres (82); Tauromaquia (33); Disparates (18); El Gigante." }
+
+  # ── 19th-century print masters ────────────────────────────────────
+  - { id: william-blake,            name: "William Blake",               years: [1757, 1827], lineage: 19c-print,              rights_tier: public_domain,    source: william_blake_archive, in_corpus: 0, canon_weight: core,      note: "Relief etching + engraving. Ancient of Days; Newton; Nebuchadnezzar; Job engravings; Dante engravings." }
+  - { id: honore-daumier,           name: "Honoré Daumier",              years: [1808, 1879], lineage: 19c-print,              rights_tier: public_domain,    source: loc_ppoc,              in_corpus: 3, canon_weight: core,      note: "Lithograph (~4000 plates). Rue Transnonain; Gargantua; Legislative Belly; Les Gens de Justice; Ratapoil." }
+  - { id: gustave-dore,             name: "Gustave Doré",                years: [1832, 1883], lineage: 19c-print,              rights_tier: public_domain,    source: archive_org,           in_corpus: 0, canon_weight: canonical, note: "Wood engraving. Inferno; Don Quixote; London: A Pilgrimage; The Raven; Paradise Lost; Bible." }
+  - { id: charles-meryon,           name: "Charles Meryon",              years: [1821, 1868], lineage: 19c-print,              rights_tier: public_domain,    source: nga_washington,        in_corpus: 0, canon_weight: canonical, note: "Etching. Eaux-Fortes sur Paris (Le Stryge; Abside de Notre-Dame; La Morgue; Le Pont-Neuf)." }
+  - { id: odilon-redon,             name: "Odilon Redon",                years: [1840, 1916], lineage: 19c-print,              rights_tier: public_domain,    source: artic,                 in_corpus: 5, canon_weight: core,      note: "Lithograph noirs + charcoal. Les Origines; À Edgar Poe (Eye Balloon); Les Fleurs du Mal (Cyclops); Dans le Rêve." }
+  - { id: james-mcneill-whistler,   name: "James McNeill Whistler",      years: [1834, 1903], lineage: 19c-print,              rights_tier: public_domain,    source: nga_washington,        in_corpus: 1, canon_weight: canonical, note: "Etching + lithograph. Thames Set; Venice Set; Limehouse lithograph; Nocturne: The River at Battersea." }
+
+  # ── Fin-de-siècle / Symbolist ─────────────────────────────────────
+  - { id: aubrey-beardsley,         name: "Aubrey Beardsley",            years: [1872, 1898], lineage: fin-de-siecle,          rights_tier: public_domain,    source: va_museum,             in_corpus: 3, canon_weight: core,      note: "Pen & ink drawing. Salomé portfolio (Peacock Skirt; Climax; Black Cape); Le Morte d'Arthur; Yellow Book; Lysistrata." }
+  - { id: henri-de-toulouse-lautrec, name: "Henri de Toulouse-Lautrec",  years: [1864, 1901], lineage: fin-de-siecle,          rights_tier: public_domain,    source: moma,                  in_corpus: 2, canon_weight: core,      note: "Lithograph + poster. Moulin Rouge: La Goulue; Jane Avril; Divan Japonais; Yvette Guilbert; Elles portfolio." }
+  - { id: edvard-munch,             name: "Edvard Munch",                years: [1863, 1944], lineage: fin-de-siecle,          rights_tier: personal_library, source: munch_museum,          in_corpus: 0, canon_weight: core,      note: "Woodcut + lithograph. The Scream (lith); Madonna; Melancholy (woodcut); The Kiss (woodcut); Vampire; Anxiety." }
+
+  # ── German Expressionist / early 20c ──────────────────────────────
+  - { id: kathe-kollwitz,           name: "Käthe Kollwitz",              years: [1867, 1945], lineage: german-expressionist,   rights_tier: personal_library, source: kollwitz_museum,       in_corpus: 0, canon_weight: core,      note: "Etching + lithograph + woodcut. Weavers' Revolt (6); Peasants' War (7); War woodcut cycle (7); Death lithograph series (8)." }
+  - { id: otto-dix,                 name: "Otto Dix",                    years: [1891, 1969], lineage: german-expressionist,   rights_tier: personal_library, source: moma,                  in_corpus: 0, canon_weight: canonical, note: "Etching + aquatint. Der Krieg cycle (50 plates); portrait drawings; lithograph self-portraits." }
+  - { id: ernst-ludwig-kirchner,    name: "Ernst Ludwig Kirchner",       years: [1880, 1938], lineage: german-expressionist,   rights_tier: personal_library, source: brucke_museum,         in_corpus: 0, canon_weight: canonical, note: "Woodcut. Two Women on the Street; Five Women on the Street; Davos woodcuts; Brücke posters." }
+
+  # ── American 20c graphic tradition ────────────────────────────────
+  - { id: edward-hopper,            name: "Edward Hopper",               years: [1882, 1967], lineage: american-20c-graphic,   rights_tier: personal_library, source: whitney_museum,        in_corpus: 1, canon_weight: canonical, note: "Etching (~70 plates). Night Shadows; East Side Interior; The Lonely House; The Evening Wind; American Landscape." }
+  - { id: martin-lewis,             name: "Martin Lewis",                years: [1881, 1962], lineage: american-20c-graphic,   rights_tier: public_domain,    source: nga_washington,        in_corpus: 0, canon_weight: canonical, note: "Drypoint + sand-ground etching. Relics (Speakeasy Corner); Shadow Dance; Glow of the City; Little Penthouse; Stoops in Snow." }
+  - { id: lynd-ward,                name: "Lynd Ward",                   years: [1905, 1985], lineage: american-20c-graphic,   rights_tier: personal_library, source: loc_ppoc,              in_corpus: 0, canon_weight: canonical, note: "Wood engraving. Gods' Man (139 engravings); Madman's Drum; Wild Pilgrimage; Prelude to a Million Years; Vertigo." }
+
+  # ── Modernist drawing ─────────────────────────────────────────────
+  - { id: georges-seurat,           name: "Georges Seurat",              years: [1859, 1891], lineage: modernist-drawing,      rights_tier: public_domain,    source: moma,                  in_corpus: 0, canon_weight: core,      note: "Conté on Michallet paper — tonal-only. Seated Boy with Straw Hat; At the Concert Européen; Café-Concert; Grande Jatte studies; Le Noeud Noir." }
+  - { id: egon-schiele,             name: "Egon Schiele",                years: [1890, 1918], lineage: modernist-drawing,      rights_tier: public_domain,    source: albertina,             in_corpus: 2, canon_weight: canonical, note: "Pencil + ink drawing. Seated Woman with Bent Knee; Self-Portrait with Raised Arms; Portrait of Wally; Reclining Female Nude studies." }
+  - { id: pablo-picasso,            name: "Pablo Picasso",               years: [1881, 1973], lineage: modernist-drawing,      rights_tier: personal_library, source: musee_picasso_paris,   in_corpus: 0, canon_weight: core,      note: "Etching + lithograph + drypoint. Frugal Repast; Vollard Suite; Minotauromachy; Bull lithograph progression (11 states); Dove." }
+
+  # ── Japanese ink tradition ────────────────────────────────────────
+  - { id: sesshu-toyo,              name: "Sesshū Tōyō",                 years: [1420, 1506], lineage: japanese-ink,           rights_tier: public_domain,    source: tokyo_national_museum, in_corpus: 0, canon_weight: canonical, note: "Ink wash (sumi-e). Winter Landscape; Haboku Landscape; Long Landscape Scroll (National Treasure); Four Seasons; Amanohashidate." }
+  - { id: hakuin-ekaku,             name: "Hakuin Ekaku",                years: [1686, 1769], lineage: japanese-ink,           rights_tier: public_domain,    source: gitter_yelen,          in_corpus: 1, canon_weight: canonical, note: "Zen ink drawing. Bodhidharma (Daruma) series incl. one-stroke Daruma; Hotei; Blind Men Crossing a Log Bridge; Giant Radish." }
+
+  # ── Dropped under API-first rule ──────────────────────────────────
+  # Kentridge, Celmins, Steinberg removed: no public API covers their
+  # canonical works at quality. Rejoin path is a future change if the
+  # sources become addressable. See design.md "Dropped" table.
+
+# ── Excluded with reason ──────────────────────────────────────────────
+# Deliberately NOT in the 28:
+#   - Hokusai, Hiroshige, Utamaro — ukiyo-e is colour woodblock; desaturation
+#     does not render faithfully. Hokusai's Manga pen drawings would qualify
+#     as a separate category.
+#   - Matisse, Klee, Bonnard, Chagall — core œuvre is colour.
+#   - Leonardo, Michelangelo, Raphael drawings — canonical but primarily
+#     working-study material; less legible as standalone images on a
+#     kitchen display.
+#   - Schongauer, Mantegna, Lucas van Leyden, Goltzius — early engraving
+#     masters; tight audience. Add if a later expansion round seeks
+#     pre-Dürer depth.
+#   - Mapplethorpe, Crumb, Pettibon — content-intensive for a kitchen display.
+#
+# Candidates for 29/30 if expanding:
+#   - Adolph Menzel (19c German draughtsman)
+#   - Alberto Giacometti drawings
+#   - Leonard Baskin (American wood engraving)
+
+# ── Summary ───────────────────────────────────────────────────────────
+# Total: 25 creators (Kentridge/Celmins/Steinberg dropped — no API)
+# Rights-tier split: 18 public_domain (museum API), 7 personal_library (web)
+# Already anchored in corpus (≥1 item): 10
+#   Strong existing coverage (≥5): Dürer (8), Goya (5), Redon (5)
+#   Lighter existing presence (1–3): Rembrandt, Callot, Piranesi, Daumier,
+#   Beardsley, Lautrec, Schiele, Hopper, Whistler, Hakuin
+# Fresh additions (0 items in corpus): 15

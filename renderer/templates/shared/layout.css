@@ -1,0 +1,91 @@
+/*
+ * Shared conventions across all faces. See
+ * `openspec/specs/dashboard-faces/spec.md` (Shared conventions requirement)
+ * for the binding statements.
+ */
+
+:root {
+  --pad-v: calc(36 * var(--u));
+  --pad-h: calc(48 * var(--u));
+  --rule-faint: 1px solid var(--faint);
+  --rule-faint-dashed: 1px dashed var(--faint);
+  --rule-section: 2px solid var(--ink);
+}
+
+.face {
+  width: 1200px;
+  height: 825px;
+  display: grid;
+  position: relative;
+  padding: var(--pad-v) var(--pad-h);
+}
+
+/* Battery indicator — exception to the 25u size floor, per spec. */
+.battery-indicator {
+  position: absolute;
+  top: calc(14 * var(--u));
+  right: calc(22 * var(--u));
+  display: flex;
+  align-items: center;
+  gap: calc(6 * var(--u));
+  font-family: var(--font-mono);
+  font-size: calc(18 * var(--u)) /* chrome */;
+  letter-spacing: 0.08em;
+  color: var(--mid);
+}
+.battery-indicator .glyph {
+  display: inline-block;
+  width: calc(20 * var(--u));
+  height: calc(10 * var(--u));
+  border: 1px solid var(--mid);
+  border-radius: 1px;
+  position: relative;
+}
+.battery-indicator .glyph::after {
+  content: '';
+  position: absolute;
+  right: calc(-3 * var(--u));
+  top: calc(2 * var(--u));
+  width: calc(2 * var(--u));
+  height: calc(6 * var(--u));
+  background: var(--mid);
+}
+.battery-indicator .fill {
+  display: block;
+  height: 100%;
+  background: var(--mid);
+}
+
+/* Mode-headline (used by Weather header etc.) */
+.mode-headline {
+  font-family: var(--font-mono);
+  font-size: calc(28 * var(--u));
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--mid);
+}
+
+/* Mono-caps runs used by attribution and small labels. */
+.mono-caps-small {
+  font-family: var(--font-mono);
+  font-size: calc(22 * var(--u));
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--mid);
+}
+.mono-caps-body {
+  font-family: var(--font-mono);
+  font-size: calc(25 * var(--u));
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--mid);
+}
+
+/* Placeholder for missing data. */
+.placeholder-dash::before { content: '—'; color: var(--faint); }
+
+/* Section rule helpers */
+.rule-section { border-top: var(--rule-section); }
+.rule-faint { border-top: var(--rule-faint); }
+.rule-dashed { border-top: var(--rule-faint-dashed); }
+.rule-v-faint { border-left: var(--rule-faint); }

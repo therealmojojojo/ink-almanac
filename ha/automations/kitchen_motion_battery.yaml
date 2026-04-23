@@ -1,0 +1,30 @@
+# Low-battery notification for the IKEA kitchen motion sensor.
+#
+# Mirrors ha/automations/low_battery.yaml for the device's own LiPo, but with
+# a 24-hour throttle (CR2032 batteries drain over months, not days — a 4-hour
+# re-notify cadence would be noisy for such a slow source).
+#
+# Disabled by default; operator enables after pairing the sensor.
+
+- alias: "Inkplate: kitchen motion sensor low battery"
+  id: inkplate_kitchen_motion_battery
+  initial_state: false
+  mode: single
+  max_exceeded: silent
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.kitchen_motion_sensor_battery
+      below: 20
+  condition:
+    - condition: template
+      value_template: >-
+        {% set last = state_attr('automation.inkplate_kitchen_motion_battery', 'last_triggered') %}
+        {{ last is none or (now() - last).total_seconds() >= 86400 }}
+  action:
+    - service: notify.inkplate_operator
+      data:
+        title: "Inkplate motion sensor low"
+        message: >-
+          Kitchen motion sensor battery at
+          {{ states('sensor.kitchen_motion_sensor_battery') }}%.
+          Replace the CR2032 when convenient.

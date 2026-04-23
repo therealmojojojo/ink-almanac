@@ -1,0 +1,528 @@
+/*
+ * Summary: three-band composition per dashboard-faces/spec.md.
+ * Bottom-right supports three variants via `data-variant`:
+ *   a (default) = climate + 2 HN items
+ *   b           = news-only, 3 HN items with climate inline
+ *   c           = climate-dominant with a single soft news line
+ */
+
+.summary-root {
+  grid-template-rows: auto 130px 1fr;
+  /* Override the face's default bottom padding so the single byline at the
+   * bottom sits closer to the edge, freeing vertical space for the body. */
+  padding-bottom: calc(18 * var(--u));
+}
+/* Battery chrome at 22u to match the weather face (and the gallery caption
+ * register). */
+.summary-root .battery-indicator {
+  font-size: calc(22 * var(--u));
+  overflow: hidden;
+  gap: calc(6 * var(--u));
+}
+
+/* ---- Top band — sized to content, no dead space ------------------ */
+.summary-top {
+  display: grid;
+  grid-template-columns: 1.1fr 1px 1fr;
+  align-items: center;
+  gap: calc(24 * var(--u));
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: calc(14 * var(--u));
+}
+.summary-top .clock-cell {
+  grid-column: 1;
+  padding-right: calc(8 * var(--u));
+  display: flex;
+  flex-direction: column;
+  gap: calc(4 * var(--u));
+}
+.summary-top .vrule {
+  grid-column: 2;
+  align-self: stretch;
+  background: var(--faint);
+  margin: calc(12 * var(--u)) 0;
+}
+.summary-top .clock {
+  font-family: var(--font-serif);
+  font-variation-settings: 'opsz' 144, 'wght' 500;
+  font-feature-settings: 'tnum' 1;
+  font-size: calc(160 * var(--u));
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+}
+.summary-top .date-line {
+  font-family: var(--font-mono);
+  font-size: calc(25 * var(--u));
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--mid);
+}
+
+/* ---- Top-right weather block: three variants ----------------------
+ * In every variant, OUTSIDE (temp + condition + H/L) is one visual group
+ * and INSIDE (temp only) is a separate group, with an explicit divider. */
+
+.summary-top .wx { grid-column: 3; }
+
+/* Shared typography */
+.summary-top .wx .cond {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: calc(28 * var(--u));
+  color: var(--mid);
+}
+.summary-top .wx .label,
+.summary-top .wx .hl-label {
+  font-family: var(--font-mono);
+  font-size: calc(22 * var(--u)) /* chrome */;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--faint);
+}
+.summary-top .wx .hl-value {
+  font-family: var(--font-mono-num);
+  font-feature-settings: 'tnum' 1;
+  font-size: calc(28 * var(--u));
+  line-height: 1;
+  text-align: right;
+}
+
+/* Variant A — outside in a labeled card, inside as a small chip below. */
+.summary-top .wx-a {
+  display: flex;
+  flex-direction: column;
+}
+.summary-top .wx-a .outside-group {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: calc(24 * var(--u));
+  padding: calc(10 * var(--u)) 0;
+}
+.summary-top .wx-a .icon-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: calc(6 * var(--u));
+}
+.summary-top .wx-a .icon {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+.summary-top .wx-a .icon .wicon {
+  width: calc(120 * var(--u));
+  height: calc(120 * var(--u));
+}
+.summary-top .wx-a .outside-group .temp {
+  font-family: var(--font-mono-num);
+  font-feature-settings: 'tnum' 1;
+  font-size: calc(110 * var(--u));
+  line-height: 1;
+  text-align: right;
+}
+.summary-top .wx-a .hl-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: calc(2 * var(--u));
+  padding-bottom: calc(12 * var(--u));
+}
+.summary-top .wx-a .hl-row {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: baseline;
+  gap: calc(8 * var(--u));
+}
+.summary-top .wx-a .nowcast {
+  font-family: var(--font-mono);
+  font-size: calc(22 * var(--u));
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--mid);
+  text-align: left;
+}
+.summary-top .wx-a .inside-group {
+  display: flex;
+  justify-content: flex-end;
+  align-items: baseline;
+  gap: calc(12 * var(--u));
+  padding-top: calc(4 * var(--u));
+}
+.summary-top .wx-a .inside-group .temp {
+  font-family: var(--font-serif);
+  font-variation-settings: 'opsz' 36, 'wght' 500;
+  font-feature-settings: 'tnum' 1;
+  font-size: calc(40 * var(--u));
+  line-height: 1;
+  text-align: right;
+}
+
+/* Variant B — outside (left) and inside (right) as side-by-side panels
+ * separated by a vertical rule. */
+.summary-top .wx-b {
+  display: grid;
+  grid-template-columns: 1fr 1px auto;
+  gap: calc(18 * var(--u));
+  align-items: stretch;
+}
+.summary-top .wx-b .outside-group,
+.summary-top .wx-b .inside-group {
+  display: flex;
+  flex-direction: column;
+  gap: calc(6 * var(--u));
+}
+.summary-top .wx-b .divider {
+  background: var(--faint);
+  margin: calc(8 * var(--u)) 0;
+}
+.summary-top .wx-b .outside-group .label { text-align: left; }
+.summary-top .wx-b .outside-group .main {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: calc(18 * var(--u));
+  align-items: end;
+}
+.summary-top .wx-b .outside-group .temp {
+  font-family: var(--font-serif);
+  font-variation-settings: 'opsz' 144, 'wght' 500;
+  font-feature-settings: 'tnum' 1;
+  font-size: calc(104 * var(--u));
+  line-height: 1;
+  text-align: right;
+}
+.summary-top .wx-b .outside-group .meta {
+  display: flex;
+  flex-direction: column;
+  gap: calc(6 * var(--u));
+  padding-bottom: calc(10 * var(--u));
+  text-align: right;
+}
+.summary-top .wx-b .outside-group .hl-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: calc(2 * var(--u));
+}
+.summary-top .wx-b .outside-group .hl-row {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: baseline;
+  gap: calc(6 * var(--u));
+}
+.summary-top .wx-b .inside-group {
+  justify-content: center;
+  align-items: flex-end;
+  min-width: calc(180 * var(--u));
+}
+.summary-top .wx-b .inside-group .label { text-align: right; }
+.summary-top .wx-b .inside-group .temp {
+  font-family: var(--font-serif);
+  font-variation-settings: 'opsz' 144, 'wght' 500;
+  font-feature-settings: 'tnum' 1;
+  font-size: calc(68 * var(--u));
+  line-height: 1;
+  text-align: right;
+}
+
+/* Variant C — stacked panels with a horizontal rule between outside (top)
+ * and inside (bottom). */
+.summary-top .wx-c {
+  display: flex;
+  flex-direction: column;
+  gap: calc(10 * var(--u));
+}
+.summary-top .wx-c .outside-group .label { margin-bottom: calc(6 * var(--u)); }
+.summary-top .wx-c .outside-group .row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: calc(20 * var(--u));
+  align-items: end;
+}
+.summary-top .wx-c .outside-group .temp {
+  font-family: var(--font-serif);
+  font-variation-settings: 'opsz' 144, 'wght' 500;
+  font-feature-settings: 'tnum' 1;
+  font-size: calc(112 * var(--u));
+  line-height: 1;
+  text-align: right;
+}
+.summary-top .wx-c .outside-group .meta {
+  display: flex;
+  flex-direction: column;
+  gap: calc(6 * var(--u));
+  padding-bottom: calc(10 * var(--u));
+  text-align: right;
+}
+.summary-top .wx-c .outside-group .hl-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: calc(22 * var(--u));
+}
+.summary-top .wx-c .outside-group .hl {
+  display: inline-flex;
+  align-items: baseline;
+  gap: calc(6 * var(--u));
+}
+.summary-top .wx-c .hrule {
+  height: 1px;
+  background: var(--faint);
+  margin: calc(4 * var(--u)) 0;
+}
+.summary-top .wx-c .inside-group {
+  display: flex;
+  justify-content: flex-end;
+  align-items: baseline;
+  gap: calc(14 * var(--u));
+}
+.summary-top .wx-c .inside-group .temp {
+  font-family: var(--font-serif);
+  font-variation-settings: 'opsz' 36, 'wght' 500;
+  font-feature-settings: 'tnum' 1;
+  font-size: calc(44 * var(--u));
+  line-height: 1;
+  text-align: right;
+}
+
+/* ---- Middle band: 3-day forecast. Icon aligned in its own column. ---- */
+.summary-forecast {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+  padding: calc(16 * var(--u)) 0;
+}
+.summary-forecast .cell {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: calc(18 * var(--u));
+  padding: 0 calc(24 * var(--u));
+}
+.summary-forecast .cell + .cell {
+  border-left: var(--rule-faint-dashed);
+}
+.summary-forecast .cell .left {
+  display: flex;
+  flex-direction: column;
+  gap: calc(4 * var(--u));
+  min-width: 0;
+}
+.summary-forecast .cell .middle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.summary-forecast .cell .right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: calc(2 * var(--u));
+  text-align: right;
+}
+.summary-forecast .cell .hi,
+.summary-forecast .cell .lo {
+  font-feature-settings: 'tnum' 1;
+  text-align: right;
+  min-width: calc(72 * var(--u));
+}
+.summary-forecast .cell .day {
+  font-family: var(--font-mono);
+  font-size: calc(26 * var(--u));
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.summary-forecast .cell .cond {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: calc(25 * var(--u));
+  color: var(--mid);
+}
+.summary-forecast .cell .wicon {
+  color: var(--mid);
+  width: calc(48 * var(--u));
+  height: calc(48 * var(--u));
+  display: block;
+}
+/* Hi and lo share the same size so the ° glyphs land on identical baselines
+ * and right-edges. Distinction is color (lo = --mid), not size. */
+.summary-forecast .cell .hi,
+.summary-forecast .cell .lo {
+  font-family: var(--font-mono-num);
+  font-size: calc(30 * var(--u));
+  line-height: 1;
+}
+.summary-forecast .cell .lo {
+  color: var(--mid);
+}
+
+/* ---- Bottom band: delight + sidebar -------------------------------- */
+.summary-bottom {
+  border-top: 2px solid var(--ink);
+  display: grid;
+  grid-template-columns: 1.45fr 1fr;
+  padding-top: calc(20 * var(--u));
+  gap: calc(28 * var(--u));
+  min-height: 0;
+}
+.summary-delight {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) calc(36 * var(--u));
+  gap: calc(10 * var(--u));
+  padding-right: calc(28 * var(--u));
+  border-right: var(--rule-faint);
+  min-height: 0;
+  overflow: hidden;
+}
+/* Delight-zone body typography.
+ * No italic (matches the gallery face's no-italic rule).
+ * Form-aware sizing scaled down from the gallery FORMS table — the delight
+ * zone is a strip inside the summary, not a page.
+ * Line-height is set in `u` (not unitless) so verse and anthology pairs
+ * share a baseline rhythm. */
+.summary-delight.text .body {
+  font-family: var(--font-serif);
+  font-variation-settings: 'opsz' 36, 'wght' 500;
+  font-size: calc(36 * var(--u));
+  line-height: calc(48 * var(--u));
+  font-style: normal;
+  text-align: center;
+  white-space: pre-line;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.summary-delight.text .body[data-form='haiku'],
+.summary-delight.text .body[data-form='tanka'] {
+  font-size: calc(36 * var(--u));
+  line-height: calc(52 * var(--u));
+}
+.summary-delight.text .body[data-form='fragment'],
+.summary-delight.text .body[data-form='aphorism'] {
+  font-size: calc(36 * var(--u));
+  line-height: calc(48 * var(--u));
+}
+.summary-delight.text .body[data-form='quote'] {
+  font-size: calc(34 * var(--u));
+  line-height: calc(46 * var(--u));
+}
+.summary-delight.text .body[data-form='sonnet'],
+.summary-delight.text .body[data-form='free-verse'],
+.summary-delight.text .body[data-form='stanzaic'],
+.summary-delight.text .body[data-form='prose-poem'] {
+  font-size: calc(28 * var(--u));
+  line-height: calc(40 * var(--u));
+}
+
+/* Bilingual haiku: Japanese original on left, translation on right.
+ * JA and EN use the same fixed line-height in `u` so rows baseline-align
+ * across the pair (a 3-line JA column and a 3-line EN column read as
+ * three matched rows, not two drifting stacks). */
+.summary-delight.anthology .body {
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: center;
+  align-items: start;
+  align-content: center;
+  column-gap: calc(40 * var(--u));
+  font-style: normal;
+  text-align: left;
+  white-space: pre-line;
+  padding: 0;
+}
+.summary-delight.anthology .body .ja {
+  font-family: 'Noto Serif JP', var(--font-serif);
+  font-weight: 500;
+  font-size: calc(40 * var(--u));
+  line-height: calc(56 * var(--u));
+  color: var(--ink);
+  /* Hard newlines in the source are the intended line breaks for haiku/
+   * tanka originals. Disable soft-wrap so a too-narrow column overflows
+   * visibly (operator flags it) rather than silently breaking mid-phrase. */
+  white-space: pre;
+}
+.summary-delight.anthology .body .en {
+  font-family: var(--font-serif);
+  font-variation-settings: 'opsz' 36, 'wght' 500;
+  font-style: normal;
+  font-size: calc(32 * var(--u));
+  line-height: calc(56 * var(--u));
+  color: var(--mid);
+  text-align: left;
+}
+.summary-delight.image .body {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  background: var(--faint);
+  overflow: hidden;
+}
+.summary-delight.image .body img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.summary-delight.text .attrib {
+  text-align: center;
+}
+.summary-delight .attrib {
+  font-family: var(--font-mono);
+  font-size: calc(22 * var(--u)) /* chrome */;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--mid);
+}
+
+/* ---- Sidebar — shared base ---------------------------------------- */
+.summary-sidebar {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+.summary-sidebar .label {
+  font-family: var(--font-mono);
+  font-size: calc(22 * var(--u)) /* chrome */;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--mid);
+}
+
+/* Sidebar — single style regardless of top-right variant.
+ * Clean 3-item news list with dashed separators. */
+.summary-sidebar {
+  gap: calc(12 * var(--u));
+}
+.summary-sidebar .label {
+  padding-bottom: calc(10 * var(--u));
+  border-bottom: var(--rule-faint);
+  margin-bottom: calc(4 * var(--u));
+}
+.summary-sidebar .hn {
+  display: flex;
+  flex-direction: column;
+  gap: calc(12 * var(--u));
+}
+.summary-sidebar .hn .item {
+  padding-bottom: calc(8 * var(--u));
+}
+.summary-sidebar .hn .item + .item {
+  border-top: var(--rule-faint-dashed);
+  padding-top: calc(10 * var(--u));
+}
+.summary-sidebar .hn .item .title {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: calc(25 * var(--u));
+  line-height: 1.22;
+}
+.summary-sidebar .hn .item .subtitle {
+  font-family: var(--font-mono);
+  font-size: calc(22 * var(--u)) /* chrome */;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--mid);
+  margin-top: calc(4 * var(--u));
+}

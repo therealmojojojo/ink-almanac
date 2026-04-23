@@ -1,0 +1,28 @@
+# Register vocabulary — the voice or style. Closed set.
+# Canonicalized from in-use terms 2026-04-17. "lyric" and "lyrical" are merged
+# into `lyric`; existing sidecars using `lyrical` should be migrated.
+
+lyric:            { label: "Lyric",            description: "Song-like, first-person, emotionally direct. Default for most poetry and tender photography." }
+aphoristic:      { label: "Aphoristic",        description: "Epigrammatic, compressed; wisdom in pointed form." }
+classical:       { label: "Classical",         description: "Formal tradition — sonnet, ode, established register; Western or Eastern canonical." }
+formal:          { label: "Formal",            description: "Composed, structured, public-facing register." }
+iconic:          { label: "Iconic",            description: "Image as image — recognizable, standalone cultural mark." }
+intimate:        { label: "Intimate",          description: "Close voice, speaking to one listener." }
+tender:          { label: "Tender",            description: "Softened register; gentleness as stance." }
+atmospheric:     { label: "Atmospheric",       description: "Mood-of-place register; weather as voice." }
+confessional:    { label: "Confessional",      description: "First-person, exposed, unguarded." }
+unadorned:       { label: "Unadorned",         description: "Plain speech; no ornament." }
+documentary:     { label: "Documentary",       description: "Witness voice; shows, does not interpret." }
+reportorial:     { label: "Reportorial",       description: "Journalistic, factual, clear." }
+wry:             { label: "Wry",               description: "Dry, tilted, ironic register." }
+sly:             { label: "Sly",               description: "Insinuating, clever, trickster register." }
+deadpan-absurd:  { label: "Deadpan-absurd",    description: "Kharms / Hedberg register — absurdity delivered straight." }
+absurdist:       { label: "Absurdist",         description: "Non-sequitur, logic-breaking register." }
+ornate:          { label: "Ornate",            description: "Richly figured, baroque, decorated." }
+baroque:         { label: "Baroque",           description: "Densely ornamented, rhetorical abundance." }
+oracular:        { label: "Oracular",          description: "Pronouncement register; delphic, mantic." }
+solemn:          { label: "Solemn",            description: "Grave-voiced, ceremonial." }
+surreal:         { label: "Surreal",           description: "Dreamlike voice; impossible juxtaposition as speech." }
+tender-bitten:   { label: "Tender-bitten",     description: "Tenderness with an edge of bitterness — Romanian-poetry register (Brumaru, Dinescu)." }
+quiet-sovereign: { label: "Quiet-sovereign",   description: "Unshowy authority; the voice at ease with its own knowing." }
+expressive:      { label: "Expressive",        description: "Line-as-emotion register; Schiele, Kollwitz." }

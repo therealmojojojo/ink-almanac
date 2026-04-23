@@ -1,0 +1,111 @@
+# Helper entities — loaded as a package so they're versioned, not clicked into place.
+
+input_text:
+  inkplate_active_override:
+    name: Inkplate active override
+    initial: schedule
+    max: 32
+    # Allowed values: schedule | now_playing | weather_peek | summary_gallery_toggle
+    # Precedence (highest→lowest): now_playing > weather_peek > summary_gallery_toggle > schedule
+
+  inkplate_prior_override:
+    name: Inkplate prior override
+    initial: schedule
+    max: 32
+
+  inkplate_scheduled_face:
+    name: Inkplate scheduled face
+    initial: summary
+    max: 16
+    # summary | gallery | night — the face the schedule *would* show, ignoring overrides
+
+  inkplate_kitchen_sonos_entity:
+    name: Inkplate kitchen Sonos entity
+    initial: media_player.kitchen_sonos
+    max: 64
+
+  inkplate_now_playing_content_id:
+    name: Inkplate Now-Playing content id
+    initial: ""
+    max: 255
+    # Stable per-track identifier (Sonos media_content_id or title+artist+album fallback).
+    # Track-change detection compares the incoming content id against this holder.
+
+input_datetime:
+  inkplate_weather_peek_expires_at:
+    name: Inkplate weather-peek expiry
+    has_time: true
+    has_date: true
+    # Datetime when the current single-tap-triggered weather peek ends.
+    # Updated by the gesture handler on single-tap activation; the expiry
+    # automation triggers at this time and reverts the override.
+
+  inkplate_sonos_active_start:
+    name: Sonos active window start
+    has_time: true
+    has_date: false
+    initial: "07:00:00"
+
+  inkplate_sonos_active_end:
+    name: Sonos active window end
+    has_time: true
+    has_date: false
+    initial: "20:00:00"
+
+  # TEMPORARY: quiet window shifted to 05:00-05:01 for the 5000km-remote
+  # test session. The real production defaults are 00:00-05:00 — restore
+  # before shipping. The 60-second window is functionally "no quiet hours"
+  # so tap gestures and Sonos activation aren't blocked while the operator
+  # is testing at Bucharest midnight.
+  inkplate_quiet_start:
+    name: Quiet hours start
+    has_time: true
+    has_date: false
+    initial: "05:00:00"
+
+  inkplate_quiet_end:
+    name: Quiet hours end
+    has_time: true
+    has_date: false
+    initial: "05:01:00"
+
+input_number:
+  inkplate_fast_path_interval_seconds:
+    name: Sonos fast-path interval (seconds)
+    min: 60
+    max: 600
+    step: 10
+    initial: 180
+    unit_of_measurement: s
+
+  inkplate_linger_seconds:
+    name: Now-Playing linger (seconds)
+    min: 30
+    max: 900
+    step: 10
+    initial: 90
+    unit_of_measurement: s
+
+  inkplate_weather_peek_seconds:
+    name: Weather-peek window (seconds)
+    min: 60
+    max: 900
+    step: 30
+    initial: 300
+    unit_of_measurement: s
+    # How long a single-tap-triggered weather_peek override lasts before
+    # the expiry automation auto-reverts to the prior override. 5 minutes
+    # is the spec default (see dashboard-faces / architecture.md).
+
+input_boolean:
+  inkplate_publisher_enabled:
+    name: Inkplate renderer-input publisher
+    initial: true
+    # Master kill-switch for the five renderer-input publishers (clock, weather,
+    # climate, hn, device). Toggle off to halt POSTs to the renderer without
+    # touching the automations; the renderer keeps serving from whatever files
+    # are currently on disk.
+
+timer:
+  inkplate_now_playing_linger:
+    duration: "00:01:30"

@@ -1,0 +1,157 @@
+/*
+ * Gallery visual-day: orientation-aware layout.
+ *
+ * .gv-native          — panel-aspect (1.35–1.70): full-bleed, cover (original behavior)
+ * .gv-landscape-wide  — panoramic (> 1.70): mat top/bottom, contain, thin rule
+ * .gv-square          — near-square (0.85–1.35 outside native): mat L/R, contain, thin rule
+ * .gv-portrait        — portrait (0.55–0.85): mat L/R, contain, thin rule
+ * .gv-tall            — tall portrait / scroll (< 0.55): heavy mat, contain, thin rule
+ *
+ * Caption band stays 72px regardless so layout height is stable.
+ */
+
+.gv-root {
+  grid-template-rows: 1fr 108px;
+  padding: 0;
+  background: var(--paper);
+}
+.gv-image {
+  position: relative;
+  background: var(--paper);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Default / native: contain — no crop even when the aspect is close to
+ * the panel's. Any tiny mismatch shows as paper edge, preferable to
+ * silent cropping. */
+.gv-native .gv-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Non-native orientations: contain within the full image column (no mat,
+ * no passepartout). Aspect-ratio preserved; paper shows through as
+ * letterbox/pillarbox where the image doesn't fill. */
+.gv-landscape-wide .gv-image img,
+.gv-square .gv-image img,
+.gv-portrait .gv-image img,
+.gv-tall .gv-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Caption band: title + attribution on the left, clock vertically centered
+ * across both rows on the right. */
+.gv-caption {
+  padding: calc(14 * var(--u)) calc(48 * var(--u));
+  border-top: 2px solid var(--ink);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: calc(24 * var(--u));
+  row-gap: calc(6 * var(--u));
+  background: var(--paper);
+}
+.gv-caption .title { grid-column: 1; grid-row: 1; }
+.gv-caption .meta { grid-column: 1; grid-row: 2; }
+.gv-caption .clock {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  justify-self: end;
+}
+.gv-caption .title {
+  font-family: var(--font-serif);
+  font-variation-settings: 'opsz' 36, 'wght' 500;
+  font-style: normal;
+  font-size: calc(34 * var(--u));
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gv-caption .meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: calc(24 * var(--u));
+}
+.gv-caption .attrib {
+  font-family: var(--font-mono);
+  font-size: calc(22 * var(--u));
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--mid);
+}
+.gv-caption .clock {
+  font-family: var(--font-serif);
+  font-variation-settings: 'opsz' 72, 'wght' 500;
+  font-feature-settings: 'tnum' 1;
+  font-size: calc(44 * var(--u));
+  line-height: 1;
+}
+
+/*
+ * Split layout: image on the left at natural aspect ratio, title + artist
+ * stacked on the right, clock in the bottom-right. Triggered when the
+ * gallery image is portrait or square (pixel_height >= pixel_width).
+ * Image-column width is injected per render via the `--gv-img-width` custom
+ * property so grids reflow without a JS layout pass.
+ */
+.gv-root.gv-split {
+  grid-template-rows: 1fr;
+  grid-template-columns: var(--gv-img-width, 825px) 1fr;
+  padding: 0;
+}
+.gv-root.gv-split .gv-image {
+  /* Image fills its column fully; aspect-ratio is already exact because
+   * the column width matches the image's natural ratio at 825 px tall. */
+}
+.gv-root.gv-split .gv-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.gv-root.gv-split .gv-right {
+  padding: calc(48 * var(--u)) calc(36 * var(--u));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: calc(18 * var(--u));
+}
+.gv-root.gv-split .gv-right .title {
+  font-family: var(--font-serif);
+  font-variation-settings: 'opsz' 36, 'wght' 500;
+  line-height: 1.05;
+  overflow-wrap: break-word;
+}
+.gv-root.gv-split .gv-right .title[data-size='l']  { font-size: calc(72 * var(--u)); }
+.gv-root.gv-split .gv-right .title[data-size='m']  { font-size: calc(56 * var(--u)); }
+.gv-root.gv-split .gv-right .title[data-size='s']  { font-size: calc(44 * var(--u)); }
+.gv-root.gv-split .gv-right .title[data-size='xs'] { font-size: calc(36 * var(--u)); line-height: 1.1; }
+.gv-root.gv-split .gv-right .attrib {
+  font-family: var(--font-mono);
+  font-size: calc(28 * var(--u));
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--mid);
+}
+.gv-root.gv-split .gv-clock {
+  position: absolute;
+  right: calc(36 * var(--u));
+  bottom: calc(36 * var(--u));
+  font-family: var(--font-serif);
+  font-variation-settings: 'opsz' 36, 'wght' 500;
+  font-feature-settings: 'tnum' 1;
+  font-size: calc(28 * var(--u));
+  color: var(--mid);
+}

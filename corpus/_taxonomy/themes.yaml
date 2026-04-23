@@ -1,0 +1,50 @@
+# Theme vocabulary — the registers a corpus item speaks in. Closed set.
+# Each entry has a `label` (human-readable) and `description` (curatorial intent).
+# Additions / renames go through a taxonomy-amendment change proposal.
+
+# Register (what kind of daily the item suggests)
+solitude:                 { label: "Solitude",                 description: "A single figure or none; inner quiet, not loneliness as suffering." }
+tender-companionship:     { label: "Tender companionship",     description: "Two or a few, at ease — lovers, family, friendship, pets." }
+ritual-and-gathering:     { label: "Ritual and gathering",     description: "Procession, feast, ceremony, congregation, liturgy." }
+everyday-life:            { label: "Everyday life",            description: "Ordinary hours, small gestures, the texture of the quotidian." }
+childhood-and-play:       { label: "Childhood and play",       description: "Children, games, innocence, mischief." }
+attention-and-listening:  { label: "Attention and listening",  description: "The posture of noticing — reading, listening, watching." }
+reading-and-study:        { label: "Reading and study",        description: "Books, the lamp, the desk, the scholar's quiet." }
+craft-and-play:           { label: "Craft and play",           description: "Making, tinkering, the workshop, the artist's hand." }
+work-making:              { label: "Work and making",          description: "Labor, trade, the dignity or grind of work." }
+
+# Time and pace
+morning:                  { label: "Morning",                  description: "First light, awakening, beginnings of the day." }
+seasons-and-time:         { label: "Seasons and time",         description: "The turning of the year, temporal passage." }
+winter-and-ice:           { label: "Winter and ice",           description: "Snow, frost, the cold season." }
+night-and-lamplight:      { label: "Night and lamplight",      description: "Darkness, artificial light, the hours after sunset." }
+decay-and-memory:         { label: "Decay and memory",         description: "Ruins, patina, the weight of the past; nostalgia without sentimentality." }
+mortality:                { label: "Mortality",                description: "Death, finitude, the memento mori tradition." }
+
+# Place and setting
+urban:                    { label: "Urban",                    description: "The city as setting — street, square, bridge, metro, café." }
+interior-and-domestic:    { label: "Interior and domestic",    description: "Rooms, thresholds, the lived indoor space." }
+architecture-and-structure: { label: "Architecture and structure", description: "Built form — church, factory, monument, bridge qua structure." }
+rural-pastoral:           { label: "Rural and pastoral",       description: "Countryside, fields, villages, peasantry, the slow landscape." }
+mountain-and-forest:      { label: "Mountain and forest",      description: "Wilder terrain, the sublime, woods and peaks." }
+sea-and-sky:              { label: "Sea and sky",              description: "Open water, horizon, weather at scale." }
+water-and-reflection:     { label: "Water and reflection",     description: "Rivers, ponds, canals; mirrored surface as subject." }
+garden-and-grove:         { label: "Garden and grove",         description: "Cultivated nature, parks, arbors, orchards." }
+paris-amsterdam-vintage:  { label: "Old Paris / Amsterdam / cities vintage", description: "The turn-of-century European city as a specific inflection of urban." }
+japan:                    { label: "Japan",                    description: "Japanese pictorial tradition, Edo, Meiji — distinguishes ukiyo-e, sumi-e, Japanese photography." }
+
+# Motion, weather, orientation
+journey:                  { label: "Journey",                  description: "Travel, passage, movement toward or away." }
+travel:                   { label: "Travel",                   description: "The specific posture of being a visitor or en route." }
+weather-facing:           { label: "Weather-facing",           description: "Exposure to the elements — storm, rain, snow, wind, heat." }
+motion-and-gesture:       { label: "Motion and gesture",       description: "The captured instant of a body in motion; the decisive moment." }
+light-shadow:             { label: "Light and shadow",         description: "The graphic play of illumination — chiaroscuro as subject." }
+
+# Subject / body / image
+portrait-and-face:        { label: "Portrait and face",        description: "The human face as subject — formal or candid." }
+body-and-figure:          { label: "Body and figure",          description: "The human form — nude, dressed, classical or modern." }
+reflection-and-mirror:    { label: "Reflection and mirror",    description: "Mirrors, self-portraits, doubled images." }
+still-life:               { label: "Still life",               description: "Objects arranged — food, vessels, flowers, tools." }
+food-and-gathering:       { label: "Food and gathering",       description: "Meals, tables, markets, kitchens." }
+animals:                  { label: "Animals",                  description: "Beasts as subject — birds, fish, mammals, insects." }
+machines-and-mechanisms:  { label: "Machines and mechanisms",  description: "Engines, instruments, contraptions, the mechanical imagination." }

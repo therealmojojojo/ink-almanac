@@ -1,0 +1,150 @@
+category: modern-painting-canon
+side: image
+proposed_by: claude
+proposed_at: 2026-04-16
+status: retired
+retired_at: 2026-04-17
+retired_reason: |
+  Retired after the native-B&W pivot (see RETIRED.md in this directory).
+  The 3-bit greyscale Inkplate 10 panel cannot encode hue, and most items on
+  this list were color-dependent: Matisse, Warhol color work, Hopper's
+  color-temperature paintings, Klee's *Senecio*, Iancu's Tzara portrait.
+  Survivors (the drawings) are re-homed under `drawing-canon.yaml`:
+    - modigliani-jeanne-drawing       (already `form: drawing`)
+    - schiele-seated-woman-bent-knee  (already `form: drawing`)
+    - klee-twittering-machine         (line-art; panel_fidelity: native)
+    - warhol-blotted-line-portrait    (pre-Pop blotted-line; native)
+    - matisse-blue-nude-II            (gouache cutout, graphic silhouette; native)
+  Dropped outright as color-dependent:
+    - schiele-self-physalis           (watercolor; hue-carried)
+    - klee-senecio                    (hue-structure painting)
+    - hopper-nighthawks               (color-temperature)
+    - hopper-morning-sun              (color-temperature)
+    - iancu-portrait-tzara            (color painting; figure read via hue)
+  Do not execute `corpus fetch-list` against this file. It is preserved for
+  curatorial history, not for ingestion.
+notes: |
+  Original note — Modern painting canon spanning from early-20c (PD) through
+  mid-20c Americans (personal_library). Per-item tier reflects EU 70-years-
+  after-death rule:
+  - Schiele d.1918 / Modigliani d.1920 / Klee d.1940 / Matisse d.1954 → PD
+  - Hopper d.1967, Warhol d.1987, Iancu d.1984 → personal_library
+
+items:
+  - id: schiele-self-physalis
+    title: "Self-Portrait with Physalis"
+    creator: "Egon Schiele"
+    year: 1912
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: painting
+    themes: [portrait-and-face, solitude]
+    mood: [intense, raw]
+    register: [expressive, lyrical]
+
+  - id: schiele-seated-woman-bent-knee
+    title: "Seated Woman with Bent Knee"
+    creator: "Egon Schiele"
+    year: 1917
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: drawing
+    themes: [portrait-and-face, body-and-figure]
+    mood: [raw, poised]
+    register: [expressive]
+
+  - id: modigliani-jeanne-drawing
+    title: "Portrait of Jeanne Hébuterne (pencil drawing)"
+    creator: "Amedeo Modigliani"
+    year: 1919
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: drawing
+    themes: [portrait-and-face, tender-companionship]
+    mood: [tender, wistful]
+    register: [lyrical]
+    notes: "Pencil/graphite drawing — pure line, renders cleanly in B&W. Canonical; Modigliani did many such studies of Jeanne."
+
+  - id: klee-senecio
+    title: "Senecio (Head of a Man Going Senile)"
+    creator: "Paul Klee"
+    year: 1922
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: painting
+    themes: [portrait-and-face, craft-and-play]
+    mood: [playful, wistful]
+    register: [wry, expressive]
+
+  - id: klee-twittering-machine
+    title: "Twittering Machine (Die Zwitschermaschine)"
+    creator: "Paul Klee"
+    year: 1922
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: drawing
+    themes: [machines-and-mechanisms, craft-and-play]
+    mood: [playful, uncanny]
+    register: [wry]
+
+  - id: matisse-blue-nude-II
+    title: "Blue Nude II (Nu bleu II)"
+    creator: "Henri Matisse"
+    year: 1952
+    rights_tier: public_domain
+    source: wikimedia_commons
+    form: drawing
+    themes: [body-and-figure, craft-and-play]
+    mood: [poised, dynamic]
+    register: [iconic, formal]
+    notes: "Cutout / gouache-on-paper; pure silhouette. Renders as graphic black-on-white — ideal for 1-bit dither. PD as of 2025 (Matisse d.1954)."
+
+  - id: hopper-nighthawks
+    title: "Nighthawks"
+    creator: "Edward Hopper"
+    year: 1942
+    rights_tier: personal_library
+    source: web
+    form: painting
+    citation: "Hopper, *Edward Hopper*, Whitney Museum / Prestel, 2007"
+    themes: [urban, solitude, night-and-lamplight]
+    mood: [melancholic, quiet]
+    register: [iconic, lyrical]
+    nocturne_candidate: true
+
+  - id: hopper-morning-sun
+    title: "Morning Sun"
+    creator: "Edward Hopper"
+    year: 1952
+    rights_tier: personal_library
+    source: web
+    form: painting
+    citation: "Hopper, *Edward Hopper*, Whitney Museum / Prestel, 2007"
+    themes: [interior-and-domestic, solitude, morning]
+    mood: [contemplative, still]
+    register: [iconic, lyrical]
+
+  - id: warhol-blotted-line-portrait
+    title: "Blotted-Line Portrait (1950s commercial illustration)"
+    creator: "Andy Warhol"
+    year: 1955
+    rights_tier: personal_library
+    source: web
+    form: drawing
+    citation: "Warhol, *Andy Warhol: Drawings and Illustrations of the 1950s*, Prestel, 2000"
+    themes: [craft-and-play, portrait-and-face]
+    mood: [wry, deadpan]
+    register: [iconic]
+    notes: "Pre-Pop Warhol — pure ink-blotted line. 'Warhol before Warhol.' Renders as graphic B&W."
+
+  - id: iancu-portrait-tzara
+    title: "Portrait of Tristan Tzara (Dada period)"
+    creator: "Marcel Iancu"
+    year: 1918
+    rights_tier: personal_library
+    source: web
+    form: painting
+    citation: "Iancu / Naum et al., *Marcel Iancu*, Editura Vellant, 2016"
+    themes: [portrait-and-face, craft-and-play]
+    mood: [sharp, expressive]
+    register: [iconic, wry]
