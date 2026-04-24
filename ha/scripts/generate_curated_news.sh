@@ -47,12 +47,18 @@ import json, re, urllib.request
 from xml.etree import ElementTree as ET
 
 SOURCES = [
+    # Broad miscellany / science-curiosity / places
     ("kottke.org",       "https://feeds.kottke.org/main"),
     ("atlasobscura.com", "https://www.atlasobscura.com/feeds/latest"),
     ("aeon.co",          "https://aeon.co/feed.rss"),
+    # Non-US, non-science voices — updated less often but balance the mix
+    ("theguardian.com",  "https://www.theguardian.com/news/series/the-long-read/rss"),
+    ("eurozine.com",     "https://www.eurozine.com/feed/"),
+    ("psyche.co",        "https://psyche.co/feed/"),
 ]
-PER_SOURCE_CAP = 8
-TOTAL_CAP = 24
+PER_SOURCE_CAP = 6
+TOTAL_CAP = 30
+DESC_CAP = 500  # characters of description text forwarded to the LLM
 
 def clean(s):
     s = re.sub(r"<[^>]+>", "", s or "")
@@ -76,13 +82,23 @@ for domain, url in SOURCES:
         if local(item.tag) not in ("item", "entry"):
             continue
         title = None
+        desc = ""
+        # Prefer <content:encoded> > <description> > <summary> > <content>.
+        # First-past-the-post across Atom and RSS 2.0 flavors; whichever
+        # is first in the element order wins (consistently in practice).
         for c in item:
-            if local(c.tag) == "title":
+            tag = local(c.tag)
+            if tag == "title" and title is None:
                 title = clean(c.text or "")
-                break
+            elif tag in ("encoded", "description", "summary", "content") and not desc:
+                desc = clean(c.text or "")
         if not title:
             continue
-        merged.append({"source": domain, "title": title})
+        merged.append({
+            "source": domain,
+            "title": title,
+            "desc":  desc[:DESC_CAP],
+        })
         taken += 1
         if taken >= PER_SOURCE_CAP:
             break
@@ -123,23 +139,62 @@ cands = json.loads(os.environ["CANDIDATES"])
 model = os.environ["MODEL"]
 provider = os.environ["PROVIDER"]
 
-numbered = "\n".join(f"{i+1}. [{c['source']}] {c['title']}" for i, c in enumerate(cands))
+# Each candidate is title + a short description pulled from the RSS feed.
+# Feed both to the LLM so the micro-summary can draw from real content
+# rather than riffing on the title alone.
+numbered_parts = []
+for i, c in enumerate(cands):
+    block = f"{i+1}. [{c['source']}] {c['title']}"
+    desc = (c.get("desc") or "").strip()
+    if desc:
+        block += f"\n   {desc}"
+    numbered_parts.append(block)
+numbered = "\n".join(numbered_parts)
 
 sys_prompt = (
-    "You are a curator for an ambient kitchen display. Pick the 3 most "
-    "interesting-at-a-glance items from the numbered candidates and return "
-    "them as strict JSON.\n\n"
-    "Rules:\n"
+    "You are a curator for an ambient kitchen display in a home where two "
+    "thoughtful adults cook, share meals, and have children in the room. "
+    "Your job is to pick the 2 most rewarding items from the numbered "
+    "candidates and, for each, write a substantive micro-essay of 4-7 "
+    "lines.\n\n"
+    "Editorial target — pick items that:\n"
+    "- bring joy or wonder — a 'huh, I didn't know that' moment\n"
+    "- invite conversation at the table — something one person reads out "
+    "loud to the other and a kid can latch onto\n"
+    "- raise the level — science, nature, how-things-work, history, "
+    "places with stories, craft, curious facts; not hot takes, not trend "
+    "pieces\n"
+    "- reward a 15-second read with something that lingers\n\n"
+    "Tone — not too intellectual, not dumbed down:\n"
+    "- Concrete over abstract. Prefer animals, places, discoveries, "
+    "objects, how-things-work explanations over pure meditation or "
+    "academic framing.\n"
+    "- Plain, warm English. Short words where possible. No jargon. A "
+    "bright eight-year-old should be able to follow; an adult should "
+    "still learn something.\n"
+    "- Avoid 'generations-fear-the-next'-style abstract philosophical "
+    "musing. Avoid 'essay voice.' Aim for the register of a museum wall "
+    "label written by someone who loves their subject.\n\n"
+    "Hard exclusions:\n"
     "- No politics, no breaking news, no celebrity gossip.\n"
-    "- Prefer: science, design, craft, history, curiosities, essays, "
-    "unusual discoveries, things with a twist.\n"
-    "- Each title must read as a standalone one-liner: ≤56 characters, "
-    "prose-style, no clickbait ellipses, no code fences.\n"
-    "- Do not include source attribution — the display shows titles only.\n\n"
-    "Output must be exactly this JSON shape, no preamble or code fence:\n"
-    "{\"items\":[{\"title\":\"...\"},"
-    "{\"title\":\"...\"},"
-    "{\"title\":\"...\"}]}"
+    "- EXCLUDE items describing harm to children, death tolls, graphic "
+    "violence, medical decline, war, or anything bleak.\n"
+    "- No clickbait, no outrage, no moralising.\n\n"
+    "Mix rules:\n"
+    "- Prefer variety across the two picks: ideally one nature/science/"
+    "curiosity item and one ideas/place/history item, or one US-origin "
+    "and one non-US. Don't pick two items from the same source unless the "
+    "other feeds have nothing worth showing.\n\n"
+    "Writing rules:\n"
+    "- Each micro-essay is 240-380 characters, 2-4 sentences. Lead with "
+    "the hook; include at least one concrete detail; end cleanly. No "
+    "clickbait ellipses. No source names or bylines in the text.\n"
+    "- Draw content from the provided description. Do not invent facts; "
+    "if the description is thin, stay general rather than fabricating.\n"
+    "- Plain ASCII plus common punctuation only. No code fences. No "
+    "preamble. No trailing commentary.\n\n"
+    "Output must be exactly this JSON shape:\n"
+    "{\"items\":[{\"body\":\"...\"},{\"body\":\"...\"}]}"
 )
 
 user_msg = f"Candidates:\n{numbered}"
@@ -196,17 +251,21 @@ except Exception as e:
     print(f"validate: json parse failed: {e}", file=sys.stderr); sys.exit(1)
 
 items = d.get("items") if isinstance(d, dict) else None
-if not isinstance(items, list) or len(items) != 3:
-    print(f"validate: items not a 3-list: {items!r}", file=sys.stderr); sys.exit(1)
+if not isinstance(items, list) or len(items) != 2:
+    print(f"validate: items not a 2-list: {items!r}", file=sys.stderr); sys.exit(1)
 
 out = []
 for it in items:
     if not isinstance(it, dict):
         sys.exit(1)
-    t = str(it.get("title", "")).strip()
-    if not t or len(t) > 56:
-        print(f"validate: budget fail t={len(t)} title={t!r}", file=sys.stderr); sys.exit(1)
-    out.append({"title": t})
+    # Accept either `body` (new schema) or `title` (old schema) for
+    # forward/backward compat while rolling this out.
+    b = str(it.get("body") or it.get("title") or "").strip()
+    if not b or len(b) > 440:
+        # Zone is 60 × 8 = 480 chars; validator cap at 440 so typical
+        # LLM output (240-380 chars target, ~400 with overshoot) passes.
+        print(f"validate: budget fail len={len(b)} body={b!r}", file=sys.stderr); sys.exit(1)
+    out.append({"body": b})
 
 print(json.dumps({"count": len(out), "items": out}, ensure_ascii=False))
 PY
@@ -253,21 +312,33 @@ if [[ -n "$validated" ]]; then
 fi
 echo "llm unavailable or output rejected; falling back" >&2
 
-# --- Fallback: first 3 Kottke items, title trimmed to 56 chars ----------
+# --- Fallback: 2 most-recent items with usable descriptions --------------
+# Used when the LLM is unavailable. No editorial filter — take the first
+# two candidates that have at least a short description and emit each
+# description trimmed at a sentence or word boundary.
 fallback=$(CANDIDATES="$candidates" python3 - <<'PY'
 import json, os
 cands = json.loads(os.environ["CANDIDATES"])
-picks = [c for c in cands if c["source"] == "kottke.org"][:3]
-def trim(s, n=56):
-    s = s.strip().rstrip("…")
-    if len(s) <= n:
-        return s
-    s = s[:n]
-    sp = s.rfind(" ")
-    if sp >= 32:
-        s = s[:sp]
-    return s.rstrip(".,;: -")
-out = [{"title": trim(p["title"])} for p in picks]
+
+def compose(p, target=340, hard=400):
+    title = (p.get("title") or "").strip().rstrip("…").rstrip(".")
+    desc = (p.get("desc") or "").strip()
+    body = desc if len(desc) >= 80 else (title or "")
+    if len(body) <= target:
+        return body
+    cut = body[:hard]
+    dot = max(cut.rfind(". "), cut.rfind("! "), cut.rfind("? "))
+    if dot >= target * 0.6:
+        return cut[:dot+1]
+    sp = cut.rfind(" ")
+    if sp >= target * 0.6:
+        return cut[:sp].rstrip(".,;: -") + "…"
+    return cut.rstrip(".,;: -") + "…"
+
+picks = [c for c in cands if len((c.get("desc") or "").strip()) >= 80][:2]
+if not picks:
+    picks = cands[:2]
+out = [{"body": compose(p)} for p in picks]
 print(json.dumps({"count": len(out), "items": out}, ensure_ascii=False))
 PY
 )

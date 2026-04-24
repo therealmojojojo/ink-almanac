@@ -222,13 +222,13 @@
       state: "on"
   action:
     - variables:
-        items: "{{ (state_attr('sensor.inkplate_curated_news', 'items') or [])[:3] }}"
+        items: "{{ (state_attr('sensor.inkplate_curated_news', 'items') or [])[:2] }}"
         body: >-
           {
             "items": [
               {%- for it in items -%}
               {{ ',' if not loop.first else '' }}
-              { "title": "{{ it.title | replace('\"','\\\"') }}" }
+              { "body": "{{ it.body | replace('\"','\\\"') }}" }
               {%- endfor -%}
             ]
           }

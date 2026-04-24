@@ -512,9 +512,9 @@
   border-top: var(--rule-faint-dashed);
   padding-top: calc(10 * var(--u));
 }
-.summary-sidebar .news .item .title {
+.summary-sidebar .news .item .body {
   font-family: var(--font-sans);
   font-weight: 400;
-  font-size: calc(25 * var(--u));
-  line-height: 1.22;
+  font-size: calc(21 * var(--u));
+  line-height: 1.3;
 }

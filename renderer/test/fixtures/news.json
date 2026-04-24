@@ -1,12 +1,10 @@
 {
   "items": [
     {
-      "title": "A small note on what e-ink still does well",
-      "subtitle": "Low-power displays, thoughtful UX"
+      "body": "E-ink's 200 ms redraw feels slow next to OLED, but on a wall display nothing else looks this much like paper in real sunlight. The trade is deliberate: you pay once in refresh latency and buy back readability at every angle, every lighting condition, every glance from across the room."
     },
     {
-      "title": "Floyd–Steinberg for modern palettes",
-      "subtitle": "Error diffusion at 1:1 scale"
+      "body": "Floyd–Steinberg still wins at 1:1 scale on 3-bit panels: diffuse the quantisation error, get smooth greys for free. No neural net, no training data, no drift. Just a 1970s algorithm that still survives every benchmark a modern paper throws at it, because the problem it solves hasn't changed."
     }
   ]
 }

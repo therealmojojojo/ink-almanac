@@ -197,15 +197,16 @@ function buildDelight(input: SummaryInput): string {
 
 function buildSidebar(input: SummaryInput, _variant: SummaryVariant): string {
   // Three curated-news items (Kottke / Atlas Obscura / Aeon, picked daily
-  // by Claude Haiku). See ha/scripts/generate_curated_news.sh. No byline —
-  // the title is the whole thing.
+  // by Claude Haiku). Each body is a ~3-line micro-summary synthesised
+  // from the item's title + RSS description. See
+  // ha/scripts/generate_curated_news.sh.
   const news = input.news.items;
-  const newsItem = (it: { title: string }) =>
+  const newsItem = (it: { body: string }) =>
     `<div class="item">
-  <div class="title">${escapeHtml(applyZone('news_title', it.title))}</div>
+  <div class="body">${escapeHtml(applyZone('news_body', it.body))}</div>
 </div>`;
-  const items = news.slice(0, 3).map(newsItem).join('') ||
-    `<div class="item"><div class="title placeholder-dash"></div></div>`;
+  const items = news.slice(0, 2).map(newsItem).join('') ||
+    `<div class="item"><div class="body placeholder-dash"></div></div>`;
   return `<section class="summary-sidebar">
   <div class="label">Reading today</div>
   <div class="news">${items}</div>
