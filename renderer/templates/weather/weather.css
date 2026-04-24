@@ -84,6 +84,10 @@
   line-height: 1;
   text-align: right;
 }
+/* Condition + short-horizon precipitation nowcast on one line, e.g.
+ * "cloudy, dry 6h+" or "partly cloudy, rain in 8 min". The nowcast
+ * clause is joined post-zone in weather.ts so each piece keeps its own
+ * budget; the combined line then renders as ordinary prose here. */
 .weather-row .current .cond {
   font-family: var(--font-sans);
   font-weight: 500;
@@ -92,20 +96,6 @@
   line-height: 1.15;
   text-align: center;
   text-transform: lowercase;
-}
-
-/* Short-horizon precipitation nowcast ("RAIN IN 8 MIN", "DRY 6h+", etc.).
- * Mono-caps so it reads as live data, not prose. Slightly smaller than
- * `.cond` and in `--mid` tone so it complements rather than competes. */
-.weather-row .current .nowcast {
-  font-family: var(--font-mono);
-  font-size: calc(20 * var(--u));
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--mid);
-  text-align: center;
-  line-height: 1.1;
-  margin-top: calc(2 * var(--u));
 }
 
 /* Stacked hi/lo values. Hi on top, lo on bottom. */

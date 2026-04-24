@@ -106,11 +106,17 @@ function renderRow(loc: WeatherModeInput['weather']['locations'][number]): strin
     ? prettifyCondition(loc.current.condition)
     : '—';
 
-  // Short-horizon precipitation nowcast: "RAIN NOW" / "RAIN IN N MIN" /
-  // "CLEARING IN N MIN" / "DRY 6h+" / empty. Source: HA side, OWM OneCall
-  // minutely with MET.no hourly as fallback. Omit the element entirely when
-  // the label is empty (rather than render an empty line).
+  // Short-horizon precipitation nowcast inlined on the same line as the
+  // condition word ("cloudy, dry 6h+", "partly cloudy, rain in 8 min").
+  // Each piece is zone-budgeted independently so neither truncates the
+  // other; the comma-join happens post-zone. Label source: HA side, OWM
+  // OneCall minutely with MET.no hourly as fallback.
   const nowcastText = loc.nowcast?.label?.trim() ?? '';
+  const condPart = applyZone('weather_cond_w', condText);
+  const nowcastPart = nowcastText
+    ? applyZone('wx_nowcast', nowcastText).toLowerCase()
+    : '';
+  const condLine = nowcastPart ? `${condPart}, ${nowcastPart}` : condPart;
 
   return `<section class="weather-row">
   <div class="name-block">
@@ -130,12 +136,7 @@ function renderRow(loc: WeatherModeInput['weather']['locations'][number]): strin
         }</span></div>
       </div>
     </div>
-    <div class="cond">${escapeHtml(applyZone('weather_cond_w', condText))}</div>
-    ${
-      nowcastText
-        ? `<div class="nowcast">${escapeHtml(applyZone('wx_nowcast', nowcastText))}</div>`
-        : ''
-    }
+    <div class="cond">${escapeHtml(condLine)}</div>
   </div>
   <div class="forecast">${forecast}</div>
 </section>`;
