@@ -152,29 +152,38 @@ for i, c in enumerate(cands):
 numbered = "\n".join(numbered_parts)
 
 sys_prompt = (
-    "You are a curator for an ambient kitchen display in a home where two "
-    "thoughtful adults cook, share meals, and have children in the room. "
-    "Your job is to pick the 2 most rewarding items from the numbered "
-    "candidates and, for each, write a substantive micro-essay of 4-7 "
-    "lines.\n\n"
+    "You are a curator for an ambient kitchen display read by two curious, "
+    "well-read adults who enjoy finding things out but don't want to be "
+    "lectured at. Your job is to pick the 2 most rewarding items from the "
+    "numbered candidates and, for each, write a substantive micro-essay "
+    "of 4-7 lines.\n\n"
     "Editorial target — pick items that:\n"
     "- bring joy or wonder — a 'huh, I didn't know that' moment\n"
-    "- invite conversation at the table — something one person reads out "
-    "loud to the other and a kid can latch onto\n"
+    "- invite conversation — something one person reads out loud to the "
+    "other\n"
     "- raise the level — science, nature, how-things-work, history, "
-    "places with stories, craft, curious facts; not hot takes, not trend "
-    "pieces\n"
+    "places with stories, craft, ideas, curious facts; not hot takes, not "
+    "trend pieces\n"
     "- reward a 15-second read with something that lingers\n\n"
-    "Tone — not too intellectual, not dumbed down:\n"
-    "- Concrete over abstract. Prefer animals, places, discoveries, "
-    "objects, how-things-work explanations over pure meditation or "
-    "academic framing.\n"
-    "- Plain, warm English. Short words where possible. No jargon. A "
-    "bright eight-year-old should be able to follow; an adult should "
-    "still learn something.\n"
-    "- Avoid 'generations-fear-the-next'-style abstract philosophical "
-    "musing. Avoid 'essay voice.' Aim for the register of a museum wall "
-    "label written by someone who loves their subject.\n\n"
+    "Tone — adult general-reader register, neither dumbed down nor "
+    "specialist:\n"
+    "- Write the way a well-read friend tells you something interesting "
+    "they just learned. Confident, plain English. Explain any term that "
+    "isn't in common circulation.\n"
+    "- Concrete over abstract, END TO END. Prefer discoveries, objects, "
+    "places, mechanisms, and facts. No pure meditation, no academic "
+    "framing, no essay voice.\n"
+    "- The ENDING must be another concrete detail — a fact, a date, a "
+    "measurement, a consequence — not a moral or philosophical "
+    "reflection. The item stops when the facts stop.\n"
+    "- BANNED PHRASES AND PATTERNS (do not use these or anything like "
+    "them): 'reminds us that', 'a reminder that', 'a lesson in', "
+    "'invites us to', 'a conversation across time', 'proof that', 'we "
+    "can learn', 'especially when we', 'especially if we', 'which means "
+    "every', 'each of us', 'in a world where', 'teaches us', 'waiting to "
+    "be', 'our relationship with', 'what it means to be'.\n"
+    "- Aim for the register of a museum wall label written by someone "
+    "who loves their subject and trusts the reader to keep up.\n\n"
     "Hard exclusions:\n"
     "- No politics, no breaking news, no celebrity gossip.\n"
     "- EXCLUDE items describing harm to children, death tolls, graphic "
@@ -186,9 +195,11 @@ sys_prompt = (
     "and one non-US. Don't pick two items from the same source unless the "
     "other feeds have nothing worth showing.\n\n"
     "Writing rules:\n"
-    "- Each micro-essay is 240-380 characters, 2-4 sentences. Lead with "
-    "the hook; include at least one concrete detail; end cleanly. No "
-    "clickbait ellipses. No source names or bylines in the text.\n"
+    "- Each micro-essay is 180-240 characters, 2-3 sentences. A 250-char "
+    "hard cap exists — going over means truncation, so prefer brevity "
+    "with a concrete finish. Lead with the hook; include at least one "
+    "concrete detail; end cleanly. No clickbait ellipses. No source "
+    "names or bylines in the text.\n"
     "- Draw content from the provided description. Do not invent facts; "
     "if the description is thin, stay general rather than fabricating.\n"
     "- Plain ASCII plus common punctuation only. No code fences. No "
@@ -254,6 +265,32 @@ items = d.get("items") if isinstance(d, dict) else None
 if not isinstance(items, list) or len(items) != 2:
     print(f"validate: items not a 2-list: {items!r}", file=sys.stderr); sys.exit(1)
 
+def trim_to_fit(s, target=250):
+    """Trim to last sentence boundary <= target. Claude tends to overshoot
+    (~380 chars, often with a meditative closing sentence). Dropping the
+    trailing sentence usually lands us in the fit window AND strips the
+    kind of essay-voice flourish we don't want displayed anyway.
+    If even the first sentence exceeds target, fall back to word-boundary
+    truncation with an ellipsis."""
+    s = s.strip()
+    if len(s) <= target:
+        return s
+    # Walk sentence terminators and keep the longest prefix <= target.
+    import re
+    ends = [i+1 for i in range(len(s)) if s[i] in ".!?" and (i+1 == len(s) or s[i+1] == " ")]
+    best = 0
+    for e in ends:
+        if e <= target and e > best:
+            best = e
+    if best >= 120:
+        return s[:best].strip()
+    # No good sentence cut — word-trim the whole thing.
+    cut = s[:target]
+    sp = cut.rfind(" ")
+    if sp > target * 0.7:
+        cut = cut[:sp]
+    return cut.rstrip(".,;:—-") + "…"
+
 out = []
 for it in items:
     if not isinstance(it, dict):
@@ -261,10 +298,13 @@ for it in items:
     # Accept either `body` (new schema) or `title` (old schema) for
     # forward/backward compat while rolling this out.
     b = str(it.get("body") or it.get("title") or "").strip()
-    if not b or len(b) > 440:
-        # Zone is 60 × 8 = 480 chars; validator cap at 440 so typical
-        # LLM output (240-380 chars target, ~400 with overshoot) passes.
-        print(f"validate: budget fail len={len(b)} body={b!r}", file=sys.stderr); sys.exit(1)
+    if not b:
+        print("validate: empty body", file=sys.stderr); sys.exit(1)
+    if len(b) > 400:
+        # Anything beyond ~1.5× the fit window is probably a formatting
+        # accident rather than useful content.
+        print(f"validate: body too long len={len(b)} body={b[:120]!r}...", file=sys.stderr); sys.exit(1)
+    b = trim_to_fit(b, target=250)
     out.append({"body": b})
 
 print(json.dumps({"count": len(out), "items": out}, ensure_ascii=False))
@@ -312,35 +352,12 @@ if [[ -n "$validated" ]]; then
 fi
 echo "llm unavailable or output rejected; falling back" >&2
 
-# --- Fallback: 2 most-recent items with usable descriptions --------------
-# Used when the LLM is unavailable. No editorial filter — take the first
-# two candidates that have at least a short description and emit each
-# description trimmed at a sentence or word boundary.
-fallback=$(CANDIDATES="$candidates" python3 - <<'PY'
-import json, os
-cands = json.loads(os.environ["CANDIDATES"])
-
-def compose(p, target=340, hard=400):
-    title = (p.get("title") or "").strip().rstrip("…").rstrip(".")
-    desc = (p.get("desc") or "").strip()
-    body = desc if len(desc) >= 80 else (title or "")
-    if len(body) <= target:
-        return body
-    cut = body[:hard]
-    dot = max(cut.rfind(". "), cut.rfind("! "), cut.rfind("? "))
-    if dot >= target * 0.6:
-        return cut[:dot+1]
-    sp = cut.rfind(" ")
-    if sp >= target * 0.6:
-        return cut[:sp].rstrip(".,;: -") + "…"
-    return cut.rstrip(".,;: -") + "…"
-
-picks = [c for c in cands if len((c.get("desc") or "").strip()) >= 80][:2]
-if not picks:
-    picks = cands[:2]
-out = [{"body": compose(p)} for p in picks]
-print(json.dumps({"count": len(out), "items": out}, ensure_ascii=False))
-PY
-)
+# --- Fallback: empty items -----------------------------------------------
+# When the LLM is unavailable we refuse to leak raw RSS descriptions —
+# nothing guarantees those are on-brief (politics, grim news, half-
+# sentences). The Summary face's placeholder-dash state renders cleanly
+# when items is empty; the operator gets a visible "no news today" cue
+# rather than unfiltered content.
+fallback='{"count": 0, "items": []}'
 printf '%s' "$fallback" > "$STATE_FILE"
 echo "wrote (fallback): $fallback"
