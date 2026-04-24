@@ -32,8 +32,8 @@ rest_command:
     # Body assembled by the driving automation and passed as `body`.
     payload: "{{ body }}"
 
-  inkplate_publish_hn:
-    url: "http://${RENDERER_HOST}:8575/inputs/hn"
+  inkplate_publish_news:
+    url: "http://${RENDERER_HOST}:8575/inputs/news"
     method: post
     headers:
       authorization: !secret renderer_input_auth_header

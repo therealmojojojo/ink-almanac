@@ -54,7 +54,7 @@ async function gatherSummary(): Promise<unknown> {
   return {
     clock: serverClock(),
     weather: await requireInput('weather'),
-    hn: await requireInput('hn'),
+    news: await requireInput('news'),
     pairing: await requireInput('pairing'),
     sonos: await loadInput('sonos'),
     device: await loadInput('device'),

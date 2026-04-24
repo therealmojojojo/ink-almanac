@@ -37,7 +37,7 @@ and the renderer are otherwise stateless.
 │   └─ now_playing_override.yaml  Sonos → Now-Playing face         │
 │                                                                  │
 │  scripts/                                                         │
-│   ├─ fetch_hn_top.sh               curl+python3                  │
+│   ├─ generate_curated_news.sh      Kottke+AO+Aeon → Claude       │
 │   ├─ fetch_rss.sh / fetch_json.sh  feed loaders                  │
 │   ├─ generate_news_sensors.py      pre-rsync regen               │
 │   ├─ generate_pairings_week.sh     SSH → Mac host corpus CLI     │
@@ -85,7 +85,7 @@ Gated by `input_boolean.inkplate_publisher_enabled` (master kill-switch).
 | `clock` | time-pattern every 1 minute + HA start | `now()` |
 | `weather` | state change on any weather template sensor; hourly safety; HA start | weather + astro sensors + `sensor.inkplate_poetic_weather_line` |
 | `climate` | state change on kitchen temp/humidity; HA start (gated on sensor availability) | `sensor.kitchen_temperature` / `_humidity` |
-| `hn` | state change on `sensor.inkplate_hn_top5`; HA start | first 3 items of the attribute list |
+| `news` | state change on `sensor.inkplate_curated_news`; HA start | first 3 items of the attribute list |
 | `device` | MQTT trigger on retained `inkplate/state/device`; HA start | `sensor.inkplate_device_battery` + voltage + build |
 | `sonos` | track change, via SSH + `renderer/scripts/fetch_sonos_art.sh` | Sonos entity attributes + fetched album art |
 | `pairing` | Sunday 23:30, via SSH + `corpus pair generate-week` | pairings directory on the Mac |

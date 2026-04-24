@@ -196,22 +196,19 @@ function buildDelight(input: SummaryInput): string {
 }
 
 function buildSidebar(input: SummaryInput, _variant: SummaryVariant): string {
-  // Sidebar no longer varies by variant. Three HN items with dashed separators.
-  const hn = input.hn.items;
-  const hnItem = (it: { title: string; subtitle?: string | undefined }) =>
+  // Three curated-news items (Kottke / Atlas Obscura / Aeon, picked daily
+  // by Claude Haiku). See ha/scripts/generate_curated_news.sh. No byline —
+  // the title is the whole thing.
+  const news = input.news.items;
+  const newsItem = (it: { title: string }) =>
     `<div class="item">
-  <div class="title">${escapeHtml(applyZone('hn_title', it.title))}</div>
-  ${
-    it.subtitle
-      ? `<div class="subtitle">${escapeHtml(applyZone('hn_subtitle', it.subtitle))}</div>`
-      : ''
-  }
+  <div class="title">${escapeHtml(applyZone('news_title', it.title))}</div>
 </div>`;
-  const items = hn.slice(0, 3).map(hnItem).join('') ||
+  const items = news.slice(0, 3).map(newsItem).join('') ||
     `<div class="item"><div class="title placeholder-dash"></div></div>`;
   return `<section class="summary-sidebar">
   <div class="label">Reading today</div>
-  <div class="hn">${items}</div>
+  <div class="news">${items}</div>
 </section>`;
 }
 

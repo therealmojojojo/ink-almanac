@@ -1,0 +1,20 @@
+# Daily curated-news generation for the Summary face.
+#
+# Pulls RSS from Kottke, Atlas Obscura, and Aeon, picks the 3 most
+# interesting items via Claude Haiku (~$0.002/day), and writes the result
+# to state/curated_news.json. Replaces the earlier HN top-5 pipeline —
+# HN surfaced breaking/political news during cycles and wasn't a fit for
+# an ambient "cool stuff" display.
+#
+# Fires once/day at 06:00 local (before the morning schedule boundary at
+# 06:30 → Summary face), plus on HA start so a fresh install has content.
+
+- id: inkplate_curated_news_daily
+  alias: "Inkplate: curated-news daily"
+  trigger:
+    - platform: time
+      at: "06:00:00"
+    - platform: homeassistant
+      event: start
+  action:
+    - service: shell_command.generate_curated_news

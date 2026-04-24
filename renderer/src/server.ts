@@ -17,7 +17,7 @@ import { VerseOverflowError } from './zoneApply.js';
 const WRITABLE_INPUTS = new Set([
   'clock',
   'weather',
-  'hn',
+  'news',
   'pairing',
   'sonos',
   'device',

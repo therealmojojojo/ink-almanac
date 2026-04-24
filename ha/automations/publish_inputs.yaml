@@ -202,18 +202,18 @@
       data:
         body: "{{ body }}"
 
-# 4. HN — attribute change on the top-stories sensor. Takes the first three
-#    items to fit the Summary zone's maxLines=3.
-#
-# Source: sensor.hn_top_stories (ha/sensors/hn.yaml, command_line platform),
-# `stories` attribute. Each story is {title, domain, url, score, by}.
-- alias: "Inkplate: publish hn"
-  id: inkplate_publish_hn
+# 4. Curated news — attribute change on the inkplate_curated_news sensor.
+#    Sensor reads state/curated_news.json, which generate_curated_news.sh
+#    writes once a day from Kottke + Atlas Obscura + Aeon via Claude Haiku.
+#    Already-curated to {title, subtitle} shape, so the body template just
+#    passes items through.
+- alias: "Inkplate: publish news"
+  id: inkplate_publish_news
   mode: single
   max_exceeded: silent
   trigger:
     - platform: state
-      entity_id: sensor.hn_top_stories
+      entity_id: sensor.inkplate_curated_news
     - platform: homeassistant
       event: start
   condition:
@@ -222,17 +222,17 @@
       state: "on"
   action:
     - variables:
-        stories: "{{ (state_attr('sensor.hn_top_stories', 'stories') or [])[:3] }}"
+        items: "{{ (state_attr('sensor.inkplate_curated_news', 'items') or [])[:3] }}"
         body: >-
           {
             "items": [
-              {%- for it in stories -%}
+              {%- for it in items -%}
               {{ ',' if not loop.first else '' }}
-              { "title": "{{ it.title | replace('\"','\\\"') }}", "subtitle": "{{ it.domain | default('') }}" }
+              { "title": "{{ it.title | replace('\"','\\\"') }}" }
               {%- endfor -%}
             ]
           }
-    - service: rest_command.inkplate_publish_hn
+    - service: rest_command.inkplate_publish_news
       data:
         body: "{{ body }}"
 

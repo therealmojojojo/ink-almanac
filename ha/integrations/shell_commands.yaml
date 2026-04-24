@@ -22,6 +22,12 @@ shell_command:
     ./generate_astro_event.sh "{{ moon_phase }}" "{{ lat }}" "{{ lon }}" "{{ date_iso }}"
     '
 
+  generate_curated_news: >-
+    /usr/bin/env bash -c '
+    cd /config/custom/inkplate/scripts &&
+    ./generate_curated_news.sh
+    '
+
   fetch_sonos_art: >-
     /usr/bin/env bash -c '
     cd /config/custom/inkplate/scripts &&

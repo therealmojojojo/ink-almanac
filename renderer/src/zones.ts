@@ -21,8 +21,7 @@ export const ZONES = {
   // ---- Summary ----------------------------------------------------------
   weather_cond:    { maxChars: 18, maxLines: 1, kind: 'prose' },
   forecast_cond:   { maxChars: 14, maxLines: 1, kind: 'prose' },
-  hn_title:        { maxChars: 28, maxLines: 2, kind: 'prose' },
-  hn_subtitle:     { maxChars: 32, maxLines: 1, kind: 'prose' },
+  news_title:      { maxChars: 56, maxLines: 2, kind: 'prose' },
   climate_label:   { maxChars: 12, maxLines: 1, kind: 'prose' },
   delight_text:    { maxChars: 24, maxLines: 4, kind: 'verse' },
   delight_attrib:  { maxChars: 40, maxLines: 1, kind: 'prose' },

@@ -1,4 +1,4 @@
-# News sources consumed by the Summary face. Regenerate the sensor list after editing:
+# Per-source RSS/JSON sensors. Regenerate the sensor list after editing:
 #   python3 ha/scripts/generate_news_sensors.py
 # deploy.sh calls this automatically before rsync.
 #
@@ -10,8 +10,11 @@
 #   max_items      : cap (default 5)
 #   scan_interval  : seconds (default 1800)
 #
-# HN is handled separately via sensor.hn_top_stories (hn.yaml) — the shape is chained
-# so it doesn't fit this loader.
+# The Summary face's "Reading today" block is NOT fed from this file. It
+# comes from sensor.inkplate_curated_news, which ha/scripts/generate_curated_news.sh
+# writes daily from Kottke + Atlas Obscura + Aeon via Claude Haiku.
+# The feeds below are exposed as per-source sensors for operators who
+# want to wire them into a custom view; they are unused by default.
 
 sources:
   - name: digi24

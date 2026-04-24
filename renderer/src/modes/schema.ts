@@ -88,10 +88,8 @@ export const sonosInput = z.object({
   source_indicator: z.string().optional(),
 });
 
-export const hnInput = z.object({
-  items: z
-    .array(z.object({ title: z.string(), subtitle: z.string().optional() }))
-    .max(3),
+export const newsInput = z.object({
+  items: z.array(z.object({ title: z.string() })).max(3),
 });
 
 const form = z.enum([
@@ -190,7 +188,7 @@ export const SCHEMAS = {
   summary: z.object({
     clock: clockInput,
     weather: weatherInput,
-    hn: hnInput,
+    news: newsInput,
     pairing: pairingInput,
     sonos: sonosInput.optional(),
     device: deviceInput.optional(),

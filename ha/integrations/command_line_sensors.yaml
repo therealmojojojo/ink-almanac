@@ -1,22 +1,22 @@
 # Command-line sensors, in the current (2023.6+) `command_line:` integration
 # format. Legacy `- platform: command_line` under `sensor:` is silently
-# ignored by modern HA — that broke hn_top_stories + astro_event_tonight.
-# This file lives in integrations/ because it needs a dict root (the legacy
-# list-root format was compatible with !include_dir_merge_list but the new
-# dict-root format isn't).
+# ignored by modern HA. This file lives in integrations/ because it needs
+# a dict root (the legacy list-root format was compatible with
+# !include_dir_merge_list but the new dict-root format isn't).
 
 command_line:
-  # Hacker News top stories — 30-minute refresh.
-  # HN's Firebase API: topstories.json → first 5 ids → fetch each item/{id}.json.
-  # Chained-fetch shape so a single REST sensor can't cover it.
+  # Curated news — Kottke + Atlas Obscura + Aeon, LLM-picked daily. Reads
+  # the JSON file produced by generate_curated_news.sh. State = item count;
+  # `items` attribute carries the [{title, subtitle}, ...] list that
+  # publish_inputs.yaml iterates. Replaces the earlier HN top-5 feed.
   - sensor:
-      name: hn_top_stories
-      unique_id: hn_top_stories
-      command: "/config/custom/inkplate/scripts/fetch_hn_top.sh"
-      scan_interval: 1800   # 30 minutes
-      value_template: "{{ value_json.count }}"
+      name: inkplate_curated_news
+      unique_id: inkplate_curated_news
+      command: "/bin/sh -c 'cat /config/custom/inkplate/state/curated_news.json 2>/dev/null || echo {}'"
+      scan_interval: 300
+      value_template: "{{ value_json.count | int(0) }}"
       json_attributes:
-        - stories
+        - items
 
   # Night-mode poetic weather line — reads the file written by
   # generate_poetic_weather_line.sh. scan_interval keeps the sensor fresh
