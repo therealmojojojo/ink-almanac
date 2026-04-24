@@ -6,16 +6,25 @@
 #     fetches whichever face the retained value points to.
 #   - Device does NOT interpret gestures; HA is authoritative.
 #
-# Override cascade (highest → lowest):
-#   now_playing > weather_peek > summary_gallery_toggle > schedule.
+# Activation model (see openspec/changes/revise-tap-override-semantics):
+#   Explicit (tap) beats ambient (schedule, music). Precedence only governs
+#   *deactivation*'s restore target, not whether activation is allowed.
 #
 # Rules:
 #   - Gestures are SUPPRESSED during quiet hours (user tapped, ack glyph shows
 #     on the device, but no face change here — honest UX).
-#   - Gestures are SUPPRESSED when `now_playing` is the active override
-#     (music wins; stop the music if you want the dashboard back).
+#   - Single tap → weather_peek works during now_playing. prior=now_playing;
+#     peek expires in 60 s and restores now_playing if Sonos is still playing.
+#   - Double tap stays suppressed during now_playing (asymmetric by design:
+#     toggle persists until the next schedule boundary, which interacts badly
+#     with long music sessions; revisit if we want a different semantic).
 #   - Double-tap toggles Summary↔Gallery. During Night (scheduled_face == night)
 #     the toggle is a no-op (no meaningful "other" face for Night).
+#
+# prior_override invariant: prior_override SHALL NEVER equal active_override.
+# Re-triggering the same state (tap during peek, double-tap during toggle)
+# refreshes the state but leaves prior_override untouched so the original
+# pre-override value survives.
 #
 # Tap-to-face-change latency target: < 2 s (the device's grace window). MQTT
 # publish in the same action block is sub-second in a healthy HA, so this is
@@ -42,23 +51,30 @@
         {% else %}
           {{ not (now_t >= qs or now_t < qe) }}
         {% endif %}
-    # now_playing wins; don't preempt it.
-    - condition: template
-      value_template: "{{ states('input_text.inkplate_active_override') != 'now_playing' }}"
+    # now_playing no longer suppresses single tap — explicit intent (tap) beats
+    # ambient (music). Peek auto-returns to now_playing at expiry if Sonos is
+    # still playing.
   action:
-    # Save current override so we can restore it when the peek expires.
-    - service: input_text.set_value
-      target: { entity_id: input_text.inkplate_prior_override }
-      data: { value: "{{ states('input_text.inkplate_active_override') }}" }
+    # Save current override so we can restore it when the peek expires — unless
+    # we're already in weather_peek, in which case preserve the original prior
+    # (this lets a repeated tap extend the window without losing what we were on).
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ states('input_text.inkplate_active_override') != 'weather_peek' }}"
+          sequence:
+            - service: input_text.set_value
+              target: { entity_id: input_text.inkplate_prior_override }
+              data: { value: "{{ states('input_text.inkplate_active_override') }}" }
     - service: input_text.set_value
       target: { entity_id: input_text.inkplate_active_override }
       data: { value: weather_peek }
-    # Arm the expiry: now + configured peek seconds.
+    # Arm (or re-arm) the expiry: now + configured peek seconds (60 by default).
     - service: input_datetime.set_datetime
       target: { entity_id: input_datetime.inkplate_weather_peek_expires_at }
       data:
         datetime: >-
-          {% set s = states('input_number.inkplate_weather_peek_seconds') | int(300) %}
+          {% set s = states('input_number.inkplate_weather_peek_seconds') | int(60) %}
           {{ (now() + timedelta(seconds=s)).strftime('%Y-%m-%d %H:%M:%S') }}
     # Publish active_mode so the device's post-publish grace window picks it up.
     - service: mqtt.publish
@@ -95,6 +111,8 @@
         {% else %}
           {{ not (now_t >= qs or now_t < qe) }}
         {% endif %}
+    # Double-tap stays suppressed during now_playing (deliberate asymmetry —
+    # see file header).
     - condition: template
       value_template: "{{ states('input_text.inkplate_active_override') != 'now_playing' }}"
     # Toggle only meaningful when the scheduled face is Summary or Gallery.
@@ -107,9 +125,16 @@
         toggled: >-
           {% set s = states('input_text.inkplate_scheduled_face') %}
           {% if s == 'summary' %}gallery{% elif s == 'gallery' %}summary{% else %}{{ s }}{% endif %}
-    - service: input_text.set_value
-      target: { entity_id: input_text.inkplate_prior_override }
-      data: { value: "{{ states('input_text.inkplate_active_override') }}" }
+    # Save prior only when we're not already in the toggle state; re-toggling
+    # must not overwrite the original prior (invariant: prior != current).
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ states('input_text.inkplate_active_override') != 'summary_gallery_toggle' }}"
+          sequence:
+            - service: input_text.set_value
+              target: { entity_id: input_text.inkplate_prior_override }
+              data: { value: "{{ states('input_text.inkplate_active_override') }}" }
     - service: input_text.set_value
       target: { entity_id: input_text.inkplate_active_override }
       data: { value: summary_gallery_toggle }
@@ -126,8 +151,9 @@
 
 - id: inkplate_weather_peek_expiry
   alias: "Inkplate: Weather-peek window expired → revert"
-  # Fires when the wall clock matches the helper's datetime. If the peek
-  # override is still active (not superseded by now_playing), revert.
+  # Fires when the wall clock matches the helper's datetime. Reverts only if
+  # weather_peek is still the active override (a higher-precedence activation —
+  # now_playing — may have superseded it in the meantime).
   trigger:
     - platform: time
       at: input_datetime.inkplate_weather_peek_expires_at
@@ -136,26 +162,99 @@
       entity_id: input_text.inkplate_active_override
       state: weather_peek
   action:
-    # Restore the prior override. If prior is `summary_gallery_toggle` and
-    # we're still in the same schedule window, restore it; otherwise fall
-    # back to `schedule`. (A toggle that's already expired would have been
-    # cleared by the schedule-boundary automation.)
+    # Unified restore cascade — also reused by the linger-expired and HA-start
+    # cleanup handlers. Selection rule:
+    #   prior == now_playing AND Sonos playing         → now_playing
+    #   prior == weather_peek AND expiry still future  → weather_peek   (peek-inside-peek edge)
+    #   prior == summary_gallery_toggle AND in-window  → summary_gallery_toggle
+    #   else                                           → schedule
     - variables:
         prior: "{{ states('input_text.inkplate_prior_override') }}"
+        peek_expires: "{{ states('input_datetime.inkplate_weather_peek_expires_at') | default('', true) }}"
+        sched: "{{ states('input_text.inkplate_scheduled_face') }}"
+        sonos_playing: "{{ states('media_player.kitchen_sonos') == 'playing' }}"
         restore: >-
-          {% if prior == 'summary_gallery_toggle' %}summary_gallery_toggle
-          {% else %}schedule{% endif %}
-        mode_payload: >-
-          {% set r = (prior == 'summary_gallery_toggle') %}
-          {% if r %}{{ states('input_text.inkplate_scheduled_face') }}
-          {% else %}{{ states('input_text.inkplate_scheduled_face') }}{% endif %}
+          {% if prior == 'now_playing' and sonos_playing %}
+            now_playing
+          {% elif prior == 'weather_peek' and peek_expires and as_timestamp(peek_expires, 0) > as_timestamp(now()) %}
+            weather_peek
+          {% elif prior == 'summary_gallery_toggle' %}
+            summary_gallery_toggle
+          {% else %}
+            schedule
+          {% endif %}
+        restore_mode: >-
+          {% set r = (
+            'now_playing' if (prior == 'now_playing' and sonos_playing)
+            else ('weather_peek' if (prior == 'weather_peek' and peek_expires and as_timestamp(peek_expires, 0) > as_timestamp(now()))
+            else ('summary_gallery_toggle' if prior == 'summary_gallery_toggle'
+            else 'schedule'))
+          ) %}
+          {% if r == 'now_playing' %}now-playing
+          {% elif r == 'weather_peek' %}weather
+          {% else %}{{ sched }}{% endif %}
     - service: input_text.set_value
       target: { entity_id: input_text.inkplate_active_override }
       data: { value: "{{ restore | trim }}" }
+    # Cascade consumes prior_override. Reset to `schedule` so the invariant
+    # (prior != active) holds and future activations save a clean prior.
+    - service: input_text.set_value
+      target: { entity_id: input_text.inkplate_prior_override }
+      data: { value: schedule }
     - service: mqtt.publish
       data:
         topic: inkplate/command/active_mode
-        payload: "{{ mode_payload | trim }}"
+        payload: "{{ restore_mode | trim }}"
+        retain: true
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/wake
+        payload: ""
+        retain: false
+
+- id: inkplate_ha_start_stale_peek_cleanup
+  alias: "Inkplate: HA start — clear expired weather-peek override"
+  # HA time triggers don't back-fire for times already in the past. If HA
+  # restarts mid-peek and the expiry has passed, the peek would be stuck
+  # forever. At startup, if we're in weather_peek with an expired datetime,
+  # run the same restore cascade as the normal expiry path would have.
+  trigger:
+    - platform: homeassistant
+      event: start
+  condition:
+    - condition: state
+      entity_id: input_text.inkplate_active_override
+      state: weather_peek
+    - condition: template
+      value_template: >-
+        {% set e = states('input_datetime.inkplate_weather_peek_expires_at') %}
+        {{ e and as_timestamp(e, 0) <= as_timestamp(now()) }}
+  action:
+    - variables:
+        prior: "{{ states('input_text.inkplate_prior_override') }}"
+        sched: "{{ states('input_text.inkplate_scheduled_face') }}"
+        sonos_playing: "{{ states('media_player.kitchen_sonos') == 'playing' }}"
+        restore: >-
+          {% if prior == 'now_playing' and sonos_playing %}
+            now_playing
+          {% elif prior == 'summary_gallery_toggle' %}
+            summary_gallery_toggle
+          {% else %}
+            schedule
+          {% endif %}
+        restore_mode: >-
+          {% if prior == 'now_playing' and sonos_playing %}now-playing
+          {% else %}{{ sched }}{% endif %}
+    - service: input_text.set_value
+      target: { entity_id: input_text.inkplate_active_override }
+      data: { value: "{{ restore | trim }}" }
+    - service: input_text.set_value
+      target: { entity_id: input_text.inkplate_prior_override }
+      data: { value: schedule }
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/active_mode
+        payload: "{{ restore_mode | trim }}"
         retain: true
     - service: mqtt.publish
       data:

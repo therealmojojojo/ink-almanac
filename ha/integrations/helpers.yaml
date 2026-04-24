@@ -6,12 +6,20 @@ input_text:
     initial: schedule
     max: 32
     # Allowed values: schedule | now_playing | weather_peek | summary_gallery_toggle
-    # Precedence (highest→lowest): now_playing > weather_peek > summary_gallery_toggle > schedule
+    #
+    # Activation model: explicit intent (tap) activates unconditionally (outside
+    # quiet hours); ambient signals (schedule, Sonos) activate unless preempted
+    # by an explicit override. Precedence governs *deactivation* — what state
+    # to restore when the current override ends. See the restore cascade in
+    # gesture_override.yaml / now_playing_override.yaml and the narrative in
+    # ha/docs/architecture.md.
 
   inkplate_prior_override:
     name: Inkplate prior override
     initial: schedule
     max: 32
+    # Invariant: prior_override SHALL NEVER equal active_override.
+    # Re-triggering the same state leaves prior untouched.
 
   inkplate_scheduled_face:
     name: Inkplate scheduled face
@@ -91,11 +99,13 @@ input_number:
     min: 60
     max: 900
     step: 30
-    initial: 300
+    initial: 60
     unit_of_measurement: s
     # How long a single-tap-triggered weather_peek override lasts before
-    # the expiry automation auto-reverts to the prior override. 5 minutes
-    # is the spec default (see dashboard-faces / architecture.md).
+    # the expiry automation auto-reverts. 60 s matches the device's timer
+    # cadence (kSummaryTimerSec), so the visible-weather window lands in
+    # [60,120] s depending on when the next device wake hits. See
+    # openspec/changes/revise-tap-override-semantics.
 
 input_boolean:
   inkplate_publisher_enabled:

@@ -109,18 +109,40 @@ bare token from `RENDERER_INPUT_TOKEN`.
 | `inkplate/state/device` | device → HA | ✓ | firmware | low_battery, mqtt sensors |
 | `inkplate/state/gesture` | device → HA |   | firmware | (consumed by add-now-playing-mode) |
 
-## Override precedence
+## Activation model and deactivation precedence
 
-Highest to lowest:
+Two separate rules (see `openspec/changes/revise-tap-override-semantics`).
 
-1. `now_playing` — Sonos is playing (latched through a linger window)
-2. `weather_peek` — single-tap gesture, 5-minute window, auto-reverts
-3. `summary_gallery_toggle` — double-tap gesture, persists until next scheduled transition
-4. `schedule` — default
+**Activation** — explicit beats ambient:
 
-Only `schedule` lets the scheduled-mode transitions wake the device. Higher-
-precedence overrides still let HA update `input_text.inkplate_scheduled_face`
-so the device returns to the right face when the override lifts.
+- Single tap activates `weather_peek` unconditionally outside quiet hours,
+  including during `now_playing`. A 60 s auto-revert returns to whatever was
+  active before (Sonos gets its face back if still playing).
+- Double tap activates `summary_gallery_toggle` outside quiet hours, except
+  during `now_playing` (deliberate asymmetry — see gesture_override.yaml
+  header for the rationale).
+- Sonos-starts-playing activates `now_playing` outside quiet hours, preempting
+  whatever was active.
+- Scheduled transitions only publish a new `active_mode` when the active
+  override is `schedule` (or `summary_gallery_toggle`, which clears at the
+  boundary); higher overrides see their `scheduled_face` helper update but
+  the device isn't advanced.
+
+**Deactivation precedence** — on expiry, what do we restore? Highest to lowest:
+
+1. `now_playing` — if `prior_override == now_playing` and Sonos is playing
+2. `weather_peek` — if `prior_override == weather_peek` and the expiry is still in the future
+3. `summary_gallery_toggle` — if `prior_override == summary_gallery_toggle`
+4. `schedule` — default fallthrough, including for unknown / empty `prior`
+
+Encoded once as the unified restore cascade (see below), reused by three
+sites: `weather_peek` expiry, `now_playing` linger expiry, and the HA-start
+stale-peek cleanup.
+
+**Invariant**: `prior_override` SHALL NEVER equal `active_override`. Re-
+triggering the same state (a second tap during an active peek, a double-tap
+during an active toggle) refreshes the state's timer/face but leaves `prior`
+untouched.
 
 ## State machine — the full HA ⇄ Renderer ⇄ Device lifecycle
 
@@ -164,61 +186,99 @@ and **when**. The renderer decides **how it looks**. The device decides
 Helpers (in `ha/integrations/helpers.yaml`):
 
 - `input_text.inkplate_active_override` — `schedule | now_playing | weather_peek | summary_gallery_toggle`
-- `input_text.inkplate_prior_override` — stash for restoration after higher-precedence lift
+- `input_text.inkplate_prior_override` — stash for the deactivation restore cascade (invariant: never equal to active_override)
 - `input_text.inkplate_scheduled_face` — the clock-derived face, updated even when overridden
+- `input_datetime.inkplate_weather_peek_expires_at` — armed at single-tap; the expiry automation triggers at this wall-clock moment
 - `input_datetime.inkplate_sonos_active_{start,end}` — Sonos fast-path window (07:00–20:00 default)
 - `input_datetime.inkplate_quiet_{start,end}` — quiet window (00:00–05:00 default)
+- `input_number.inkplate_weather_peek_seconds` — 60 default (matches kSummaryTimerSec)
+- `input_number.inkplate_linger_seconds` — 90 default
 - `input_number.inkplate_fast_path_interval_seconds` — 180 default
 - `input_boolean.inkplate_publisher_enabled` — renderer-input publisher master switch
-- `timer.inkplate_now_playing_linger` — 90 s after Sonos pause/idle
+- `timer.inkplate_now_playing_linger` — started on Sonos pause/idle; cancelled if music resumes in-window
 
 ### Face-selection state machine (HA)
 
-At every event, HA re-evaluates the active face and republishes retained
-`inkplate/command/active_mode`. The resolution is a priority cascade:
+Activation and deactivation follow different rules — there is no single
+priority cascade. Each event type has its own handler, and deactivations
+share one restore cascade.
+
+**Activations** (per event):
 
 ```
-                  ┌──────────────────────────┐
-                  │ event:                   │
-                  │  Sonos state change      │
-                  │  linger timer expires    │
-                  │  gesture received        │
-                  │  schedule boundary       │
-                  │  HA startup              │
-                  └────────────┬─────────────┘
-                               ▼
-         ┌────────────── Sonos playing OR linger running? ─── yes ──▶  active = now-playing
-         │                      │
-         │                      no
-         │                      ▼
-         │          weather_peek window open? ─────────── yes ──▶  active = weather
-         │                      │
-         │                      no
-         │                      ▼
-         │          summary_gallery_toggle set? ───────── yes ──▶  active = toggled face
-         │                      │
-         │                      no
-         │                      ▼
-         │          active = scheduled_face (by clock)
-         └──────────────────────────────────────────────────────▶  publish active_mode
-                                                                   pulse wake (if not already
-                                                                   on that face OR if HA init)
+single tap     ──▶  active = weather_peek
+                    prior  = <current>  (unless current already weather_peek;
+                                         invariant prior != active)
+                    arm expiry at now + 60 s
+                    suppressed during quiet hours
+
+double tap     ──▶  active = summary_gallery_toggle
+                    prior  = <current>  (unless current already toggle)
+                    publish the toggled face (summary↔gallery)
+                    suppressed during quiet hours
+                    suppressed during now_playing
+                    no-op when scheduled_face == night
+
+sonos→playing  ──▶  active = now_playing
+                    prior  = <current>
+                    publish now-playing
+                    suppressed during quiet hours (re-evaluated at quiet-end)
+
+schedule boundary  ──▶  scheduled_face advances always
+                        active_mode advances + wake only if
+                            active_override in {schedule, summary_gallery_toggle}
+                        toggle is cleared to schedule on boundary
 ```
 
-**Activation rule** (any higher precedence overtakes lower): save prior
-override, switch `active_override`, republish `active_mode`, pulse `wake`.
+**Deactivations** run the *unified restore cascade*:
 
-**Deactivation rule** (high falls away): if `prior_override` is still
-time-valid, restore it; else fall to `schedule`. Republish `active_mode`;
-pulse `wake` only if the device isn't already showing the new face.
+```
+┌─────────────────────────────────────────────────────┐
+│ trigger:                                            │
+│   weather_peek expiry                               │
+│   now_playing linger-expired (sonos not playing     │
+│                               AND still active=now_playing) │
+│   HA start + stuck-past-expiry weather_peek         │
+└────────────────────────┬────────────────────────────┘
+                         ▼
+    prior == now_playing AND sonos playing?   ── yes ──▶  restore now_playing
+                         │
+                         no
+                         ▼
+    prior == weather_peek AND expiry in future? ─ yes ──▶  restore weather_peek
+                         │
+                         no
+                         ▼
+    prior == summary_gallery_toggle?           ── yes ──▶  restore summary_gallery_toggle
+                         │
+                         no
+                         ▼
+                   restore schedule
+                         │
+                         ▼
+              set active_override, reset prior_override = schedule
+              (cascade consumes prior — without reset, restoring to
+              e.g. now_playing would leave prior == active, violating
+              the invariant and corrupting the next activation),
+              publish retained active_mode, pulse advisory wake
+```
 
-**Quiet-hours suppression**: between `quiet_start` and `quiet_end`, the
-`now_playing` activation branch is forced off. Night remains active even
-if music plays.
+**Quiet-hours suppression**: between `quiet_start` and `quiet_end`, tap
+gestures are suppressed (ack glyph on-device only) and `now_playing`
+activation is suppressed (re-evaluated when quiet-hours end). Suppression
+is about the device being deliberately ambient at night, not a priority
+rule.
 
 **22:00 schedule boundary with active Now-Playing**: HA advances
 `scheduled_face → night` internally but does NOT pulse `wake`. When
-music ends and linger elapses, `wake` fires.
+music ends and linger elapses, the restore cascade lands on
+`scheduled_face == night` → `wake` fires.
+
+**Tap during now_playing linger**: a tap while the 90 s linger timer is
+running peeks weather; the linger-expired event later finds
+`active_override != now_playing` and is a no-op. If the peek then expires,
+its restore cascade asks "is Sonos playing?" — no → fall through to
+`schedule`, not back to a phantom now-playing.
 
 ### Device wake loop — one tick of `fw::tick(hal, reason)`
 

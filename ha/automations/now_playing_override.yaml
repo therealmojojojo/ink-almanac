@@ -141,33 +141,56 @@
   condition:
     - condition: template
       value_template: "{{ states('media_player.kitchen_sonos') != 'playing' }}"
+    # Only act if now_playing is still the active override. A tap during the
+    # linger window can have switched us to weather_peek already; the linger
+    # timer keeps running in the background, and its fire-event must not
+    # overwrite the user's active peek.
+    - condition: state
+      entity_id: input_text.inkplate_active_override
+      state: now_playing
   action:
-    # Restore the prior override if it's still time-valid. Weather-peek carries a
-    # 5-minute window (gesture automation sets `inkplate_weather_peek_expires_at`);
-    # the toggle persists until the next scheduled transition. If the prior is
-    # stale, fall back to `schedule`.
+    # Unified restore cascade (mirror of inkplate_weather_peek_expiry; see that
+    # automation for the full commentary). Selection rule for deactivations:
+    #   prior == now_playing AND Sonos playing        → now_playing
+    #   prior == weather_peek AND expiry still future → weather_peek
+    #   prior == summary_gallery_toggle               → summary_gallery_toggle
+    #   else                                          → schedule
     - variables:
         prior: "{{ states('input_text.inkplate_prior_override') }}"
         peek_expires: "{{ states('input_datetime.inkplate_weather_peek_expires_at') | default('', true) }}"
+        sched: "{{ states('input_text.inkplate_scheduled_face') }}"
+        sonos_playing: "{{ states('media_player.kitchen_sonos') == 'playing' }}"
         restore: >-
-          {% if prior == 'weather_peek' and peek_expires and as_timestamp(peek_expires, 0) > as_timestamp(now()) %}
+          {% if prior == 'now_playing' and sonos_playing %}
+            now_playing
+          {% elif prior == 'weather_peek' and peek_expires and as_timestamp(peek_expires, 0) > as_timestamp(now()) %}
             weather_peek
           {% elif prior == 'summary_gallery_toggle' %}
             summary_gallery_toggle
           {% else %}
             schedule
           {% endif %}
+        restore_mode: >-
+          {% set r = (
+            'now_playing' if (prior == 'now_playing' and sonos_playing)
+            else ('weather_peek' if (prior == 'weather_peek' and peek_expires and as_timestamp(peek_expires, 0) > as_timestamp(now()))
+            else ('summary_gallery_toggle' if prior == 'summary_gallery_toggle'
+            else 'schedule'))
+          ) %}
+          {% if r == 'now_playing' %}now-playing
+          {% elif r == 'weather_peek' %}weather
+          {% else %}{{ sched }}{% endif %}
     - service: input_text.set_value
       target: { entity_id: input_text.inkplate_active_override }
       data: { value: "{{ restore | trim }}" }
+    # Cascade consumes prior_override — reset so prior != active.
+    - service: input_text.set_value
+      target: { entity_id: input_text.inkplate_prior_override }
+      data: { value: schedule }
     - service: mqtt.publish
       data:
         topic: inkplate/command/active_mode
-        payload: >-
-          {% set r = restore | trim %}
-          {% if r == 'weather_peek' %}weather
-          {% elif r == 'summary_gallery_toggle' %}{{ states('input_text.inkplate_scheduled_face') }}
-          {% else %}{{ states('input_text.inkplate_scheduled_face') }}{% endif %}
+        payload: "{{ restore_mode | trim }}"
         retain: true
     - service: mqtt.publish
       data:
