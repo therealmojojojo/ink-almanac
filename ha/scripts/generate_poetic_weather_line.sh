@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
-# Generate a ≤32-char Night-mode weather line and write it to
+# Generate a short Night-mode weather line and write it to
 # /config/custom/inkplate/state/poetic_weather.txt.
+# Validation budget matches the poetic_line zone in renderer/src/zones.ts
+# (40 chars). LLMs overshoot a ≤32-char prompt reliably, so we align both
+# the prompt and the zone at 40 to avoid false rejections.
 # Usage: generate_poetic_weather_line.sh "<condition_summary>" "<temp_c>" "<wind>" "<bucket>"
 #
 # Provider/model comes from ha/config/poetic_weather_line.yaml. On any failure
@@ -59,7 +62,7 @@ validate() {
 import re, sys
 s = sys.stdin.read().strip()
 allowed = re.compile(r"^[A-Za-zĂÂÎȘȚăâîșț0-9 ,.:;!\-'’\"]+$")
-if len(s) == 0 or len(s) > 32 or not allowed.match(s):
+if len(s) == 0 or len(s) > 40 or not allowed.match(s):
     sys.exit(1)
 sys.stdout.write(s)
 PY
@@ -97,7 +100,7 @@ user_msg = f"Current: {summary}, {temp_c}°C, {wind}"
 if provider == "claude":
     sys_prompt = (
         'Write one short evocative line about the night and current weather. '
-        'Rules: ≤32 characters. ASCII plus Romanian diacritics only. '
+        'Rules: ≤40 characters. ASCII plus Romanian diacritics only. '
         'No emoji, no markdown, no quotes. End with a period or no punctuation. '
         'Example: "Rain on the windows."'
     )

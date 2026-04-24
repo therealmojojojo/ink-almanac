@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
-# Generate a ≤40-char line describing tonight's most notable naked-eye
+# Generate a short line describing tonight's most notable naked-eye
 # astronomy observation from the operator's coordinates and write it to
 # /config/custom/inkplate/state/astro_event.txt.
+#
+# Validation budget: up to 80 chars (matches the weather face's
+# astro_event zone maxChars × maxLines = 40 × 2 in renderer/src/zones.ts).
+# Prompt asks the LLM for ~40 chars as a soft preference; enforcement at
+# twice that keeps us permissive of small overshoots (LLMs don't respect
+# char limits tightly).
 #
 # Usage: generate_astro_event.sh "<moon_phase>" "<lat>" "<lon>" "<date>"
 #
@@ -65,8 +71,8 @@ s = sys.stdin.read().strip()
 # Strip surrounding quotes if the model added them despite the rule.
 if (s.startswith('"') and s.endswith('"')) or (s.startswith("'") and s.endswith("'")):
     s = s[1:-1].strip()
-allowed = re.compile(r"^[A-Za-z0-9 ,.:;!\-'’°°–—]+$")
-if len(s) == 0 or len(s) > 40 or not allowed.match(s):
+allowed = re.compile(r"^[A-Za-z0-9 ,.:;!\-'’°–—]+$")
+if len(s) == 0 or len(s) > 80 or not allowed.match(s):
     sys.exit(1)
 sys.stdout.write(s)
 PY
@@ -99,7 +105,7 @@ provider = os.environ["PROVIDER"]
 
 sys_prompt = (
     "You are an astronomy editor. Given a date, coordinates, and moon phase, "
-    "return a single lowercase line (max 40 characters, ASCII + basic "
+    "return a single lowercase line (max 60 characters, ASCII + basic "
     "punctuation only) describing the most notable naked-eye observation "
     "for that night from that location.\n\n"
     "Priority of events: eclipse > meteor-shower peak > ISS visible pass "

@@ -59,8 +59,13 @@ fi
 # upward from the YAML file being parsed, so every ha/ fragment resolves its
 # !secret references against this file automatically. /config/secrets.yaml is
 # never touched by this script.
-echo "→ Preparing $REMOTE_BASE on the VM"
-ssh "${SSH_OPTS[@]}" "$SSH_TARGET" "rm -rf $REMOTE_BASE && mkdir -p $REMOTE_BASE"
+echo "→ Preparing $REMOTE_BASE on the VM (preserving state/)"
+# state/ holds LLM-generated lines and other runtime artifacts that the
+# deployer must not wipe — the tar below excludes state/, but a plain
+# `rm -rf $REMOTE_BASE` would delete it before the new tree is extracted.
+# Wipe everything *except* state/ so the daemon-generated files survive a
+# redeploy. (Using `find` avoids shell-glob ordering surprises.)
+ssh "${SSH_OPTS[@]}" "$SSH_TARGET" "mkdir -p $REMOTE_BASE/state && find $REMOTE_BASE -mindepth 1 -maxdepth 1 ! -name state -exec rm -rf {} +"
 
 echo "→ Streaming ha/ fragments → $REMOTE_BASE"
 tar -C "$HA_DIR" -cf - \

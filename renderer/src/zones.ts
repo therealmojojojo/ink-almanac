@@ -50,7 +50,7 @@ export const ZONES = {
 
   // ---- Night ------------------------------------------------------------
   weekday_label:   { maxChars: 9,  maxLines: 1, kind: 'prose' },
-  poetic_line:     { maxChars: 32, maxLines: 1, kind: 'prose' },
+  poetic_line:     { maxChars: 40, maxLines: 1, kind: 'prose' },
   hard_weather:    { maxChars: 16, maxLines: 1, kind: 'prose' },
   nocturne_attrib: { maxChars: 40, maxLines: 1, kind: 'prose' },
 
