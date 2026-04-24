@@ -31,7 +31,7 @@ export const ZONES = {
   // ---- Weather ----------------------------------------------------------
   location_name:   { maxChars: 16, maxLines: 1, kind: 'prose' },
   weather_cond_w:  { maxChars: 18, maxLines: 1, kind: 'prose' },
-  astro_event:     { maxChars: 22, maxLines: 1, kind: 'prose' },
+  astro_event:     { maxChars: 40, maxLines: 2, kind: 'prose' },
   astro_detail:    { maxChars: 26, maxLines: 2, kind: 'prose' },
 
   // ---- Gallery ----------------------------------------------------------

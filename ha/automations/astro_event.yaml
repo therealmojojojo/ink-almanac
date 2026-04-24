@@ -1,0 +1,24 @@
+# Daily astro-event line generation for the Weather face's TONIGHT block.
+# Fires once a day at 17:00 local (well before Night mode's 22:00 boundary)
+# and on HA start. Replaces the in-the-sky.org scraper that broke when the
+# source site changed its DOM.
+
+- id: inkplate_astro_event_daily
+  alias: "Inkplate: astro-event-tonight line daily"
+  trigger:
+    - platform: time
+      at: "17:00:00"
+    - platform: homeassistant
+      event: start
+  variables:
+    moon_phase: "{{ states('sensor.moon_phase_name') }}"
+    lat: !secret ${PLACE_A_SLUG}_latitude
+    lon: !secret ${PLACE_A_SLUG}_longitude
+    date_iso: "{{ now().strftime('%Y-%m-%d') }}"
+  action:
+    - service: shell_command.generate_astro_event
+      data:
+        moon_phase: "{{ moon_phase }}"
+        lat: "{{ lat }}"
+        lon: "{{ lon }}"
+        date_iso: "{{ date_iso }}"

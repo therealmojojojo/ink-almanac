@@ -32,16 +32,13 @@ command_line:
       scan_interval: 300
       value_template: "{{ value | default('', true) }}"
 
-  # Tonight's astronomical event (meteor shower, ISS pass, conjunction).
-  # Cached 12 h via scan_interval. The scrape inside the script is best-effort
-  # — when the source has nothing, state becomes 'none' and Weather's TONIGHT
-  # block falls back to its em-dash placeholder.
+  # Tonight's astronomical event line — LLM-generated daily by
+  # generate_astro_event.sh, written to state/astro_event.txt. Mirrors the
+  # inkplate_poetic_weather_line pattern. Replaces the earlier in-the-sky.org
+  # scraper, which broke when the source site's DOM changed.
   - sensor:
       name: astro_event_tonight
       unique_id: astro_event_tonight
-      command: "/config/custom/inkplate/scripts/fetch_astro_event.sh"
-      scan_interval: 43200  # 12 hours
-      value_template: "{{ value_json.title | default('') }}"
-      json_attributes:
-        - detail
-        - when
+      command: "/bin/sh -c 'cat /config/custom/inkplate/state/astro_event.txt 2>/dev/null || true'"
+      scan_interval: 300
+      value_template: "{{ value | default('', true) }}"

@@ -34,13 +34,42 @@
       # Renderer maps this to an SVG glyph id in shared/icons.svg.
       value_template: "{{ states('sensor.moon_phase') }}"
 
+    # Synodic-month math from a reference new-moon timestamp. HA's `moon`
+    # integration no longer exposes `next_full_moon` as an attribute in
+    # recent versions, so we compute both the illumination percentage and
+    # the next full-moon date ourselves. Anchors: 2026-04-17 11:50 UTC
+    # (new moon) and 2026-05-01 23:22 UTC (full moon). Synodic month
+    # 29.530588 days. Good to ~1 h over a year without needing a lookup
+    # table; update the anchors if the sensor drifts.
+    moon_illumination_pct:
+      friendly_name: "Moon illumination (%)"
+      unit_of_measurement: "%"
+      # Triangular approximation of the illuminated fraction (exact at the
+      # four cardinal phases, within ~10% at the eighths). Avoids trig.
+      value_template: >-
+        {% set anchor = as_timestamp('2026-04-17T11:50:00+00:00') %}
+        {% set synodic = 29.530588 * 86400 %}
+        {% set age_sec = (as_timestamp(now()) - anchor) % synodic %}
+        {% set age_days = age_sec / 86400 %}
+        {% if age_days <= 14.765294 %}
+          {{ (age_days / 14.765294 * 100) | round(0) }}
+        {% else %}
+          {{ ((29.530588 - age_days) / 14.765294 * 100) | round(0) }}
+        {% endif %}
+
     next_full_moon_date:
       friendly_name: "Next full moon"
-      # sensor.moon_phase exposes `next_full_moon` as ISO-8601 when the moon integration is v2023.
-      # Fall back to unknown if the attribute isn't present on this HA version.
       value_template: >-
-        {% set nfm = state_attr('sensor.moon_phase','next_full_moon') %}
-        {{ nfm if nfm else 'unknown' }}
+        {% set anchor = as_timestamp('2026-05-01T23:22:00+00:00') %}
+        {% set synodic = 29.530588 * 86400 %}
+        {% set now_ts = as_timestamp(now()) %}
+        {% set offset = now_ts - anchor %}
+        {% if offset <= 0 %}
+          {{ anchor | timestamp_custom('%Y-%m-%d', true) }}
+        {% else %}
+          {% set cycles = (offset / synodic) | int %}
+          {{ (anchor + (cycles + 1) * synodic) | timestamp_custom('%Y-%m-%d', true) }}
+        {% endif %}
 
 # (The command_line astro_event_tonight sensor moved to
 # ha/integrations/command_line_sensors.yaml — HA 2023.6+ silently drops the

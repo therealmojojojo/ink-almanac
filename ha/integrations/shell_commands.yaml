@@ -16,6 +16,12 @@ shell_command:
     ./generate_poetic_weather_line.sh "{{ summary }}" "{{ temp_c }}" "{{ wind }}" "{{ bucket }}"
     '
 
+  generate_astro_event: >-
+    /usr/bin/env bash -c '
+    cd /config/custom/inkplate/scripts &&
+    ./generate_astro_event.sh "{{ moon_phase }}" "{{ lat }}" "{{ lon }}" "{{ date_iso }}"
+    '
+
   fetch_sonos_art: >-
     /usr/bin/env bash -c '
     cd /config/custom/inkplate/scripts &&

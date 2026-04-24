@@ -107,7 +107,7 @@
               },
               "moon": {
                 "phase": "{{ (states('sensor.moon_phase_name') | replace('_',' ')) if states('sensor.moon_phase_name') not in ['unknown','unavailable','none'] else '' }}",
-                "illumination": 0
+                "illumination": {{ (states('sensor.moon_illumination_pct') | int(0) / 100) | round(2) }}
               },
               "sun": {
                 "rise": "{{ as_timestamp(states('sensor.sunrise_today'), 0) | timestamp_custom('%H:%M', true) }}",
