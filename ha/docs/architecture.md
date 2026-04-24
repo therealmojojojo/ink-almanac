@@ -12,10 +12,10 @@ and the renderer are otherwise stateless.
 │                                                                  │
 │  integrations/                                                    │
 │   ├─ zone_and_astro.yaml    sun, moon, home coords               │
-│   ├─ weather.yaml           MET.no primary + OWM fallback ×2 loc │
+│   ├─ weather.yaml           MET.no primary (current + hourly) ×2 loc │
 │   ├─ weather_forecast.yaml  daily forecast (hi/lo/rain%/5d)       │
 │   ├─ weather_nowcast.yaml   MET.no hourly → 1h-6h nowcast label   │
-│   ├─ weather_nowcast_minutely.yaml  Open-Meteo 15-min + combiner  │
+│   ├─ weather_nowcast_minutely.yaml  OWM OneCall 3.0 1-min + combiner │
 │   ├─ mqtt.yaml              Mosquitto bridge + device-state       │
 │   ├─ helpers.yaml           input_text / input_datetime / timer   │
 │   ├─ notify.yaml            alias → operator mobile-app notify    │

@@ -94,6 +94,20 @@
   text-transform: lowercase;
 }
 
+/* Short-horizon precipitation nowcast ("RAIN IN 8 MIN", "DRY 6h+", etc.).
+ * Mono-caps so it reads as live data, not prose. Slightly smaller than
+ * `.cond` and in `--mid` tone so it complements rather than competes. */
+.weather-row .current .nowcast {
+  font-family: var(--font-mono);
+  font-size: calc(20 * var(--u));
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--mid);
+  text-align: center;
+  line-height: 1.1;
+  margin-top: calc(2 * var(--u));
+}
+
 /* Stacked hi/lo values. Hi on top, lo on bottom. */
 .weather-row .current .hl-stack {
   display: flex;

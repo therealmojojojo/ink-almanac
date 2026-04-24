@@ -106,6 +106,12 @@ function renderRow(loc: WeatherModeInput['weather']['locations'][number]): strin
     ? prettifyCondition(loc.current.condition)
     : '—';
 
+  // Short-horizon precipitation nowcast: "RAIN NOW" / "RAIN IN N MIN" /
+  // "CLEARING IN N MIN" / "DRY 6h+" / empty. Source: HA side, OWM OneCall
+  // minutely with MET.no hourly as fallback. Omit the element entirely when
+  // the label is empty (rather than render an empty line).
+  const nowcastText = loc.nowcast?.label?.trim() ?? '';
+
   return `<section class="weather-row">
   <div class="name-block">
     <div class="name">${escapeHtml(
@@ -125,6 +131,11 @@ function renderRow(loc: WeatherModeInput['weather']['locations'][number]): strin
       </div>
     </div>
     <div class="cond">${escapeHtml(applyZone('weather_cond_w', condText))}</div>
+    ${
+      nowcastText
+        ? `<div class="nowcast">${escapeHtml(applyZone('wx_nowcast', nowcastText))}</div>`
+        : ''
+    }
   </div>
   <div class="forecast">${forecast}</div>
 </section>`;

@@ -1,80 +1,74 @@
-# 15-minute-resolution nowcast — Open-Meteo Forecast API.
+# 1-minute-resolution nowcast — OpenWeatherMap OneCall 3.0 `minutely`.
 #
-# MET.no's hourly nowcast (ha/integrations/weather_nowcast.yaml) gives
-# coarse "rain in ~Nh" labels from 1-hour buckets. Open-Meteo's
-# `minutely_15` parameter yields 15-minute precipitation amounts
-# (mm per 15-min bucket) — 4× sharper than MET.no — and needs no API
-# key or signup. Data source is ICON-D2 (DWD regional model) for
-# Central/Eastern Europe. Not radar-fed (so not as sharp as a paid
-# minute-level service like Tomorrow.io or AccuWeather MinuteCast),
-# but honest about what it is and operationally free.
+# MET.no's hourly forecast (ha/integrations/weather_nowcast.yaml) gives
+# coarse "rain in ~Nh" labels from 1-hour buckets. OWM OneCall 3.0's
+# `minutely` array yields a rolling 60-minute window at 1-minute
+# resolution, radar-augmented where coverage exists. This integration
+# replaces the earlier Open-Meteo minutely_15 feed (which gave 15-min
+# bucket resolution without an API key) now that we have an OWM key.
 #
 # Combined with the hourly fallback this gives:
-#   0-60 min horizon: 15-min precision from Open-Meteo
+#   0-60 min horizon: 1-min precision from OWM
 #   1h-6h horizon:    1h precision from MET.no (unchanged)
 #
 # Label semantics (0-60 min only — beyond that the hourly fallback
 # produced by weather_nowcast.yaml takes over):
-#   • "RAIN NOW"           — precipitation in the current 15-min bucket
-#   • "RAIN IN N MIN"      — first wet bucket is N (15, 30, 45, 60)
+#   • "RAIN NOW"           — precipitation in the current 1-min bucket
+#   • "RAIN IN N MIN"      — first wet bucket is N minutes from now
 #   • "CLEARING IN N MIN"  — currently raining, first dry bucket in N min
 #   • empty                — no change within 60 min (fall through to hourly)
 #
-# Threshold: precipitation ≥ 0.1 mm per 15-min bucket (~0.4 mm/h)
-# counts as wet. Lower than MET.no's 0.2 mm/h because 15-min buckets
-# spread light drizzle thinner and we want to catch it.
+# Threshold: precipitation ≥ 0.1 mm/h counts as wet. OWM reports
+# `precipitation` as mm/h averaged over each 1-min bucket.
 #
-# Public, free, no key — https://open-meteo.com/. Rate limit 10k calls
-# per day per IP (effectively unlimited for our 2 locations × 96/day).
+# API docs: https://openweathermap.org/api/one-call-3. Scan interval 300 s
+# (5 min) gives fresh data every 5 min with a 60-min horizon — ample. Two
+# locations × 12/hr × 24 = 576 calls/day, under the free-tier 1000/day.
 
 rest:
-  - scan_interval: 900       # 15 min
-    resource: https://api.open-meteo.com/v1/forecast
+  - scan_interval: 300      # 5 min
+    resource: https://api.openweathermap.org/data/3.0/onecall
     params:
-      latitude: !secret ${PLACE_A_SLUG}_latitude
-      longitude: !secret ${PLACE_A_SLUG}_longitude
-      minutely_15: "precipitation"
-      forecast_days: "1"
-      timezone: "auto"
+      lat: !secret ${PLACE_A_SLUG}_latitude
+      lon: !secret ${PLACE_A_SLUG}_longitude
+      appid: !secret openweathermap_api_key
+      exclude: "current,hourly,daily,alerts"
+      units: metric
     timeout: 20
     sensor:
-      - name: ${PLACE_A_SLUG}_openmeteo_minutely
-        unique_id: ${PLACE_A_SLUG}_openmeteo_minutely
-        # State is a short marker; the parallel `time` + `precipitation`
-        # arrays live in the attributes for the template sensors below.
+      - name: ${PLACE_A_SLUG}_owm_minutely
+        unique_id: ${PLACE_A_SLUG}_owm_minutely
+        # State is a short marker; the 60-entry minutely array is copied
+        # into attributes for the template sensors below to walk.
         value_template: >-
-          {% set t = value_json.minutely_15.time | default([]) %}
-          {{ 'ok:' ~ (t | length) if t else 'empty' }}
-        json_attributes_path: "$.minutely_15"
+          {% set m = value_json.minutely | default([]) %}
+          {{ 'ok:' ~ (m | length) if m else 'empty' }}
         json_attributes:
-          - time
-          - precipitation
+          - minutely
 
-  - scan_interval: 900
-    resource: https://api.open-meteo.com/v1/forecast
+  - scan_interval: 300
+    resource: https://api.openweathermap.org/data/3.0/onecall
     params:
-      latitude: !secret ${PLACE_B_SLUG}_latitude
-      longitude: !secret ${PLACE_B_SLUG}_longitude
-      minutely_15: "precipitation"
-      forecast_days: "1"
-      timezone: "auto"
+      lat: !secret ${PLACE_B_SLUG}_latitude
+      lon: !secret ${PLACE_B_SLUG}_longitude
+      appid: !secret openweathermap_api_key
+      exclude: "current,hourly,daily,alerts"
+      units: metric
     timeout: 20
     sensor:
-      - name: ${PLACE_B_SLUG}_openmeteo_minutely
-        unique_id: ${PLACE_B_SLUG}_openmeteo_minutely
+      - name: ${PLACE_B_SLUG}_owm_minutely
+        unique_id: ${PLACE_B_SLUG}_owm_minutely
         value_template: >-
-          {% set t = value_json.minutely_15.time | default([]) %}
-          {{ 'ok:' ~ (t | length) if t else 'empty' }}
-        json_attributes_path: "$.minutely_15"
+          {% set m = value_json.minutely | default([]) %}
+          {{ 'ok:' ~ (m | length) if m else 'empty' }}
         json_attributes:
-          - time
-          - precipitation
+          - minutely
 
 # Parser + combiner. Two derived sensors per location:
 #   *_nowcast_minutely_label   — short string, 0-60 min horizon only
 #   *_nowcast_minutely_minutes — minutes until next state change (-1 if no
 #                                change in 60-min window or API offline)
-# Plus the combined outputs that publish_inputs.yaml already reads:
+# Plus the combined outputs that publish_inputs.yaml reads:
 #   *_nowcast_label / *_nowcast_minutes — prefer minutely when it has a
 #   predicted change; else fall back to the hourly sensors produced by
 #   weather_nowcast.yaml (`*_nowcast_hourly_label` / `*_nowcast_hourly_minutes`).
@@ -84,64 +78,37 @@ template:
       - name: ${PLACE_A_SLUG}_nowcast_minutely_label
         unique_id: ${PLACE_A_SLUG}_nowcast_minutely_label
         state: >-
-          {% set times = state_attr('sensor.${PLACE_A_SLUG}_openmeteo_minutely','time') or [] %}
-          {% set precips = state_attr('sensor.${PLACE_A_SLUG}_openmeteo_minutely','precipitation') or [] %}
-          {# Round now DOWN to 15-min grid to match Open-Meteo bucket boundaries. #}
-          {% set nr = now().replace(second=0, microsecond=0) %}
-          {% set nr = nr.replace(minute=(nr.minute // 15) * 15) %}
-          {% set now_str = nr.strftime('%Y-%m-%dT%H:%M') %}
-          {# Current bucket = last index whose time string is <= now_str. #}
-          {% set ns = namespace(start=-1, first_wet=-1, first_dry=-1) %}
-          {% for t in times %}
-            {% if t <= now_str %}{% set ns.start = loop.index0 %}{% endif %}
+          {% set m = state_attr('sensor.${PLACE_A_SLUG}_owm_minutely','minutely') or [] %}
+          {% set ns = namespace(first_wet=-1, first_dry=-1) %}
+          {% for b in m[:60] %}
+            {% set wet = (b.precipitation | float(0)) >= 0.1 %}
+            {% if wet and ns.first_wet < 0 %}{% set ns.first_wet = loop.index0 %}{% endif %}
+            {% if (not wet) and ns.first_dry < 0 %}{% set ns.first_dry = loop.index0 %}{% endif %}
           {% endfor %}
-          {% if ns.start >= 0 %}
-            {# Inspect next 4 buckets = 60 min. #}
-            {% for offset in range(4) %}
-              {% set idx = ns.start + offset %}
-              {% if idx < precips | length %}
-                {% set wet = (precips[idx] | float(0)) >= 0.1 %}
-                {% if wet and ns.first_wet < 0 %}{% set ns.first_wet = offset %}{% endif %}
-                {% if (not wet) and ns.first_dry < 0 %}{% set ns.first_dry = offset %}{% endif %}
-              {% endif %}
-            {% endfor %}
-          {% endif %}
-          {%- if ns.start < 0 -%}
+          {%- if m | length == 0 -%}
           {%- elif ns.first_wet == 0 and ns.first_dry > 0 -%}
-            CLEARING IN {{ ns.first_dry * 15 }} MIN
+            CLEARING IN {{ ns.first_dry }} MIN
           {%- elif ns.first_wet == 0 -%}
             RAIN NOW
           {%- elif ns.first_wet > 0 -%}
-            RAIN IN {{ ns.first_wet * 15 }} MIN
+            RAIN IN {{ ns.first_wet }} MIN
           {%- endif %}
 
       - name: ${PLACE_A_SLUG}_nowcast_minutely_minutes
         unique_id: ${PLACE_A_SLUG}_nowcast_minutely_minutes
         unit_of_measurement: min
         state: >-
-          {% set times = state_attr('sensor.${PLACE_A_SLUG}_openmeteo_minutely','time') or [] %}
-          {% set precips = state_attr('sensor.${PLACE_A_SLUG}_openmeteo_minutely','precipitation') or [] %}
-          {% set nr = now().replace(second=0, microsecond=0) %}
-          {% set nr = nr.replace(minute=(nr.minute // 15) * 15) %}
-          {% set now_str = nr.strftime('%Y-%m-%dT%H:%M') %}
-          {% set ns = namespace(start=-1, first_wet=-1, first_dry=-1) %}
-          {% for t in times %}
-            {% if t <= now_str %}{% set ns.start = loop.index0 %}{% endif %}
+          {% set m = state_attr('sensor.${PLACE_A_SLUG}_owm_minutely','minutely') or [] %}
+          {% set ns = namespace(first_wet=-1, first_dry=-1) %}
+          {% for b in m[:60] %}
+            {% set wet = (b.precipitation | float(0)) >= 0.1 %}
+            {% if wet and ns.first_wet < 0 %}{% set ns.first_wet = loop.index0 %}{% endif %}
+            {% if (not wet) and ns.first_dry < 0 %}{% set ns.first_dry = loop.index0 %}{% endif %}
           {% endfor %}
-          {% if ns.start >= 0 %}
-            {% for offset in range(4) %}
-              {% set idx = ns.start + offset %}
-              {% if idx < precips | length %}
-                {% set wet = (precips[idx] | float(0)) >= 0.1 %}
-                {% if wet and ns.first_wet < 0 %}{% set ns.first_wet = offset %}{% endif %}
-                {% if (not wet) and ns.first_dry < 0 %}{% set ns.first_dry = offset %}{% endif %}
-              {% endif %}
-            {% endfor %}
-          {% endif %}
           {%- if ns.first_wet == 0 and ns.first_dry > 0 -%}
-            {{ ns.first_dry * 15 }}
+            {{ ns.first_dry }}
           {%- elif ns.first_wet > 0 -%}
-            {{ ns.first_wet * 15 }}
+            {{ ns.first_wet }}
           {%- else -%}
             -1
           {%- endif %}
@@ -151,9 +118,9 @@ template:
       - name: ${PLACE_A_SLUG}_nowcast_label
         unique_id: ${PLACE_A_SLUG}_nowcast_label_combined
         state: >-
-          {% set m = states('sensor.${PLACE_A_SLUG}_nowcast_minutely_label') %}
-          {%- if m not in ['unknown','unavailable','',none] -%}
-            {{ m }}
+          {% set mm = states('sensor.${PLACE_A_SLUG}_nowcast_minutely_label') %}
+          {%- if mm not in ['unknown','unavailable','',none] -%}
+            {{ mm }}
           {%- else -%}
             {{ states('sensor.${PLACE_A_SLUG}_nowcast_hourly_label') }}
           {%- endif %}
@@ -162,9 +129,9 @@ template:
         unique_id: ${PLACE_A_SLUG}_nowcast_minutes_combined
         unit_of_measurement: min
         state: >-
-          {% set m = states('sensor.${PLACE_A_SLUG}_nowcast_minutely_minutes') | int(-1) %}
-          {%- if m > 0 -%}
-            {{ m }}
+          {% set mm = states('sensor.${PLACE_A_SLUG}_nowcast_minutely_minutes') | int(-1) %}
+          {%- if mm > 0 -%}
+            {{ mm }}
           {%- else -%}
             {{ states('sensor.${PLACE_A_SLUG}_nowcast_hourly_minutes') | int(-1) }}
           {%- endif %}
@@ -173,61 +140,37 @@ template:
       - name: ${PLACE_B_SLUG}_nowcast_minutely_label
         unique_id: ${PLACE_B_SLUG}_nowcast_minutely_label
         state: >-
-          {% set times = state_attr('sensor.${PLACE_B_SLUG}_openmeteo_minutely','time') or [] %}
-          {% set precips = state_attr('sensor.${PLACE_B_SLUG}_openmeteo_minutely','precipitation') or [] %}
-          {% set nr = now().replace(second=0, microsecond=0) %}
-          {% set nr = nr.replace(minute=(nr.minute // 15) * 15) %}
-          {% set now_str = nr.strftime('%Y-%m-%dT%H:%M') %}
-          {% set ns = namespace(start=-1, first_wet=-1, first_dry=-1) %}
-          {% for t in times %}
-            {% if t <= now_str %}{% set ns.start = loop.index0 %}{% endif %}
+          {% set m = state_attr('sensor.${PLACE_B_SLUG}_owm_minutely','minutely') or [] %}
+          {% set ns = namespace(first_wet=-1, first_dry=-1) %}
+          {% for b in m[:60] %}
+            {% set wet = (b.precipitation | float(0)) >= 0.1 %}
+            {% if wet and ns.first_wet < 0 %}{% set ns.first_wet = loop.index0 %}{% endif %}
+            {% if (not wet) and ns.first_dry < 0 %}{% set ns.first_dry = loop.index0 %}{% endif %}
           {% endfor %}
-          {% if ns.start >= 0 %}
-            {% for offset in range(4) %}
-              {% set idx = ns.start + offset %}
-              {% if idx < precips | length %}
-                {% set wet = (precips[idx] | float(0)) >= 0.1 %}
-                {% if wet and ns.first_wet < 0 %}{% set ns.first_wet = offset %}{% endif %}
-                {% if (not wet) and ns.first_dry < 0 %}{% set ns.first_dry = offset %}{% endif %}
-              {% endif %}
-            {% endfor %}
-          {% endif %}
-          {%- if ns.start < 0 -%}
+          {%- if m | length == 0 -%}
           {%- elif ns.first_wet == 0 and ns.first_dry > 0 -%}
-            CLEARING IN {{ ns.first_dry * 15 }} MIN
+            CLEARING IN {{ ns.first_dry }} MIN
           {%- elif ns.first_wet == 0 -%}
             RAIN NOW
           {%- elif ns.first_wet > 0 -%}
-            RAIN IN {{ ns.first_wet * 15 }} MIN
+            RAIN IN {{ ns.first_wet }} MIN
           {%- endif %}
 
       - name: ${PLACE_B_SLUG}_nowcast_minutely_minutes
         unique_id: ${PLACE_B_SLUG}_nowcast_minutely_minutes
         unit_of_measurement: min
         state: >-
-          {% set times = state_attr('sensor.${PLACE_B_SLUG}_openmeteo_minutely','time') or [] %}
-          {% set precips = state_attr('sensor.${PLACE_B_SLUG}_openmeteo_minutely','precipitation') or [] %}
-          {% set nr = now().replace(second=0, microsecond=0) %}
-          {% set nr = nr.replace(minute=(nr.minute // 15) * 15) %}
-          {% set now_str = nr.strftime('%Y-%m-%dT%H:%M') %}
-          {% set ns = namespace(start=-1, first_wet=-1, first_dry=-1) %}
-          {% for t in times %}
-            {% if t <= now_str %}{% set ns.start = loop.index0 %}{% endif %}
+          {% set m = state_attr('sensor.${PLACE_B_SLUG}_owm_minutely','minutely') or [] %}
+          {% set ns = namespace(first_wet=-1, first_dry=-1) %}
+          {% for b in m[:60] %}
+            {% set wet = (b.precipitation | float(0)) >= 0.1 %}
+            {% if wet and ns.first_wet < 0 %}{% set ns.first_wet = loop.index0 %}{% endif %}
+            {% if (not wet) and ns.first_dry < 0 %}{% set ns.first_dry = loop.index0 %}{% endif %}
           {% endfor %}
-          {% if ns.start >= 0 %}
-            {% for offset in range(4) %}
-              {% set idx = ns.start + offset %}
-              {% if idx < precips | length %}
-                {% set wet = (precips[idx] | float(0)) >= 0.1 %}
-                {% if wet and ns.first_wet < 0 %}{% set ns.first_wet = offset %}{% endif %}
-                {% if (not wet) and ns.first_dry < 0 %}{% set ns.first_dry = offset %}{% endif %}
-              {% endif %}
-            {% endfor %}
-          {% endif %}
           {%- if ns.first_wet == 0 and ns.first_dry > 0 -%}
-            {{ ns.first_dry * 15 }}
+            {{ ns.first_dry }}
           {%- elif ns.first_wet > 0 -%}
-            {{ ns.first_wet * 15 }}
+            {{ ns.first_wet }}
           {%- else -%}
             -1
           {%- endif %}
@@ -235,9 +178,9 @@ template:
       - name: ${PLACE_B_SLUG}_nowcast_label
         unique_id: ${PLACE_B_SLUG}_nowcast_label_combined
         state: >-
-          {% set m = states('sensor.${PLACE_B_SLUG}_nowcast_minutely_label') %}
-          {%- if m not in ['unknown','unavailable','',none] -%}
-            {{ m }}
+          {% set mm = states('sensor.${PLACE_B_SLUG}_nowcast_minutely_label') %}
+          {%- if mm not in ['unknown','unavailable','',none] -%}
+            {{ mm }}
           {%- else -%}
             {{ states('sensor.${PLACE_B_SLUG}_nowcast_hourly_label') }}
           {%- endif %}
@@ -246,9 +189,9 @@ template:
         unique_id: ${PLACE_B_SLUG}_nowcast_minutes_combined
         unit_of_measurement: min
         state: >-
-          {% set m = states('sensor.${PLACE_B_SLUG}_nowcast_minutely_minutes') | int(-1) %}
-          {%- if m > 0 -%}
-            {{ m }}
+          {% set mm = states('sensor.${PLACE_B_SLUG}_nowcast_minutely_minutes') | int(-1) %}
+          {%- if mm > 0 -%}
+            {{ mm }}
           {%- else -%}
             {{ states('sensor.${PLACE_B_SLUG}_nowcast_hourly_minutes') | int(-1) }}
           {%- endif %}

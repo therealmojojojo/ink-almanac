@@ -4,7 +4,7 @@ Required entries in `ha/secrets.yaml` (copy from `ha/secrets.yaml.example`).
 
 | Key | Required when | Source |
 |---|---|---|
-| `openweathermap_api_key` | weather fallback | https://openweathermap.org/api — free tier sufficient |
+| `openweathermap_api_key` | always | https://openweathermap.org/api — "One Call by Call" subscription, free tier (1000 calls/day) sufficient. Powers the 0-60 min minutely precipitation nowcast (`ha/integrations/weather_nowcast_minutely.yaml`). |
 | `${PLACE_A_SLUG}_latitude` / `_longitude` / `_elevation` | always | operator |
 | `${PLACE_B_SLUG}_latitude` / `_longitude` / `_elevation` | always | operator |
 | `anthropic_api_key` | `provider: claude` in poetic_weather_line.yaml | https://console.anthropic.com |
