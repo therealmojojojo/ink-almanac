@@ -7,16 +7,19 @@
 
 namespace fw::config {
 
-// Per-mode timer cadence (seconds). All modes poll at 60 s for responsiveness
-// (motion → wake pulse, Sonos activation, scheduled transitions all caught
-// within a minute). The per-mode constants stay as named values so individual
-// modes can diverge later (e.g., if Gallery proves OK on a slower tick).
-// Battery cost: roughly 5× the previous design; operator monitors and tunes.
+// Per-mode timer cadence (seconds). Daytime modes poll at 60 s for
+// responsiveness (motion → wake pulse, Sonos activation, scheduled
+// transitions all caught within a minute). Night sleeps 15× longer
+// because content doesn't change overnight (no Sonos, no breaking
+// news, no schedule transitions until 06:00) and the slower cadence
+// dramatically extends battery life — at 60 s every night would cost
+// 480 wakes between 22:00 and 06:00; at 900 s it's 32. Tap wakes via
+// ext0 still work normally at night.
 constexpr int kSummaryTimerSec    = 60;
 constexpr int kWeatherTimerSec    = 60;
 constexpr int kGalleryTimerSec    = 60;
-constexpr int kNightTimerSec      = 60;
-constexpr int kSonosFastPathSec   = 60;   // redundant with mode timers now
+constexpr int kNightTimerSec      = 900;  // 15 min — see above
+constexpr int kSonosFastPathSec   = 60;   // redundant with daytime mode timers
 
 // Ghost-clear: after N partial refreshes within a mode, force a full refresh.
 constexpr int kGhostClearPartialCount = 30;
