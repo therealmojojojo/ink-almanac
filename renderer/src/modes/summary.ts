@@ -40,7 +40,7 @@ export function buildHtml(input: SummaryInput, variant: SummaryVariant = 'a'): s
     .join('');
 
   const delight = buildDelight(input);
-  const sidebar = buildSidebar(input, variant);
+  const smartPill = buildSmartPill(input, variant);
 
   const nowcastRaw = loc.nowcast?.label?.trim() || '';
   const nowcast = nowcastRaw ? applyZone('wx_nowcast', nowcastRaw) : '';
@@ -67,7 +67,7 @@ export function buildHtml(input: SummaryInput, variant: SummaryVariant = 'a'): s
   <section class="summary-forecast">${forecastCells}</section>
   <section class="summary-bottom">
     ${delight}
-    ${sidebar}
+    ${smartPill}
   </section>
 </div>`;
 
@@ -195,21 +195,60 @@ function buildDelight(input: SummaryInput): string {
 </section>`;
 }
 
-function buildSidebar(input: SummaryInput, _variant: SummaryVariant): string {
-  // Three curated-news items (Kottke / Atlas Obscura / Aeon, picked daily
-  // by Claude Haiku). Each body is a ~3-line micro-summary synthesised
-  // from the item's title + RSS description. See
-  // ha/scripts/generate_curated_news.sh.
-  const news = input.news.items;
-  const newsItem = (it: { body: string }) =>
-    `<div class="item">
-  <div class="body">${escapeHtml(applyZone('news_body', it.body))}</div>
-</div>`;
-  const items = news.slice(0, 2).map(newsItem).join('') ||
-    `<div class="item"><div class="body placeholder-dash"></div></div>`;
-  return `<section class="summary-sidebar">
-  <div class="label">Reading today</div>
-  <div class="news">${items}</div>
+/** Step-down font sizing for the smart pill body. The cell is ~437u wide
+ * and ~400u tall; line-height 1.35 in proportional sans, char width ~0.5×
+ * font-size. We pick the largest size whose capacity (chars/line × lines)
+ * covers the body's char count. The 25u floor (typography-routing rule)
+ * is the minimum; bodies longer than the 25u capacity (~385 chars) must
+ * be authored shorter — there is no truncation, no ellipsis. */
+// Empirical calibration measured against actual Plex Sans renders. Cell
+// height is 408u when the header label is dropped (was 372u with label).
+// Char-width ratio 0.55 (proportional sans averages wider than 0.5 of
+// em-square in practice). Ladder extends below the 25u typography-routing
+// floor to 21u: the smart pill is body content, not chrome, but the operator
+// authorized stepping below the floor here so longer concept dives fit
+// without truncation. Inline font-size bypasses the lint (which only checks
+// CSS rules). Documented exception, not general license.
+const PILL_CELL_WIDTH_U = 437;
+const PILL_CELL_HEIGHT_U = 408;
+const PILL_LINE_HEIGHT_RATIO = 1.35;
+const PILL_CHAR_WIDTH_RATIO = 0.55;
+const PILL_FONT_LADDER = [36, 32, 30, 28, 26, 25, 23, 21, 19] as const;
+
+function smartPillFontSize(charCount: number): number {
+  for (const size of PILL_FONT_LADDER) {
+    const charsPerLine = Math.floor(PILL_CELL_WIDTH_U / (size * PILL_CHAR_WIDTH_RATIO));
+    const lines = Math.floor(PILL_CELL_HEIGHT_U / (size * PILL_LINE_HEIGHT_RATIO));
+    if (charCount <= charsPerLine * lines) return size;
+  }
+  return PILL_FONT_LADDER[PILL_FONT_LADDER.length - 1]!;
+}
+
+/** Convert markdown-style `*word*` to bolded inline content, after HTML
+ *  escaping. Asterisks are not HTML-special so they survive escapeHtml,
+ *  letting us run the regex on the escaped string. */
+function boldHeadword(escaped: string): string {
+  return escaped.replace(/\*([^*\n]+)\*/g, '<strong>$1</strong>');
+}
+
+function buildSmartPill(input: SummaryInput, _variant: SummaryVariant): string {
+  // Smart pill — lower-right zone of the Summary face. A single deep-dive
+  // entry (word-of-day or concept-of-day) bound to the companion on the left.
+  // Font size steps down to fit the body in the cell without truncation.
+  // Header label intentionally dropped — the column reads as primary content
+  // beside the delight cell, not as a chrome-labelled side panel.
+  const first = input.news.items[0];
+  if (!first) {
+    return `<section class="summary-smart-pill">
+  <div class="news"><div class="item"><div class="body placeholder-dash"></div></div></div>
+</section>`;
+  }
+  const safe = applyZone('news_body', first.body);
+  const sizeU = smartPillFontSize(safe.length);
+  const styleAttr = `style="font-size: calc(${sizeU} * var(--u))"`;
+  const bodyHtml = boldHeadword(escapeHtml(safe));
+  return `<section class="summary-smart-pill">
+  <div class="news"><div class="item"><div class="body" ${styleAttr}>${bodyHtml}</div></div></div>
 </section>`;
 }
 

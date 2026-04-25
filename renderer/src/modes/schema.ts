@@ -89,7 +89,7 @@ export const sonosInput = z.object({
 });
 
 export const newsInput = z.object({
-  items: z.array(z.object({ body: z.string() })).max(2),
+  items: z.array(z.object({ body: z.string() })).max(1),
 });
 
 const form = z.enum([

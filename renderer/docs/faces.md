@@ -13,8 +13,7 @@ reader's guide.
 | **3-day forecast (Summary)** | Summary middle band | Day, condition, icon, H/L for the next three days. |
 | **5-day mini-forecast (Weather)** | Weather location row | Compact strip of day/icon/H/L. |
 | **Delight zone** | Summary bottom-left | Follows pairing flavor — *text* when the hero is visual, *small image* when the hero is text. See below. |
-| **Climate readout** | Summary sidebar top | Indoor temperature + humidity. Label in mono caps (e.g. "KITCHEN"). |
-| **HN feed** | Summary sidebar bottom | Top HN items as title + subtitle pairs. First-class news, not a Spotify fallback. |
+| **Smart pill** | Summary bottom-right | Two curated items, both bound to the day's companion text: word-of-the-day extracted from the companion + on-this-day historical event. Header label "Smart pill". |
 | **Caption band** | Gallery visual, Gallery text | Title / attribution / time strip. 72u tall on visual; corner time on text. |
 | **Hero** | Gallery | The main attraction — image on visual-day, typeset text on text-day. |
 | **Attribution line** | Gallery, Night (nocturne) | Mono caps `NAME · DATES · MEDIUM`. |
@@ -52,8 +51,9 @@ Three bands:
    band from the rest.
 2. **Middle (~18%)** — three equal cells for the next three forecast days,
    separated by dashed `--faint` rules.
-3. **Bottom** — delight companion (left, 1.45fr) and sidebar (right, 1fr).
-   Sidebar stacks indoor-climate readout on top, HN feed below.
+3. **Bottom** — delight companion (left, 1.45fr) and Smart pill (right, 1fr).
+   Smart pill = word-of-day + on-this-day, both thematically bound to the
+   day's companion text.
 
 Graceful-degradation: all zones fall back to `—` or a blank rule when data is
 null. See `test/fixtures/degraded/` + `__golden__/degraded/summary.png`.

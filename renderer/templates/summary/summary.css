@@ -357,7 +357,7 @@
   color: var(--mid);
 }
 
-/* ---- Bottom band: delight + sidebar -------------------------------- */
+/* ---- Bottom band: delight + Smart pill ----------------------------- */
 .summary-bottom {
   border-top: 2px solid var(--ink);
   display: grid;
@@ -475,14 +475,14 @@
   color: var(--mid);
 }
 
-/* ---- Sidebar — shared base ---------------------------------------- */
-.summary-sidebar {
+/* ---- Smart pill — shared base ------------------------------------- */
+.summary-smart-pill {
   display: flex;
   flex-direction: column;
   overflow: hidden;
   min-height: 0;
 }
-.summary-sidebar .label {
+.summary-smart-pill .label {
   font-family: var(--font-mono);
   font-size: calc(22 * var(--u)) /* chrome */;
   text-transform: uppercase;
@@ -490,31 +490,40 @@
   color: var(--mid);
 }
 
-/* Sidebar — single style regardless of top-right variant.
- * Clean 3-item news list with dashed separators. */
-.summary-sidebar {
+/* Smart pill — single style. The pill is a single deep-dive entry
+ * (word-of-the-day or concept-of-the-day) bound to the day's companion.
+ * Body fills remaining vertical space so the entry visually carries
+ * weight equal to the delight cell on the left. */
+.summary-smart-pill {
   gap: calc(12 * var(--u));
 }
-.summary-sidebar .label {
+.summary-smart-pill .label {
   padding-bottom: calc(10 * var(--u));
   border-bottom: var(--rule-faint);
   margin-bottom: calc(4 * var(--u));
 }
-.summary-sidebar .news {
+.summary-smart-pill .news {
+  flex: 1;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: calc(12 * var(--u));
 }
-.summary-sidebar .news .item {
+.summary-smart-pill .news .item {
   padding-bottom: calc(8 * var(--u));
 }
-.summary-sidebar .news .item + .item {
-  border-top: var(--rule-faint-dashed);
-  padding-top: calc(10 * var(--u));
-}
-.summary-sidebar .news .item .body {
+.summary-smart-pill .news .item .body {
   font-family: var(--font-sans);
   font-weight: 400;
-  font-size: calc(21 * var(--u));
-  line-height: 1.3;
+  /* font-size set inline by summary.ts based on body length (step-down
+   * ladder 36u → 21u). Line-height stays 1.35 across all steps. */
+  line-height: 1.35;
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+}
+/* Headword (markdown `*word*` converted to <strong>) reads with extra
+ * weight so it lands as the entry's anchor at glance distance. */
+.summary-smart-pill .news .item .body strong {
+  font-weight: 600;
 }
