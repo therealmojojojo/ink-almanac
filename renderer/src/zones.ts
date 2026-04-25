@@ -23,7 +23,13 @@ export const ZONES = {
   forecast_cond:   { maxChars: 14, maxLines: 1, kind: 'prose' },
   news_body:       { maxChars: 50, maxLines: 14, kind: 'prose' },
   climate_label:   { maxChars: 12, maxLines: 1, kind: 'prose' },
-  delight_text:    { maxChars: 24, maxLines: 4, kind: 'verse' },
+  // Wrap-aware: the picker (corpus_build_triplets_v2.SUMMARY_MAX_VISUAL_LINES)
+  // simulates word-wrap and admits items whose post-wrap visual line count
+  // is ≤ 4. The renderer's CSS (`white-space: pre-line` + `overflow: hidden`
+  // on the delight cell) handles the actual visual wrap and clip. Zone is
+  // therefore a permissive prose backstop, not a strict verse gate — the
+  // editorial fit decision lives in the picker.
+  delight_text:    { maxChars: 60, maxLines: 4, kind: 'prose' },
   delight_attrib:  { maxChars: 40, maxLines: 1, kind: 'prose' },
   wx_nowcast:      { maxChars: 22, maxLines: 1, kind: 'prose' },
 
