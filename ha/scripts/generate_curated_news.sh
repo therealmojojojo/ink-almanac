@@ -1,19 +1,32 @@
 #!/usr/bin/env bash
-# Fetch Kottke + Atlas Obscura + Aeon RSS feeds, pick the 3 most
-# interesting items via Claude Haiku, and write the result to
-# /config/custom/inkplate/state/curated_news.json.
+# Generate the single deep-dive entry rendered in the Smart pill — the lower-
+# right zone of the Summary face. The pill is a structured word/meaning study
+# of one word drawn from the day's text companion (the small text on the
+# bottom-left of the same face). 400-500 chars. No history, no feeds.
 #
-# Shape (matches the existing HN input shape so publish_inputs.yaml needs
-# only trivial edits):
-#   { "count": 3, "items": [{"title": "...", "subtitle": "..."}, ...] }
+# Pipeline:
+#   1. Pull today's pairing companion from renderer/inputs/pairing.json (HTTP,
+#      LAN). The companion's body, poet, title, and source language are the
+#      input.
+#   2. Ask Claude to (a) pick one word that appears in the companion (or its
+#      original-language root if translated), (b) write a 400-500-char gloss
+#      that unpacks etymology, source-language root, and how the word works
+#      in this specific passage.
 #
-# Zone budgets (must match renderer/src/zones.ts):
-#   title    ≤ 28 chars × 2 lines (~56 visible chars)
-#   subtitle ≤ 32 chars × 1 line
+# Voice: warm, confident, plain English. Museum wall label by someone who
+# loves their subject. The gloss should make re-reading the companion richer.
 #
-# Fallback: if Claude is unavailable or its output fails validation, take
-# the first 3 Kottke items, trim each title to 28 chars at a word
-# boundary. Kottke alone is usually enough to fill the block honestly.
+# Output (publish_inputs.yaml consumes this shape — count 0 or 1 only):
+#   { "count": 1, "items": [{"body": "..."}] }
+#
+# Layout budget (must stay in sync with renderer/src/zones.ts news_body
+# 34 cols × 11 lines and the Smart pill's measured visual fit at the 25u
+# size floor):
+#   target 320-360 chars; 380 hard cap enforced by trim_to_fit.
+#
+# Fallback: empty items list when the LLM is unavailable or pairing.json is
+# unreachable — the Smart pill shows its placeholder-dash state rather than
+# leaking content.
 
 set -euo pipefail
 
@@ -22,6 +35,7 @@ CONFIG="$BASE/config/poetic_weather_line.yaml"
 SECRETS_FILE="$BASE/secrets.yaml"
 STATE_DIR="$BASE/state"
 STATE_FILE="$STATE_DIR/curated_news.json"
+RENDERER_URL="${INKPLATE_RENDERER_URL:-http://${RENDERER_HOST}:8575}"
 mkdir -p "$STATE_DIR"
 
 if [[ -z "${ANTHROPIC_API_KEY:-}" && -f "$SECRETS_FILE" ]]; then
@@ -37,85 +51,39 @@ PY
   export ANTHROPIC_API_KEY
 fi
 
-# --- Fetch + parse all three RSS feeds -----------------------------------
-# Emits a JSON array of {source, title} candidate objects. Handles Atom
-# and RSS 2.0 transparently by walking the XML tree and matching local
-# tag names. Per-source cap keeps any one feed from dominating when it
-# publishes ten items in a burst.
-candidates=$(python3 - <<'PY'
-import json, re, urllib.request
-from xml.etree import ElementTree as ET
+DATE_ISO=$(date +%Y-%m-%d)
+echo "date=$DATE_ISO" >&2
 
-SOURCES = [
-    # Broad miscellany / science-curiosity / places
-    ("kottke.org",       "https://feeds.kottke.org/main"),
-    ("atlasobscura.com", "https://www.atlasobscura.com/feeds/latest"),
-    ("aeon.co",          "https://aeon.co/feed.rss"),
-    # Non-US, non-science voices — updated less often but balance the mix
-    ("theguardian.com",  "https://www.theguardian.com/news/series/the-long-read/rss"),
-    ("eurozine.com",     "https://www.eurozine.com/feed/"),
-    ("psyche.co",        "https://psyche.co/feed/"),
-]
-PER_SOURCE_CAP = 6
-TOTAL_CAP = 30
-DESC_CAP = 500  # characters of description text forwarded to the LLM
+# --- Pull today's companion text (the source for the word) --------------
+companion_json=$(curl -fsS --max-time 8 "$RENDERER_URL/inputs/pairing.json" 2>/dev/null || echo "{}")
+companion=$(printf '%s' "$companion_json" | python3 -c "
+import sys, json
+try: d = json.loads(sys.stdin.read())
+except Exception: d = {}
+c = (d.get('gallery', {}) or {}).get('companion', {}) or {}
+body = (c.get('body') or '').strip()
+body_ja = (c.get('body_ja') or '').strip()
+poet = (c.get('poet') or '').strip()
+title = (c.get('title') or '').strip()
+form = (c.get('form') or '').strip()
+print(json.dumps({'body': body, 'body_ja': body_ja, 'poet': poet,
+                  'title': title, 'form': form}, ensure_ascii=False))
+" 2>/dev/null || echo "{}")
 
-def clean(s):
-    s = re.sub(r"<[^>]+>", "", s or "")
-    s = re.sub(r"&amp;", "&", s)
-    s = re.sub(r"&(?:#?[A-Za-z0-9]+);", "", s)
-    return re.sub(r"\s+", " ", s).strip()
-
-def local(tag): return tag.split("}")[-1] if "}" in tag else tag
-
-merged = []
-for domain, url in SOURCES:
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "inkplate-news/1"})
-        with urllib.request.urlopen(req, timeout=12) as r:
-            data = r.read()
-        root = ET.fromstring(data)
-    except Exception:
-        continue
-    taken = 0
-    for item in root.iter():
-        if local(item.tag) not in ("item", "entry"):
-            continue
-        title = None
-        desc = ""
-        # Prefer <content:encoded> > <description> > <summary> > <content>.
-        # First-past-the-post across Atom and RSS 2.0 flavors; whichever
-        # is first in the element order wins (consistently in practice).
-        for c in item:
-            tag = local(c.tag)
-            if tag == "title" and title is None:
-                title = clean(c.text or "")
-            elif tag in ("encoded", "description", "summary", "content") and not desc:
-                desc = clean(c.text or "")
-        if not title:
-            continue
-        merged.append({
-            "source": domain,
-            "title": title,
-            "desc":  desc[:DESC_CAP],
-        })
-        taken += 1
-        if taken >= PER_SOURCE_CAP:
-            break
-
-print(json.dumps(merged[:TOTAL_CAP], ensure_ascii=False))
-PY
-)
-
-# Sanity: if we couldn't fetch anything, bail to fallback (which will
-# itself likely be empty, producing an empty items list — honest).
-if [[ -z "$candidates" || "$candidates" == "[]" ]]; then
-  echo "fetch: zero candidates (all feeds unreachable)" >&2
+# Bail if we have no companion text — without it the pill has nothing to
+# bind to. Better to render the placeholder dash than to invent a gloss.
+has_companion=$(printf '%s' "$companion" | python3 -c "
+import sys, json
+try: print('1' if (json.loads(sys.stdin.read()).get('body') or '').strip() else '0')
+except Exception: print('0')
+" 2>/dev/null || echo "0")
+if [[ "$has_companion" != "1" ]]; then
   printf '%s' '{"count": 0, "items": []}' > "$STATE_FILE"
+  echo "no companion in pairing.json; wrote empty fallback" >&2
   exit 0
 fi
 
-# --- Read provider + model config (same file as poetic/astro) -----------
+# --- Read provider + model config ---------------------------------------
 read_config() {
   CONFIG="$CONFIG" python3 - <<'PY'
 import os, yaml
@@ -130,108 +98,93 @@ PROVIDER="${_cfg[0]:-}"
 MODEL="${_cfg[1]:-}"
 
 # --- Build the LLM request body -----------------------------------------
-# Candidates are numbered and labelled with source. Claude's job: pick 3,
-# rewrite titles to fit within the zone budget, emit as compact JSON.
 build_body() {
-  CANDIDATES="$candidates" MODEL="$1" PROVIDER="$2" python3 - <<'PY'
+  COMPANION="$companion" MODEL="$1" PROVIDER="$2" python3 - <<'PY'
 import json, os
-cands = json.loads(os.environ["CANDIDATES"])
+
+try: companion = json.loads(os.environ["COMPANION"] or "{}")
+except Exception: companion = {}
 model = os.environ["MODEL"]
 provider = os.environ["PROVIDER"]
 
-# Each candidate is title + a short description pulled from the RSS feed.
-# Feed both to the LLM so the micro-summary can draw from real content
-# rather than riffing on the title alone.
-numbered_parts = []
-for i, c in enumerate(cands):
-    block = f"{i+1}. [{c['source']}] {c['title']}"
-    desc = (c.get("desc") or "").strip()
-    if desc:
-        block += f"\n   {desc}"
-    numbered_parts.append(block)
-numbered = "\n".join(numbered_parts)
+attrib = companion.get("poet", "")
+if companion.get("title"):
+    attrib += f', "{companion["title"]}"'
+form = companion.get("form") or ""
+ja_block = ""
+if companion.get("body_ja"):
+    ja_block = f'\nOriginal-language version (where applicable):\n{companion["body_ja"]}\n'
 
-sys_prompt = (
-    "You are a curator for an ambient kitchen display read by two curious, "
-    "well-read adults who enjoy finding things out but don't want to be "
-    "lectured at. Your job is to pick the 2 most rewarding items from the "
-    "numbered candidates and, for each, write a substantive micro-essay "
-    "of 4-7 lines.\n\n"
-    "Editorial target — pick items that:\n"
-    "- bring joy or wonder — a 'huh, I didn't know that' moment\n"
-    "- invite conversation — something one person reads out loud to the "
-    "other\n"
-    "- raise the level — science, nature, how-things-work, history, "
-    "places with stories, craft, ideas, curious facts; not hot takes, not "
-    "trend pieces\n"
-    "- reward a 15-second read with something that lingers\n\n"
-    "Tone — adult general-reader register, neither dumbed down nor "
-    "specialist:\n"
-    "- Write the way a well-read friend tells you something interesting "
-    "they just learned. Confident, plain English. Explain any term that "
-    "isn't in common circulation.\n"
-    "- Concrete over abstract, END TO END. Prefer discoveries, objects, "
-    "places, mechanisms, and facts. No pure meditation, no academic "
-    "framing, no essay voice.\n"
-    "- The ENDING must be another concrete detail — a fact, a date, a "
-    "measurement, a consequence — not a moral or philosophical "
-    "reflection. The item stops when the facts stop.\n"
-    "- BANNED PHRASES AND PATTERNS (do not use these or anything like "
-    "them): 'reminds us that', 'a reminder that', 'a lesson in', "
-    "'invites us to', 'a conversation across time', 'proof that', 'we "
-    "can learn', 'especially when we', 'especially if we', 'which means "
-    "every', 'each of us', 'in a world where', 'teaches us', 'waiting to "
-    "be', 'our relationship with', 'what it means to be'.\n"
-    "- Aim for the register of a museum wall label written by someone "
-    "who loves their subject and trusts the reader to keep up.\n\n"
-    "Hard exclusions:\n"
-    "- No politics, no breaking news, no celebrity gossip.\n"
-    "- EXCLUDE items describing harm to children, death tolls, graphic "
-    "violence, medical decline, war, or anything bleak.\n"
-    "- No clickbait, no outrage, no moralising.\n\n"
-    "Mix rules:\n"
-    "- Prefer variety across the two picks: ideally one nature/science/"
-    "curiosity item and one ideas/place/history item, or one US-origin "
-    "and one non-US. Don't pick two items from the same source unless the "
-    "other feeds have nothing worth showing.\n\n"
-    "Writing rules:\n"
-    "- Layout constraint (exact): each body renders into a column ~490 "
-    "pixels wide, ~135 pixels tall, in a 21px proportional sans-serif at "
-    "1.3 line-height. That fits 5 lines × ~44 chars ≈ 220 characters of "
-    "prose. Your target is 180-230 characters. A 250-char hard cap is "
-    "enforced by a post-processor that trims to the last sentence "
-    "boundary under 250; anything over 260 is truncated outright with "
-    "an ellipsis. Prefer brevity with a concrete finish. Lead with the "
-    "hook; include at least one concrete detail; end cleanly. No "
-    "clickbait ellipses. No source names or bylines in the text.\n"
-    "- Draw content from the provided description. Do not invent facts; "
-    "if the description is thin, stay general rather than fabricating.\n"
-    "- Plain ASCII plus common punctuation only. No code fences. No "
-    "preamble. No trailing commentary.\n\n"
-    "Output must be exactly this JSON shape:\n"
-    "{\"items\":[{\"body\":\"...\"},{\"body\":\"...\"}]}"
+companion_block = (
+    "TODAY'S COMPANION TEXT (rendered next to the Smart pill on the "
+    "same face — the reader sees both at a glance):\n\n"
+    f'{companion["body"]}\n'
+    f'  — {attrib}\n'
+    f'  form: {form}\n'
+    f'{ja_block}'
 )
 
-user_msg = f"Candidates:\n{numbered}"
+shared = (
+    "You write the Smart pill: a single deep-dive entry on one word drawn "
+    "from the companion text the reader sees on the left side of the same "
+    "panel. The pill should make re-reading the companion richer — a "
+    "well-read friend leaning over to point at one word.\n\n"
+    "Layout constraint (exact): the body renders into a column ~437u "
+    "wide, ~360u tall, in a 25u proportional sans-serif at 1.3 line-"
+    "height. That fits ~11 lines × ~34 chars ≈ 370 characters of prose. "
+    "Target 320-360 chars. A 380-char hard cap is enforced; going over "
+    "gets trimmed to the last clean sentence boundary.\n\n"
+    "Word choice rules:\n"
+    "- Pick ONE word that appears in the companion text (or, for "
+    "translations like classical aphorisms or haiku, the source-language "
+    "root word — *paideia* for Aristotle's 'educated mind,' *kareno* for "
+    "Bashō's 'withered fields,' *vitium* for Syrus's 'fault').\n"
+    "- Prefer words whose etymology, polysemy, or original-language sense "
+    "is non-obvious to a curious adult reader. Surface what translation or "
+    "common usage flattens.\n"
+    "- For visual companions (no body text — rare today), draw the word "
+    "from the artist, title, or subject metadata.\n\n"
+    "Structure of the gloss (in this order):\n"
+    "1. The word in asterisks, language/part-of-speech in parentheses, "
+    "em-dash, then the working sense: '*Paideia* (Greek, n.) — what "
+    "Aristotle means by educated.'\n"
+    "2. Etymology and/or original-language nuance — what the word "
+    "literally meant; what its parts mean; what English translation "
+    "loses or shifts. Concrete details: roots, cognates, the older "
+    "sense.\n"
+    "3. How the word works in *this specific passage* — why this poet/"
+    "thinker reaches for it; what the line means once you carry the full "
+    "weight of the word back into it.\n"
+    "4. End on a fact or image, not a moral. No 'reminds us that,' no "
+    "'a lesson in,' no 'we can learn,' no closing reflection.\n\n"
+    "Voice: plain, warm, confident English; museum wall label by someone "
+    "who loves their subject. Concrete over abstract. No jargon, no essay "
+    "voice, no showing-off.\n\n"
+    "Exclusions: no politics, no harm, no sermon. The word is the subject; "
+    "the companion is the occasion.\n\n"
+    "Output exactly this JSON, nothing else:\n"
+    '{"items":[{"body":"..."}]}'
+)
+
+user_msg = companion_block + (
+    "\nWrite the Smart pill entry for today's companion. 320-360 "
+    "characters. One word, properly unpacked."
+)
 
 if provider == "claude":
     body = {
         "model": model,
-        "max_tokens": 400,
-        "system": [{"type": "text", "text": sys_prompt, "cache_control": {"type": "ephemeral"}}],
+        "max_tokens": 900,
+        "system": [{"type": "text", "text": shared, "cache_control": {"type": "ephemeral"}}],
         "messages": [{"role": "user", "content": user_msg}],
     }
 else:
-    body = {"model": model, "prompt": sys_prompt + "\n\n" + user_msg, "stream": False}
+    body = {"model": model, "prompt": shared + "\n\n" + user_msg, "stream": False}
 print(json.dumps(body, ensure_ascii=False))
 PY
 }
 
-# Extract + validate the API response in one Python call. Outputs the
-# final state-file JSON on stdout on success, exits non-zero on any
-# failure (API shape, JSON parse, budget). The Python code comes in via
-# `python3 -c "$script"` rather than `python3 - <<<heredoc`, because the
-# heredoc would replace stdin and mask the piped payload from the caller.
+# --- Extract + validate + trim (single Python process) ------------------
 extract_and_validate() {
   local py_script
   py_script=$(cat <<'PY'
@@ -245,73 +198,53 @@ except Exception as e:
     print(f"extract: response not JSON: {e}", file=sys.stderr); sys.exit(1)
 
 try:
-    if provider == "claude":
-        raw = resp["content"][0]["text"]
-    else:
-        raw = resp["response"]
+    raw = resp["content"][0]["text"] if provider == "claude" else resp["response"]
 except Exception as e:
     print(f"extract: response shape unexpected: {e}", file=sys.stderr); sys.exit(1)
 
 raw = (raw or "").strip()
-# Extract the first top-level JSON object by brace bounds. Robust against
-# ``` code fences, preamble text, or trailing commentary the LLM sometimes
-# adds despite the "no preamble" instruction.
 i, j = raw.find("{"), raw.rfind("}")
 if i < 0 or j <= i:
-    print(f"validate: no braces found in {len(raw)} chars: {raw[:60]!r}", file=sys.stderr); sys.exit(1)
-inner = raw[i:j+1]
+    print(f"validate: no braces in {len(raw)} chars: {raw[:60]!r}", file=sys.stderr); sys.exit(1)
 try:
-    d = json.loads(inner)
+    d = json.loads(raw[i:j+1])
 except Exception as e:
     print(f"validate: json parse failed: {e}", file=sys.stderr); sys.exit(1)
 
 items = d.get("items") if isinstance(d, dict) else None
-if not isinstance(items, list) or len(items) != 2:
-    print(f"validate: items not a 2-list: {items!r}", file=sys.stderr); sys.exit(1)
+if not isinstance(items, list) or len(items) != 1:
+    print(f"validate: items not a 1-list: {items!r}", file=sys.stderr); sys.exit(1)
 
-def trim_to_fit(s, target=250):
-    """Trim to last sentence boundary <= target. Claude tends to overshoot
-    (~380 chars, often with a meditative closing sentence). Dropping the
-    trailing sentence usually lands us in the fit window AND strips the
-    kind of essay-voice flourish we don't want displayed anyway.
-    If even the first sentence exceeds target, fall back to word-boundary
-    truncation with an ellipsis."""
+def trim_to_fit(s, target=380):
     s = s.strip()
     if len(s) <= target:
         return s
-    # Walk sentence terminators and keep the longest prefix <= target.
-    import re
-    ends = [i+1 for i in range(len(s)) if s[i] in ".!?" and (i+1 == len(s) or s[i+1] == " ")]
+    ends = [k+1 for k in range(len(s)) if s[k] in ".!?" and (k+1 == len(s) or s[k+1] == " ")]
     best = 0
     for e in ends:
         if e <= target and e > best:
             best = e
-    if best >= 120:
+    if best >= 220:
         return s[:best].strip()
-    # No good sentence cut — word-trim the whole thing.
     cut = s[:target]
     sp = cut.rfind(" ")
     if sp > target * 0.7:
         cut = cut[:sp]
     return cut.rstrip(".,;:—-") + "…"
 
-out = []
-for it in items:
-    if not isinstance(it, dict):
-        sys.exit(1)
-    # Accept either `body` (new schema) or `title` (old schema) for
-    # forward/backward compat while rolling this out.
-    b = str(it.get("body") or it.get("title") or "").strip()
-    if not b:
-        print("validate: empty body", file=sys.stderr); sys.exit(1)
-    if len(b) > 400:
-        # Anything beyond ~1.5× the fit window is probably a formatting
-        # accident rather than useful content.
-        print(f"validate: body too long len={len(b)} body={b[:120]!r}...", file=sys.stderr); sys.exit(1)
-    b = trim_to_fit(b, target=250)
-    out.append({"body": b})
+it = items[0]
+if not isinstance(it, dict):
+    sys.exit(1)
+b = str(it.get("body") or "").strip()
+if not b:
+    print("validate: empty body", file=sys.stderr); sys.exit(1)
+if len(b) > 600:
+    print(f"validate: body runaway len={len(b)}: {b[:120]!r}…", file=sys.stderr); sys.exit(1)
+if len(b) < 200:
+    print(f"validate: body too short for a deep-dive len={len(b)}: {b[:120]!r}", file=sys.stderr); sys.exit(1)
+out = [{"body": trim_to_fit(b, target=380)}]
 
-print(json.dumps({"count": len(out), "items": out}, ensure_ascii=False))
+print(json.dumps({"count": 1, "items": out}, ensure_ascii=False))
 PY
 )
   PROVIDER="$1" python3 -c "$py_script"
@@ -354,14 +287,6 @@ if [[ -n "$validated" ]]; then
   echo "wrote (llm): $(printf '%s' "$validated" | head -c 200)..."
   exit 0
 fi
-echo "llm unavailable or output rejected; falling back" >&2
 
-# --- Fallback: empty items -----------------------------------------------
-# When the LLM is unavailable we refuse to leak raw RSS descriptions —
-# nothing guarantees those are on-brief (politics, grim news, half-
-# sentences). The Summary face's placeholder-dash state renders cleanly
-# when items is empty; the operator gets a visible "no news today" cue
-# rather than unfiltered content.
-fallback='{"count": 0, "items": []}'
-printf '%s' "$fallback" > "$STATE_FILE"
-echo "wrote (fallback): $fallback"
+printf '%s' '{"count": 0, "items": []}' > "$STATE_FILE"
+echo "llm unavailable or output rejected; wrote empty fallback" >&2

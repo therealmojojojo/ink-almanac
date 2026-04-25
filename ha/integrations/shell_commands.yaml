@@ -4,10 +4,13 @@
 # Paths are the in-container /config/custom/inkplate/ layout after deploy.
 
 shell_command:
-  generate_pairings_week: >-
+  # One-shot regeneration of the full triplet pool. Operator-fired (HA
+  # Developer Tools → Services); not on a cadence. See generate_triplets.sh
+  # for the rationale.
+  generate_triplets: >-
     /usr/bin/env bash -c '
     cd /config/custom/inkplate/scripts &&
-    ./generate_pairings_week.sh
+    ./generate_triplets.sh
     '
 
   generate_poetic_weather_line: >-

@@ -30,7 +30,7 @@ and the renderer are otherwise stateless.
 │                                                                  │
 │  automations/                                                     │
 │   ├─ schedule.yaml          06:30 / 10:00 / 22:00 transitions    │
-│   ├─ pairings.yaml          Sun 23:30 → corpus pair generate-week│
+│   (no triplet automation — generated all-at-once, on demand)     │
 │   ├─ poetic_weather.yaml    Hourly 21:00–07:00 LLM line          │
 │   ├─ low_battery.yaml       <20% → mobile-app notify             │
 │   ├─ sleep_strategy.yaml    republish retained helper bundle     │
@@ -40,7 +40,7 @@ and the renderer are otherwise stateless.
 │   ├─ generate_curated_news.sh      Kottke+AO+Aeon → Claude       │
 │   ├─ fetch_rss.sh / fetch_json.sh  feed loaders                  │
 │   ├─ generate_news_sensors.py      pre-rsync regen               │
-│   ├─ generate_pairings_week.sh     SSH → Mac host corpus CLI     │
+│   ├─ generate_triplets.sh          SSH → Mac host (one-shot)     │
 │   └─ generate_poetic_weather_line.sh  Claude / Ollama call       │
 │                                                                  │
 │  config/                                                          │
@@ -57,7 +57,7 @@ and the renderer are otherwise stateless.
 ┌──────────────────┐              ┌────────────────────────────────┐
 │ Inkplate device   │              │ Mac host                        │
 │                   │              │  - TS renderer (port 8575)      │
-│ subscribes        │◄────HTTP────│  - corpus CLI (pair generate-*) │
+│ subscribes        │◄────HTTP────│  - triplet generator (one-shot) │
 │   command/*        │    (wake    │                                 │
 │ publishes          │     → fetch │                                 │
 │   state/*          │     png)    │                                 │
@@ -88,7 +88,7 @@ Gated by `input_boolean.inkplate_publisher_enabled` (master kill-switch).
 | `news` | state change on `sensor.inkplate_curated_news`; HA start | first 3 items of the attribute list |
 | `device` | MQTT trigger on retained `inkplate/state/device`; HA start | `sensor.inkplate_device_battery` + voltage + build |
 | `sonos` | track change, via SSH + `renderer/scripts/fetch_sonos_art.sh` | Sonos entity attributes + fetched album art |
-| `pairing` | Sunday 23:30, via SSH + `corpus pair generate-week` | pairings directory on the Mac |
+| `pairing` | One-shot, operator-fired via `shell_command.generate_triplets` (SSH → `python3 pairing/corpus_build_triplets_v2.py --apply`) | `corpus/_triplets/*.yaml` on the Mac, served as today's `pairing.json` |
 
 Failure handling: HA's `rest_command` does not retry. A connection-refused
 or 5xx is logged at `warning` and the next natural trigger re-publishes.
@@ -179,7 +179,7 @@ and **when**. The renderer decides **how it looks**. The device decides
 **SSH** (HAOS VM → Mac):
 
 - `ha/scripts/fetch_sonos_art.sh` — writes `renderer/inputs/sonos.json` + album art on track change
-- `ha/scripts/generate_pairings_week.sh` — writes `pairings/*.json` every Sunday 23:30
+- `ha/scripts/generate_triplets.sh` — operator-fired SSH wrapper around `python3 pairing/corpus_build_triplets_v2.py --apply`; regenerates the entire triplet pool in one run (not on a cadence)
 
 ### HA state — what HA owns authoritatively
 
