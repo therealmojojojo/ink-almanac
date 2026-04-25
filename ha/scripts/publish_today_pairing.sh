@@ -16,8 +16,8 @@
 # today as the new day 1.
 set -euo pipefail
 
-HOST="${RENDERER_HOST:-renderer.local}"
-USER="${RENDERER_USER:-inkplate}"
+HOST="${RENDERER_HOST:-${RENDERER_HOST}}"
+USER="${RENDERER_USER:-costin}"
 KEY="${RENDERER_SSH_KEY:-/config/.ssh/id_ed25519}"
 
 ssh -i "$KEY" -o StrictHostKeyChecking=accept-new "$USER@$HOST" \
