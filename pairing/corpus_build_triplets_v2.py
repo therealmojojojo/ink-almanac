@@ -1,7 +1,13 @@
 """Triplet generator v2 — recency + cap + text-only-summary + dark-nocturne.
 
 Rules (2026-04-21):
-  1. Every triplet has summary = text (zone-fit: ≤4 lines, ≤24 chars/line).
+  1. Every triplet has summary = text. Eligibility is wrap-aware: simulate
+     greedy word-wrap at 24 cols/line and admit when the resulting visual
+     line count is ≤ 4. Replaces the older 1:1 `n_lines ≤ 4 AND
+     max_chars ≤ 24` gate, which rejected canonical lines that were one
+     or two chars over (Blake "Hold infinity in the palm of your hand,"
+     etc.) even though `white-space: pre-line` in the renderer would have
+     wrapped them cleanly.
   2. Gallery split: 65% visual-day (image) / 35% text-day (text, hero-density).
   3. Per-item cap: 5 total appearances across all generated triplets.
   4. Recency window: no item re-appears in any triplet within 100 positions
@@ -19,7 +25,7 @@ Usage:
   python corpus_build_triplets_v2.py --apply  # wipe + regenerate _triplets/
 """
 from __future__ import annotations
-import argparse, datetime, json, random, sys
+import argparse, datetime, json, random, sys, textwrap
 from collections import Counter, deque
 from pathlib import Path
 
@@ -59,10 +65,28 @@ def dominant_themes(themes, k=2):
     shared theme is a real subject (solitude, mortality, journey, …),
     not taxonomic noise or a formal property."""
     return [t for t in (themes or []) if t not in NON_SUBJECT_THEMES][:k]
-SUMMARY_MAX_LINES = 4
-SUMMARY_MAX_CHARS = 24
+SUMMARY_MAX_VISUAL_LINES = 4   # post-wrap visual line cap (delight zone)
+SUMMARY_WRAP_COLS = 24         # char proxy for the delight column width;
+                               # mirrors what the renderer would soft-wrap at
 GALLERY_MIN_LINES = 4
 GALLERY_SHORT_EXEMPT = {"haiku", "tanka"}
+
+
+def wrapped_visual_lines(body: str, width: int = SUMMARY_WRAP_COLS) -> int:
+    """Greedy word-wrap each author-line at `width` cols; sum the wrapped
+    line counts. Approximates what the renderer's `white-space: pre-line`
+    will produce in the delight column. `break_long_words=False` preserves
+    the (rare) word that exceeds the column rather than mid-splitting it
+    silently — such items will still over-fit and the picker should reject
+    via the same line cap."""
+    n = 0
+    for line in body.splitlines():
+        s = line.strip()
+        if not s:
+            continue
+        wrapped = textwrap.wrap(s, width=width, break_long_words=False, break_on_hyphens=True) or [s]
+        n += len(wrapped)
+    return n
 
 DARK_THRESHOLD = 128
 DARK_AREA_MIN = 0.50
@@ -151,6 +175,7 @@ def load_items():
                                   doc.get("pixel_height") or 0),
                 "n_lines": len(lines),
                 "max_chars": max((len(ln) for ln in lines), default=0),
+                "n_visual_lines": wrapped_visual_lines(body) if body else 0,
             }
     return items
 
@@ -215,8 +240,7 @@ def derive_pools(items: dict):
         it for it in vals
         if it["kind"] == "text"
         and it["themes"]
-        and 0 < it["n_lines"] <= SUMMARY_MAX_LINES
-        and it["max_chars"] <= SUMMARY_MAX_CHARS
+        and 0 < it["n_visual_lines"] <= SUMMARY_MAX_VISUAL_LINES
     ]
     gallery_texts = [
         it for it in vals
