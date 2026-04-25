@@ -119,19 +119,21 @@ On each transition, HA SHALL update the active-override helper to reflect the ne
 - **WHEN** it is 22:00, music is playing, active override is `now_playing`
 - **THEN** the schedule helper advances internally to Night, but no wake signal is issued until Now-Playing deactivates; when music stops and linger ends, the device wakes to fetch Night
 
-### Requirement: Sunday-night pairing generation trigger
+### Requirement: Operator-fired triplet generation trigger
 
-An HA automation SHALL run every Sunday at 23:30 (configurable) executing the `corpus pair generate-week` command via `shell_command`. On success, HA SHALL send a notification to the operator summarizing the generated week.
+HA SHALL register `shell_command.generate_triplets` running `ha/scripts/generate_triplets.sh`, which SSH-invokes `python3 pairing/corpus_build_triplets_v2.py --apply` on the renderer host. The shell command SHALL be operator-fired (HA Developer Tools → Services), not on a time cadence.
 
-#### Scenario: Sunday-night generation succeeds
+The generator runs to exhaustion: every invocation regenerates the *entire* triplet pool under `corpus/_triplets/*.yaml`, capped by `PER_ITEM_CAP` and the recency window. One run produces ≈870 triplets at the current corpus size — roughly 2.5 years of one-per-day rotation. Re-runs are warranted only when the corpus grows materially or generation parameters change.
 
-- **WHEN** it is Sunday 23:30 and the shell command exits zero
-- **THEN** the following 7 days of pairing files exist under `pairings/`, and a notification "pairings generated for 2026-05-04 through 2026-05-10" is sent
+#### Scenario: Operator fires generate_triplets
 
-#### Scenario: Sunday-night generation fails
+- **WHEN** the operator calls `shell_command.generate_triplets` from HA Developer Tools → Services
+- **THEN** the SSH-wrapped python invocation runs to completion, `corpus/_triplets/` is fully rewritten, and the shell command's return code, stdout, and stderr are visible in the HA service-call response
 
-- **WHEN** the shell command exits non-zero
-- **THEN** a failure notification is sent with the return code and log excerpt, and no attempt is made to auto-retry until the next Sunday
+#### Scenario: Generation fails on the host
+
+- **WHEN** the SSH command exits non-zero (host unreachable, python error, corpus invalid)
+- **THEN** the HA service call surfaces the non-zero return code and stderr; HA does not auto-retry; the existing `corpus/_triplets/` content remains untouched until a successful run completes
 
 ### Requirement: Poetic weather line automation
 

@@ -15,7 +15,7 @@ Without this capability, the renderer has nothing to render, the Inkplate has no
 - Configure **other news sources** — at minimum one Romanian outlet. Format configurable in `ha/config/news_sources.yaml`.
 - Configure an **astro sensor**: sunrise/sunset/moon-phase via `sun.sun` and `moon` integrations; tonight's astronomical event via an RSS feed or scheduled scrape of in-the-sky.org (implementation-detail of the change).
 - Implement the **scheduled-mode automation**: at 06:30, 10:00, 22:00 transitions, HA determines the new scheduled face and issues a wake signal to the device unless a higher-precedence override is active.
-- Implement the **Sunday-night pairing-generation trigger**: executes `corpus pair generate-week` via `shell_command`; sends an HA notification when complete.
+- Register an **operator-fired triplet-regeneration trigger**: `shell_command.generate_triplets` runs `python3 pairing/corpus_build_triplets_v2.py --apply` over SSH on the host. One-shot, not on a cadence — the generator runs to exhaustion and produces the entire pool in a single run (~870 triplets, ≈2.5 years of one-per-day rotation). Originally scoped as a Sunday 23:30 weekly cadence; superseded.
 - Implement the **poetic-weather-line generator** for Night mode: hourly LLM call (local or cloud, configurable) producing a ≤32-char italic line from the current weather, cached to a state file the renderer reads.
 - Implement the **low-battery notification**: at <20% battery (reported by the device), send an HA notification to the operator's phone.
 - Implement the **device wake endpoint contract**: HA issues wake calls via the mechanism chosen by `add-device-firmware` (MQTT or HTTP).

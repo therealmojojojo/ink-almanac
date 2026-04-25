@@ -50,12 +50,14 @@
 - [x] 8.3 Each trigger: if higher-precedence override is active, update the internal "current scheduled face" but do NOT wake the device — scheduled_face helper always updated; wake gated on override=schedule
 - [x] 8.4 HA-side chain verified live: automation loaded (state=on), helpers update on `input_text.set_value`, `mqtt.publish` lands with `retain=true`, `inkplate/command/active_mode=summary` visible on the broker via HA websocket MQTT subscribe. Device-side ack of the wake pulse still pending firmware.
 
-## 9. Pairing-generation trigger
+## 9. Triplet-generation trigger
 
-- [x] 9.1 Register `shell_command.generate_pairings_week` pointing to `corpus pair generate-week` — `ha/integrations/shell_commands.yaml` → `ha/scripts/generate_pairings_week.sh`
-- [x] 9.2 Create Sunday 23:30 automation calling the shell command — `ha/automations/pairings.yaml`
-- [x] 9.3 On success, send a notification; on failure, send a failure notification — success + failure branches in `pairings.yaml`
-- [ ] 9.4 Verify manually and via dry-run — **requires live HAOS + `corpus` CLI on renderer host** (the CLI itself is `add-corpus-ingestion`, not yet shipped)
+Originally scoped as a Sunday 23:30 weekly cadence (`corpus pair generate-week`). Superseded: triplet generation is one-shot/all-at-once (`pairing/corpus_build_triplets_v2.py --apply`), producing the entire pool in a single run that covers ~2.5 years of one-per-day rotation. The `corpus pair` CLI group described in `add-pairing-pipeline` was never wired; that change proposal is unimplemented.
+
+- [x] 9.1 Register `shell_command.generate_triplets` for operator-fired one-shot regeneration — `ha/integrations/shell_commands.yaml` → `ha/scripts/generate_triplets.sh`
+- [N/A] 9.2 ~~Sunday 23:30 automation~~ — no automation; operator fires the shell command on demand via HA Developer Tools → Services
+- [N/A] 9.3 ~~Success/failure notifications~~ — N/A without an automation; operator sees the shell-command result directly
+- [ ] 9.4 Verify manually — fire `shell_command.generate_triplets` and confirm `corpus/_triplets/*.yaml` rewrites successfully
 
 ## 10. Poetic-weather-line automation
 

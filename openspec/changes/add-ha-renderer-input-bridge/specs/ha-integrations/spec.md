@@ -12,7 +12,7 @@ HA SHALL publish the renderer's JSON inputs via `POST http://{renderer_host}:{re
 | `hn` | state change on `sensor.inkplate_hn_top5`; `homeassistant.start` | `{items: [{title, subtitle}, ...]}` |
 | `device` | MQTT trigger on `inkplate/state/device`; `homeassistant.start` | `{battery: {percentage, voltage}, build, last_seen}` sourced from the retained MQTT payload |
 
-The `sonos` and `pairing` inputs have existing writers (`fetch_sonos_art.sh` via SSH on track-change; `generate_pairings_week.sh` on Sunday 23:30) and are not part of this requirement's scope; they are documented in `ha/docs/architecture.md` for completeness.
+The `sonos` and `pairing` inputs have existing writers (`fetch_sonos_art.sh` via SSH on track-change; `generate_triplets.sh` operator-fired one-shot for the full triplet pool) and are not part of this requirement's scope; they are documented in `ha/docs/architecture.md` for completeness.
 
 All five publisher automations SHALL be gated by `input_boolean.inkplate_publisher_enabled` (default `on`) as a master kill-switch for rollback.
 

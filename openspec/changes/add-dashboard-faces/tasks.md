@@ -6,7 +6,7 @@
 
 ## 2. Summary face
 
-- [x] 2.1 Build `renderer/templates/summary.html` against the spec's three-band composition — TS builder + `summary.css`; three-band grid (top clock+wx, middle forecast, bottom delight+sidebar)
+- [x] 2.1 Build `renderer/templates/summary.html` against the spec's three-band composition — TS builder + `summary.css`; three-band grid (top clock+wx, middle forecast, bottom delight + Smart pill)
 - [x] 2.2 Implement the delight-zone flavor switch (text variant vs small-image variant)
 - [x] 2.3 Implement the graceful-degradation rules for every zone in Summary
 - [x] 2.4 Bake golden PNG(s) under `renderer/test/__golden__/summary.png` with each flavor — visual-day and degraded variant seeded

@@ -91,7 +91,7 @@ Summary SHALL use a three-band composition:
 
 - **Top band (40% height)**: clock on the left (Fraunces opsz 144, size 230u, HH:MM), current-weather block on the right (large temperature, condition, H/L/rain%), separated by a 1u vertical rule
 - **Middle band (3-day forecast, ~18% height)**: three equal-width cells separated by dashed rules, each cell showing day-of-week, condition icon, condition label, high/low
-- **Bottom band (remaining, with 2u solid rule above)**: two columns — left (1.45fr) holds the delight zone (the pairing's companion content: small image OR short text), right (1fr) holds a sidebar with indoor climate readout on top and news feed below
+- **Bottom band (remaining, with 2u solid rule above)**: two columns — left (1.45fr) holds the delight zone (the pairing's companion content: small image OR short text), right (1fr) holds the Smart pill — a two-item curated capsule (word-of-the-day extracted from the day's companion text + on-this-day historical event), header label "Smart pill"
 
 The delight zone SHALL follow the pairing's flavor:
 - Visual-day flavor → companion is text → delight zone renders short text (haiku, aphorism, fragment) with attribution

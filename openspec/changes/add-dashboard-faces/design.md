@@ -2,7 +2,7 @@
 
 `requirements/Mockup.html` is a working sketch for Summary and Weather at 1200×825 using the `--u` unit system. It predates several design decisions that matter here:
 
-- Now-Playing became a full-frame override. Summary no longer carries a "Spotify/HN" combined card; instead, the bottom-right of Summary becomes a stable sidebar with indoor climate + news feed, and the bottom-left is the delight companion.
+- Now-Playing became a full-frame override. Summary no longer carries a "Spotify/HN" combined card; instead, the bottom-right of Summary became the Smart pill (a two-item curated capsule bound to the day's companion text), and the bottom-left is the delight companion. (The original sketch had indoor-climate + HN feed on the right; both were dropped — kitchen sensor never shipped, HN was replaced with the Smart pill content.)
 - The "no Ozymandias in italics" rule forces form-aware typography in Gallery text-day.
 - Gallery's dual nature (visual vs text day) needs consistent caption treatment.
 - Night mode needs a concrete layout (Mockup.html doesn't cover Night).
@@ -30,9 +30,9 @@ This change takes the good patterns from Mockup.html (the `--u` scale, the three
 
 Rationale: the faces share conventions (padding, battery indicator, fallback rules) and read as a set. One spec file per face would duplicate the conventions and make cross-face consistency harder to audit. Requirements within the single file are grouped per face so changes still stay localized.
 
-### Summary's sidebar is stable; Now-Playing is full-frame
+### Summary's lower-right is stable (the Smart pill); Now-Playing is full-frame
 
-Rationale: during the original design conversation, the user confirmed that Sonos playback replaces the whole frame rather than injecting a card into Summary. That simplification means Summary has no variable sub-mode; it's just one composition whose bottom bands contain indoor climate + news + delight content. News content is first-class (not a Spotify fallback) — HN is there because morning news has standalone value.
+Rationale: during the original design conversation, the user confirmed that Sonos playback replaces the whole frame rather than injecting a card into Summary. That simplification means Summary has no variable sub-mode; it's just one composition. The lower-right zone — now called the Smart pill — holds two thematically-bound items (word-of-the-day extracted from the companion + on-this-day historical event); the lower-left holds the delight companion. (Earlier scoping included indoor-climate readout above the news feed; both were dropped — no kitchen sensor ships, and HN was superseded by the Smart pill content.)
 
 ### Delight zone flavor follows pairing, not mode
 
