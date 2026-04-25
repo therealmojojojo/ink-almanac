@@ -29,16 +29,17 @@ constexpr int kImuWakeGpio = 36;
 // LSM6DSO tap thresholds (driver units; 1 LSB ≈ 62.5 mg at ±2 g full-scale).
 // Tuned to require a deliberate finger tap and reject incidental motion:
 //
-//   * 2 LSB ≈ 0.125 g — bench setting for an unmounted breakout where
-//     a loose PCB absorbs much of the impact. A normal finger-tap
-//     comfortably exceeds this; the SLOPE_FDS HPF still rejects static
-//     gravity and slow rotations. The spurious-wake guard in tick()
-//     catches false ext0 fires that don't latch a TAP_SRC bit, so the
-//     real-world cost of a low threshold is bounded. Once the breakout
-//     is rigidly glued to the frame, taps couple much better and the
-//     threshold should be raised (to ~12–20) so that ambient vibration
-//     doesn't latch tap bits and slip past the guard. Tune after real
-//     mount + observation.
+//   * 1 LSB ≈ 0.0625 g — the chip's minimum. Tuned for a frame mount
+//     where the LSM6DSO breakout is wire-tied to the Inkplate (not
+//     glued to the frame back), so taps reach the chip via glass →
+//     mat → PCB → wire-tie. That path absorbs most of the impact,
+//     making the lowest threshold the only one that registers natural
+//     taps. The SLOPE_FDS HPF still rejects static gravity and slow
+//     rotations; the spurious-wake guard in tick() catches false ext0
+//     fires that don't latch SINGLE_TAP/DOUBLE_TAP bits, bounding the
+//     cost of a low threshold. On a wall mount the ambient-event rate
+//     is much lower than on a fridge, so threshold = 1 is viable; if
+//     phantom wakes appear in real use, raise to 4–6.
 //   * Combined with the existing Z-axis-only TAP_CFG0 (=0x0F) and the
 //     spurious-wake guard in tick() (re-sleep on TAP_SRC=0x00), the
 //     wake-on-tap path triggers only on intentional impact along the
@@ -53,7 +54,7 @@ constexpr int kImuWakeGpio = 36;
 //     pull-up restores idle HIGH for the next event.
 //   * Z axis only (TAP_CFG0 bits: TAP_X_EN=0, TAP_Y_EN=0, TAP_Z_EN=1) —
 //     rejects lateral shocks from fridge-door slams.
-constexpr int kTapThreshold   = 2;
+constexpr int kTapThreshold   = 1;
 constexpr int kTapDurationMs  = 40;
 constexpr int kDoubleTapWindowMs = 350;
 
