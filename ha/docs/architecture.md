@@ -88,7 +88,8 @@ Gated by `input_boolean.inkplate_publisher_enabled` (master kill-switch).
 | `news` | state change on `sensor.inkplate_curated_news`; HA start | first 3 items of the attribute list |
 | `device` | MQTT trigger on retained `inkplate/state/device`; HA start | `sensor.inkplate_device_battery` + voltage + build |
 | `sonos` | track change, via SSH + `renderer/scripts/fetch_sonos_art.sh` | Sonos entity attributes + fetched album art |
-| `pairing` | One-shot, operator-fired via `shell_command.generate_triplets` (SSH → `python3 pairing/corpus_build_triplets_v2.py --apply`) | `corpus/_triplets/*.yaml` on the Mac, served as today's `pairing.json` |
+| `pairing` (pool) | One-shot, operator-fired via `shell_command.generate_triplets` (SSH → `python3 pairing/corpus_build_triplets_v2.py --apply`) | `corpus/_triplets/*.yaml` on the Mac (rebuilds the rotation pool) |
+| `pairing` (today) | Daily 06:00 via `shell_command.publish_today_pairing` (SSH → `python3 pairing/publish_today.py`) | Picks today's triplet by sequence rotation; writes `renderer/inputs/{pairing,news}.json` + companion/gallery/nocturne binaries. Also reads `smart_pill.body` from the summary item's YAML and stages it as `news.json` (the runtime smart-pill source). Rotation anchor in host-local `pairing/_state/triplet_epoch.json`. |
 
 Failure handling: HA's `rest_command` does not retry. A connection-refused
 or 5xx is logged at `warning` and the next natural trigger re-publishes.

@@ -43,6 +43,9 @@ build/
 renderer/inputs/*
 !renderer/inputs/.gitkeep
 
+# Pairing host-local state — triplet rotation epoch (depends on first-run date)
+pairing/_state/
+
 # Firmware dry-run PNG captures
 firmware/test/out/
 

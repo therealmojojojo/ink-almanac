@@ -1,0 +1,38 @@
+# Daily 06:00 — publish today's triplet to renderer inputs.
+#
+# Fires 30 minutes before the 06:30 schedule transition activates the
+# morning Summary face. The device's first wake of the day then fetches
+# /display/summary.png from the renderer, which renders whatever this
+# automation just wrote.
+#
+# Rotation is mechanical: the python script in pairing/publish_today.py
+# walks corpus/_triplets/ in sequence order and picks today's index by
+# (today - epoch).days % len(triplets). One LLM call avoided per day —
+# the smart pill body is read from the summary item's YAML sidecar at
+# publish time, not regenerated.
+#
+# On failure (renderer host unreachable, SSH error, python error), HA
+# notifies the operator and the device renders yesterday's pairing for
+# another day. No silent drift.
+
+- id: inkplate_publish_today_pairing
+  alias: "Inkplate: 06:00 — publish today's triplet"
+  trigger:
+    - platform: time
+      at: "06:00:00"
+  action:
+    - service: shell_command.publish_today_pairing
+      response_variable: result
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ result.returncode != 0 }}"
+          sequence:
+            - service: notify.inkplate_operator
+              data:
+                title: "Pairing publish FAILED"
+                message: >-
+                  Today's triplet was not published to the renderer.
+                  Return code {{ result.returncode }}.
+                  stderr: {{ result.stderr | default('(empty)') }}
+                  Device will render yesterday's pairing until this is fixed.

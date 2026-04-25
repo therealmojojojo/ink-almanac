@@ -13,6 +13,14 @@ shell_command:
     ./generate_triplets.sh
     '
 
+  # Daily 06:00 — pick today's triplet by sequence rotation and write it
+  # to renderer/inputs/. Fired by ha/automations/publish_today_pairing.yaml.
+  publish_today_pairing: >-
+    /usr/bin/env bash -c '
+    cd /config/custom/inkplate/scripts &&
+    ./publish_today_pairing.sh
+    '
+
   generate_poetic_weather_line: >-
     /usr/bin/env bash -c '
     cd /config/custom/inkplate/scripts &&
