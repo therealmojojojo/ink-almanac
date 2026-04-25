@@ -119,10 +119,23 @@ void tick(hal::HAL h, wake::Reason reason) {
   fw::gestures::TapKind tap = fw::gestures::TapKind::None;
   if (reason == wake::Reason::IMU) {
     // Reuse the polled kind if we already drained TAP_SRC above; otherwise
-    // (ext1 path, or IMU reason from the caller) read it now.
+    // (ext0 path, or IMU reason from the caller) read it now.
     tap = polled_tap != fw::gestures::TapKind::None
               ? polled_tap
               : fw::gestures::readTapKind(h.imu);
+
+    // Spurious-wake guard. ext0 fired (IO36 went LOW) but TAP_SRC has no
+    // single- or double-tap bit set. The pulse came from something other
+    // than the IMU: EMI, the SW3 wake button in operator mode, or a
+    // sub-threshold motion that briefly toggled INT1. Skip the entire tick —
+    // no network bring-up, no fetch, no e-paper refresh — and go straight
+    // back to sleep on the same wake sources. See gestures.md "Tap detection".
+    if (tap == fw::gestures::TapKind::None) {
+      FW_LOG("spurious ext0 wake (TAP_SRC empty); re-sleeping%s", "");
+      h.clock.scheduleWake(
+          wake::armMask(wake::persisted().current_mode, hour));
+      return;
+    }
   }
 
   // Network bring-up. On failure: show placeholder (no PNG), still publish

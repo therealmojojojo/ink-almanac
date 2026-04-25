@@ -45,6 +45,12 @@ The alternative is to remove the frame, plug in, recharge, remount. Unacceptable
 
 The LSM6DSO must be mounted with its axes aligned to the frame's plane so the firmware's vertical-axis rotation detection makes sense. The spec mandates alignment; implementation marks the correct orientation on the IMU before gluing.
 
+### IMU INT1 shares the SW3 wake-button net (GPIO 36)
+
+Inkplate 10 V1.3.1 has no free RTC-capable GPIO exposed on a header — every ADC/wake-capable pin is claimed by the panel data bus, SD card, expander INT, RTC INT, battery sense, or the wake button. The cleanest non-destructive option is to solder the LSM6DSO's INT1 directly onto the SW3 wake-button net (GPIO 36, with on-board R41 pull-up). With INT1 configured open-drain active-low, the sensor pulses the same line low that the button would, and the firmware's `esp_sleep_enable_ext0_wakeup(GPIO_NUM_36, LOW)` (already used by the official Inkplate 10 wake-button example) handles both events identically. Disambiguation happens after wake by reading `WAKE_UP_SRC` over I²C — if no tap bit is set, the pulse came from elsewhere (button, EMI) and the device re-sleeps without refreshing.
+
+Rationale: cutting JP2 (free IO39) or JP4 (free IO34) is reversible but removes existing functionality (RTC INT, expander INT) for a hobby gain. Soldering to the WROVER-E module pin for IO26 is electrically clean but mechanically risky on a board we depend on. The wire-share has zero hardware cost, no jumper modifications, and matches the firmware path the library already documents — the wake button simply becomes a redundant trigger on a net the IMU now shares.
+
 ### Documented build log
 
 Rationale: the operator's time, decisions, and deviations ARE the knowledge. A build log captured at the time is vastly more useful than reconstructed memory. `docs/build/build-log.md` is committed so it's durable; photos can be external if too large.

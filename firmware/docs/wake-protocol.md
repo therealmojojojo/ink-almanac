@@ -38,7 +38,11 @@ Published in `inkplate/state/device.wake_reason`:
 - `cold_boot` — first boot or power cycle.
 - `post_ota` — first boot after an OTA update.
 - `timer` — scheduled mode-timer wake.
-- `imu` — tap / double-tap from the LSM6DSO INT pin.
+- `imu` — tap / double-tap from the LSM6DSO INT1 pin. Note: INT1 is
+  wired to the same GPIO 36 net as the SW3 wake button (see
+  `gestures.md` "Wiring"); on every `ext0` wake the firmware reads
+  `WAKE_UP_SRC` to confirm a real tap event before classifying as `imu`,
+  otherwise it re-sleeps without refreshing.
 - `ha_command` — HA published to `inkplate/command/wake` (includes
   motion-triggered wakes from the HA-side IKEA sensor; the device does not
   distinguish motion from other HA-initiated wakes).

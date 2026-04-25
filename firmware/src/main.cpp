@@ -22,7 +22,7 @@ namespace {
 fw::wake::Reason detectWakeReason() {
   switch (esp_sleep_get_wakeup_cause()) {
     case ESP_SLEEP_WAKEUP_TIMER: return fw::wake::Reason::Timer;
-    case ESP_SLEEP_WAKEUP_EXT1:  return fw::wake::Reason::IMU;
+    case ESP_SLEEP_WAKEUP_EXT0:  return fw::wake::Reason::IMU;
     default:                     return fw::wake::Reason::ColdBoot;
   }
 }

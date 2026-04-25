@@ -22,8 +22,8 @@ class RealClock : public hal::IClock {
     esp_deep_sleep_start();
   }
 
-  // IIMU arms its ext1 source directly before we reach sleepFor; nothing
-  // extra to wire here. (PIR removed — motion is HA-side.)
+  // IIMU arms its ext0 source directly in init() before we reach sleepFor;
+  // nothing extra to wire here. (PIR removed — motion is HA-side.)
   void scheduleWake(hal::WakeSourceMask) override {}
 };
 

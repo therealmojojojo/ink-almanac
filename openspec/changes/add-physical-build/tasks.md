@@ -13,10 +13,13 @@
 - [ ] 2.2 Power on; verify boot, WiFi connection, MQTT connection
 - [ ] 2.3 Fetch and render Summary mode; confirm the face displays correctly
 - [ ] 2.4 Cycle through mode fetches (Weather, Gallery, Night) to confirm all work
-- [ ] 2.5 Run tap detection tests on the bench; confirm the LSM6DSO INT pin fires
-- [ ] 2.6 Run PIR wake test
-- [ ] 2.7 Verify OTA update round-trip works
-- [ ] 2.8 Commit the pre-flight result to `docs/build/build-log.md`
+- [ ] 2.5 Confirm R41 pulls GPIO 36 high (~3.3 V) at idle with a multimeter — establishes the INT1 polarity decision below
+- [ ] 2.6 Solder INT1 from the LSM6DSO breakout onto the SW3 wake-button net (either SW3 pad, the GPIO-36 side of R41, or the K37 header pin — whichever is mechanically easiest)
+- [ ] 2.7 Run tap detection tests on the bench; confirm a double-tap on the IMU wakes the ESP32 from deep sleep exactly as the wake button would (tap → `ext0` LOW → wake → `WAKE_UP_SRC.DOUBLE_TAP` set)
+- [ ] 2.8 Bench-test the false-positive guard: tap the surface lightly and slam a nearby drawer; confirm only deliberate Z-axis double-taps survive the post-wake `WAKE_UP_SRC` check
+- [ ] 2.9 Run PIR wake test
+- [ ] 2.10 Verify OTA update round-trip works
+- [ ] 2.11 Commit the pre-flight result to `docs/build/build-log.md`
 
 ## 3. Frame preparation
 
