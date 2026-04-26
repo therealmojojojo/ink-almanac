@@ -7,8 +7,15 @@
 
 # 1. Clock — every minute. Tight cadence because Summary / Night / Weather
 #    all show clocks that should match the wall-clock to within a minute.
+#
+# initial_state: on — observed 2026-04-26 to have been silently disabled
+#  via the HA UI (left it off for ~2 days, night clock stopped advancing).
+#  Forcing on at every HA start prevents drift; disable it through
+#  `inkplate_publisher_enabled` (the master kill-switch) instead of toggling
+#  this automation directly.
 - alias: "Inkplate: publish clock"
   id: inkplate_publish_clock
+  initial_state: "on"
   mode: single
   max_exceeded: silent
   trigger:
