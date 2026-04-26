@@ -179,27 +179,19 @@ void tick(hal::HAL h, wake::Reason reason) {
   const bool mode_changed = active != wake::persisted().current_mode;
   FW_LOG("mode=%s changed=%d", fw::modes::toString(active), mode_changed ? 1 : 0);
 
-  // Minute-tick early-return: if this is a plain timer or fast-path wake and
-  // the active mode hasn't changed, skip the fetch/draw entirely. Publish
-  // device state below (so HA sees the device is alive) and sleep. This is
-  // what makes 60-second polling cheap — the panel isn't redrawn each time.
-  // Cold-boot / post-OTA / IMU / HA-command wakes always proceed to the
-  // fetch path so refreshes happen when they matter.
-  const bool minute_tick =
-      (reason == wake::Reason::Timer || reason == wake::Reason::SonosFastPath) &&
-      !mode_changed;
-  if (minute_tick) {
-    FW_LOG("minute-tick skip (reason=%s)", wake::toString(reason));
-    if (mqtt) {
-      auto reading = fw::battery::read(h.battery);
-      auto json = fw::battery::toDeviceStateJson(
-          reading, wake::toString(reason), fw::modes::toString(active),
-          fw::kBuildVersion);
-      h.transport.mqttPublish(fw::config::kTopicDeviceState, json, /*retained=*/true);
-    }
-    h.clock.scheduleWake(wake::armMask(active, hour));
-    return;
-  }
+  // Minute-tick: timer/fast-path wake without a mode change. Per the refresh
+  // policy in ha/docs/architecture.md ("Refresh policy: …else (minute-tick
+  // eligible modes) → PARTIAL, count++"), these wakes still fetch + draw —
+  // they just use partial refresh instead of full so the clock zone advances
+  // without the e-ink flash. The earlier "skip the draw entirely" behavior
+  // here left the clock frozen between mode transitions (observed 2026-04-26
+  // — clock drifted ≥2 min behind wall-time within minutes of a transition).
+  //
+  // The `full` flag below picks PARTIAL automatically when none of the
+  // mode-changed / cold-boot / post-OTA / ghost-flush conditions apply, so
+  // simply falling through to the draw path produces the right behavior.
+  // partial_refresh_count gates a forced FULL every 30 partials to clear
+  // ghosting, per the architecture comment on Ghost buildup.
 
   // Draw the active face. Device path: let the Inkplate library fetch and
   // decode the PNG directly from the URL (pngle streaming). Simulator path:

@@ -54,10 +54,12 @@ TEST_CASE("cold boot: full refresh + device state publish") {
   CHECK((mask & static_cast<hal::WakeSourceMask>(hal::WakeSource::Timer)) != 0);
 }
 
-TEST_CASE("timer wake with unchanged mode early-returns; mode change refreshes") {
-  // Under the 60-second minute-tick policy, a Timer wake with unchanged mode
-  // publishes device state but does NOT refresh the panel. Only a mode change
-  // (or cold-boot / post-OTA / IMU wake) drives a refresh.
+TEST_CASE("timer wake with unchanged mode does partial refresh; mode change does full") {
+  // Per ha/docs/architecture.md "Refresh policy": timer/fast-path wakes with
+  // unchanged mode → PARTIAL refresh (clock tick advances). Only mode-changed
+  // / cold-boot / post-OTA / ghost-flush conditions trigger a FULL refresh.
+  // Earlier shape "skip the panel entirely on minute-tick" left the clock
+  // frozen between mode transitions; this test now codifies the partial path.
   SIM_RESET();
   sim::Scenario s;
   s.clock().setNow(kApr14_0800);
@@ -67,11 +69,11 @@ TEST_CASE("timer wake with unchanged mode early-returns; mode change refreshes")
   const int full_after_first = s.display().fullRefreshCount();
   const int partial_after_first = s.display().partialRefreshCount();
 
-  // Minute-tick wake, same mode → no refresh, but device state still published.
+  // Minute-tick wake, same mode → PARTIAL refresh + state publish.
   const auto state_pubs_before = s.publishedMessages(fw::config::kTopicDeviceState).size();
   fw::tick(s.hal(), fw::wake::Reason::Timer);
   CHECK(s.display().fullRefreshCount() == full_after_first);
-  CHECK(s.display().partialRefreshCount() == partial_after_first);
+  CHECK(s.display().partialRefreshCount() == partial_after_first + 1);
   CHECK(s.publishedMessages(fw::config::kTopicDeviceState).size() == state_pubs_before + 1);
 
   // Mode change on next wake → full refresh.
@@ -109,20 +111,20 @@ TEST_CASE("renderer unreachable shows an indicator and publishes device state an
   CHECK(!s.publishedMessages(fw::config::kTopicDeviceState).empty());
 }
 
-TEST_CASE("sonos fast-path with unchanged mode re-arms and returns") {
+TEST_CASE("sonos fast-path with unchanged mode partial-refreshes (clock tick)") {
   SIM_RESET();
   sim::Scenario s;
   s.clock().setNow(kApr14_0800);
   s.mqttPublish(fw::config::kTopicActiveMode, "summary", true)
       .setRendererResponse(urlFor("summary"), fakePng());
   fw::tick(s.hal(), fw::wake::Reason::ColdBoot);
-  const int draws_before =
-      s.display().fullRefreshCount() + s.display().partialRefreshCount();
+  const int full_before = s.display().fullRefreshCount();
+  const int partial_before = s.display().partialRefreshCount();
 
-  // Same mode, fast-path wake → early-return, no new drawImage.
+  // Same mode, fast-path wake → PARTIAL refresh (the clock zone updates).
   fw::tick(s.hal(), fw::wake::Reason::SonosFastPath);
-  CHECK(s.display().fullRefreshCount() + s.display().partialRefreshCount() ==
-        draws_before);
+  CHECK(s.display().fullRefreshCount() == full_before);
+  CHECK(s.display().partialRefreshCount() == partial_before + 1);
 }
 
 // -----------------------------------------------------------------------------
