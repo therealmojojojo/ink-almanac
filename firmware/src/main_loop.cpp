@@ -206,6 +206,7 @@ void tick(hal::HAL h, wake::Reason reason) {
   // the URL-based call returns false by default, so we fall back to fetching
   // bytes via the transport and handing them to the buffer-based drawImage,
   // which MockDisplay hashes for scenario assertions.
+  bool draw_succeeded = false;
   if (wifi) {
     const auto url = rendererUrl(active);
     const bool full = mode_changed ||
@@ -221,6 +222,7 @@ void tick(hal::HAL h, wake::Reason reason) {
       FW_LOG("drew (url path)%s", "");
       if (full) wake::persisted().partial_refresh_count = 0;
       else ++wake::persisted().partial_refresh_count;
+      draw_succeeded = true;
     } else {
       hal::HttpResponse resp;
       if (backoffFetch(h.transport, url, &resp)) {
@@ -229,6 +231,7 @@ void tick(hal::HAL h, wake::Reason reason) {
         FW_LOG("drew (buffer path)%s", "");
         if (full) wake::persisted().partial_refresh_count = 0;
         else ++wake::persisted().partial_refresh_count;
+        draw_succeeded = true;
       } else {
         FW_LOG("fetch FAILED%s", "");
         // Unavailable indicator — 80×80 corner box (rendered as a no-op on
@@ -239,7 +242,18 @@ void tick(hal::HAL h, wake::Reason reason) {
     }
   }
 
-  wake::persisted().current_mode = active;
+  // Only advance persisted current_mode when we actually drew the new face.
+  // If the draw was skipped (no wifi/mqtt) or failed (fetch error), leave
+  // persisted at whatever the panel last successfully showed. The next wake
+  // will see mode_changed=true and retry instead of minute-tick-skipping
+  // forever with the wrong face stuck on screen.
+  //
+  // First boot path: persisted is Unknown, draw fails — leave Unknown. The
+  // default-to-kSummaryTimerSec branch in timerSecondsFor still gives a
+  // sensible 60 s cadence; next wake retries with mode_changed=true.
+  if (draw_succeeded) {
+    wake::persisted().current_mode = active;
+  }
 
   // Publish device state + any gesture
   if (mqtt) {
