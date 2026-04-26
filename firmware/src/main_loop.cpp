@@ -176,22 +176,25 @@ void tick(hal::HAL h, wake::Reason reason) {
   }
   if (active == fw::modes::Mode::Unknown) active = timeOfDayFallback(hour);
 
-  const bool mode_changed = active != wake::persisted().current_mode;
+  [[maybe_unused]] const bool mode_changed = active != wake::persisted().current_mode;
   FW_LOG("mode=%s changed=%d", fw::modes::toString(active), mode_changed ? 1 : 0);
 
-  // Minute-tick: timer/fast-path wake without a mode change. Per the refresh
-  // policy in ha/docs/architecture.md ("Refresh policy: …else (minute-tick
-  // eligible modes) → PARTIAL, count++"), these wakes still fetch + draw —
-  // they just use partial refresh instead of full so the clock zone advances
-  // without the e-ink flash. The earlier "skip the draw entirely" behavior
-  // here left the clock frozen between mode transitions (observed 2026-04-26
-  // — clock drifted ≥2 min behind wall-time within minutes of a transition).
+  // Refresh policy on Inkplate 10 in 3-bit grayscale mode:
+  //   ALWAYS FULL.
   //
-  // The `full` flag below picks PARTIAL automatically when none of the
-  // mode-changed / cold-boot / post-OTA / ghost-flush conditions apply, so
-  // simply falling through to the draw path produces the right behavior.
-  // partial_refresh_count gates a forced FULL every 30 partials to clear
-  // ghosting, per the architecture comment on Ghost buildup.
+  // The Soldered Inkplate library's partialUpdate() is a no-op when the
+  // panel runs in 3-bit (grayscale) mode — see Inkplate10.cpp:
+  //     if (getDisplayMode() == 1) return 0;
+  // We need 3-bit for the gallery, nocturne, and companion images (the
+  // corpus is built around 8-shade greyscale on this panel), so we live
+  // with full refreshes everywhere. Each wake re-fetches the rendered PNG
+  // and does a full e-ink update; the clock zone advances at the wake
+  // cadence (60 s in summary/weather/gallery, 15 min at night). The brief
+  // black flash is visible but acceptable on a wire-tied frame.
+  //
+  // partial_refresh_count is kept as a counter for symmetry with the spec
+  // and the host simulator's MockDisplay assertions, but it never gates a
+  // forced full because every refresh on this hardware is already full.
 
   // Draw the active face. Device path: let the Inkplate library fetch and
   // decode the PNG directly from the URL (pngle streaming). Simulator path:
@@ -201,11 +204,7 @@ void tick(hal::HAL h, wake::Reason reason) {
   bool draw_succeeded = false;
   if (wifi) {
     const auto url = rendererUrl(active);
-    const bool full = mode_changed ||
-                      reason == wake::Reason::ColdBoot ||
-                      reason == wake::Reason::PostOTA ||
-                      wake::persisted().partial_refresh_count >=
-                          fw::config::kGhostClearPartialCount;
+    const bool full = true;  // 3-bit Inkplate 10 — partial is hardware no-op.
     const hal::Rect full_rect{0, 0, 1200, 825};
     FW_LOG("draw full=%d url=%s", full ? 1 : 0, url.c_str());
 

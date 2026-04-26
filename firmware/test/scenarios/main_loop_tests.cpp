@@ -54,12 +54,11 @@ TEST_CASE("cold boot: full refresh + device state publish") {
   CHECK((mask & static_cast<hal::WakeSourceMask>(hal::WakeSource::Timer)) != 0);
 }
 
-TEST_CASE("timer wake with unchanged mode does partial refresh; mode change does full") {
-  // Per ha/docs/architecture.md "Refresh policy": timer/fast-path wakes with
-  // unchanged mode → PARTIAL refresh (clock tick advances). Only mode-changed
-  // / cold-boot / post-OTA / ghost-flush conditions trigger a FULL refresh.
-  // Earlier shape "skip the panel entirely on minute-tick" left the clock
-  // frozen between mode transitions; this test now codifies the partial path.
+TEST_CASE("timer wake always full-refreshes on Inkplate 10 (3-bit grayscale)") {
+  // The Soldered Inkplate library's partialUpdate() is a no-op when the
+  // panel is in 3-bit mode (which we need for the grayscale corpus images),
+  // so the firmware refreshes full on every wake — clock zone advances at
+  // the wake cadence. See main_loop.cpp "Refresh policy" comment.
   SIM_RESET();
   sim::Scenario s;
   s.clock().setNow(kApr14_0800);
@@ -67,20 +66,19 @@ TEST_CASE("timer wake with unchanged mode does partial refresh; mode change does
       .setRendererResponse(urlFor("summary"), fakePng());
   fw::tick(s.hal(), fw::wake::Reason::ColdBoot);
   const int full_after_first = s.display().fullRefreshCount();
-  const int partial_after_first = s.display().partialRefreshCount();
 
-  // Minute-tick wake, same mode → PARTIAL refresh + state publish.
+  // Minute-tick wake, same mode → FULL refresh + state publish (clock tick).
   const auto state_pubs_before = s.publishedMessages(fw::config::kTopicDeviceState).size();
   fw::tick(s.hal(), fw::wake::Reason::Timer);
-  CHECK(s.display().fullRefreshCount() == full_after_first);
-  CHECK(s.display().partialRefreshCount() == partial_after_first + 1);
+  CHECK(s.display().fullRefreshCount() == full_after_first + 1);
+  CHECK(s.display().partialRefreshCount() == 0);
   CHECK(s.publishedMessages(fw::config::kTopicDeviceState).size() == state_pubs_before + 1);
 
-  // Mode change on next wake → full refresh.
+  // Mode change on next wake → another full refresh.
   s.mqttPublish(fw::config::kTopicActiveMode, "weather", true);
   s.setRendererResponse(urlFor("weather"), fakePng());
   fw::tick(s.hal(), fw::wake::Reason::Timer);
-  CHECK(s.display().fullRefreshCount() == full_after_first + 1);
+  CHECK(s.display().fullRefreshCount() == full_after_first + 2);
 }
 
 TEST_CASE("quiet hours: IMU stays armed, no PIR slot exists") {
@@ -111,7 +109,9 @@ TEST_CASE("renderer unreachable shows an indicator and publishes device state an
   CHECK(!s.publishedMessages(fw::config::kTopicDeviceState).empty());
 }
 
-TEST_CASE("sonos fast-path with unchanged mode partial-refreshes (clock tick)") {
+TEST_CASE("sonos fast-path with unchanged mode full-refreshes (clock tick)") {
+  // Same hardware constraint as the timer-wake case: 3-bit mode means full
+  // refresh on every redraw.
   SIM_RESET();
   sim::Scenario s;
   s.clock().setNow(kApr14_0800);
@@ -119,12 +119,11 @@ TEST_CASE("sonos fast-path with unchanged mode partial-refreshes (clock tick)") 
       .setRendererResponse(urlFor("summary"), fakePng());
   fw::tick(s.hal(), fw::wake::Reason::ColdBoot);
   const int full_before = s.display().fullRefreshCount();
-  const int partial_before = s.display().partialRefreshCount();
 
-  // Same mode, fast-path wake → PARTIAL refresh (the clock zone updates).
+  // Same mode, fast-path wake → another FULL refresh (clock tick).
   fw::tick(s.hal(), fw::wake::Reason::SonosFastPath);
-  CHECK(s.display().fullRefreshCount() == full_before);
-  CHECK(s.display().partialRefreshCount() == partial_before + 1);
+  CHECK(s.display().fullRefreshCount() == full_before + 1);
+  CHECK(s.display().partialRefreshCount() == 0);
 }
 
 // -----------------------------------------------------------------------------
@@ -179,10 +178,11 @@ TEST_CASE("IMU wake: HA silent → keep pre-gesture face") {
 
   auto gestures = s.publishedMessages(fw::config::kTopicGesture);
   REQUIRE(gestures.size() == 1);
-  // Mode unchanged (still summary from the cold-boot retained value). No new
-  // full refresh in this cycle; the device will catch HA's decision on the
-  // next natural wake if HA publishes one later.
-  CHECK(s.display().fullRefreshCount() == full_before);
+  // Mode unchanged (still summary from the cold-boot retained value). On
+  // 3-bit Inkplate 10 every redraw is full anyway (partial is a hardware
+  // no-op), so the IMU wake still drives a full refresh — same face, but
+  // the clock zone advances.
+  CHECK(s.display().fullRefreshCount() == full_before + 1);
 }
 
 TEST_CASE("IMU wake during quiet hours: HA holds Night, no face change") {
@@ -210,8 +210,9 @@ TEST_CASE("IMU wake during quiet hours: HA holds Night, no face change") {
 
   auto gestures = s.publishedMessages(fw::config::kTopicGesture);
   REQUIRE(gestures.size() == 1);
-  // Same face — no mode change, no new full refresh.
-  CHECK(s.display().fullRefreshCount() == full_before);
+  // Same face, but on 3-bit Inkplate 10 every wake redraws (partial is a
+  // hardware no-op) — so a full refresh still happens, with the same content.
+  CHECK(s.display().fullRefreshCount() == full_before + 1);
 }
 
 TEST_CASE("IMU wake: double tap gesture payload") {
