@@ -1,0 +1,3 @@
+# Live operator plist with absolute path + bearer token. Never commit.
+# Use com.inkplate.renderer.plist.example as the starting template.
+com.inkplate.renderer.plist

@@ -1,6 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
   "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Operator template for the launchd-managed renderer service.
+
+  Copy to ~/Library/LaunchAgents/com.inkplate.renderer.plist (gitignored
+  in this repo) and fill in the two operator-specific fields:
+
+    INKPLATE_RENDERER_DIR  — absolute path to your local clone's
+                              renderer/ directory.
+    RENDERER_INPUT_TOKEN   — any 30+ char random string; the same value
+                              must appear, prefixed with "Bearer ", in
+                              ha/secrets.yaml under
+                              `renderer_input_auth_header`.
+
+  Then load with:
+    launchctl load ~/Library/LaunchAgents/com.inkplate.renderer.plist
+
+  See SETUP.md § "1. Renderer (on the Mac)" for the full procedure.
+-->
 <plist version="1.0">
 <dict>
   <key>Label</key>
@@ -16,7 +34,7 @@
   <key>EnvironmentVariables</key>
   <dict>
     <key>INKPLATE_RENDERER_DIR</key>
-    <string>${INKPLATE_REPO}/renderer</string>
+    <string>/path/to/your/clone/renderer</string>
     <key>PATH</key>
     <string>/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin</string>
     <key>RENDERER_PORT</key>
@@ -27,7 +45,7 @@
          token generated once for this host. Must match `renderer_input_auth_header`
          (in "Bearer <token>" form) on the HA side. -->
     <key>RENDERER_INPUT_TOKEN</key>
-    <string>placeholder-bearer-token</string>
+    <string>REPLACE_WITH_30_CHAR_RANDOM_TOKEN</string>
   </dict>
 
   <key>RunAtLoad</key>

@@ -5,7 +5,7 @@
 set -euo pipefail
 
 HOST="${RENDERER_HOST:-${RENDERER_HOST}}"
-USER="${RENDERER_USER:-costin}"
+USER="${RENDERER_USER:-${OPERATOR_USER}}"
 KEY="${RENDERER_SSH_KEY:-/config/.ssh/id_ed25519}"
 
 # shell-quote args so spaces/ampersands survive the double hop.

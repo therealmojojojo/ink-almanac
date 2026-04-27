@@ -51,3 +51,8 @@ firmware/test/out/
 
 # macOS
 .DS_Store
+
+# Operator-specific runtime values — substituted into tracked templates
+# at deploy/build time. NEVER commit. See local-overrides.env.example for
+# the template.
+local-overrides.env

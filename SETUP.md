@@ -11,6 +11,45 @@ Total wall-clock time, first install: ~2 hours of focused work, plus 15-30 min o
 
 If you're picking up a working install, skip to [Day-to-day operations](#day-to-day-operations) at the bottom.
 
+## 0. Substitution layer (`local-overrides.env`)
+
+Operator-specific values (LAN IPs, weather location names, paths,
+operator username) are kept out of the tracked tree. Tracked files use
+`${VAR}` placeholders; real values live in `local-overrides.env`
+(gitignored), which is sourced by `ha/deploy.sh` and substituted into
+the deploy tarball before sending to HA. Same pattern can be used by
+any build/deploy step that needs to resolve placeholders.
+
+Before doing any other setup:
+
+```sh
+cp local-overrides.env.example local-overrides.env
+# edit local-overrides.env — fill in:
+#   RENDERER_HOST   IP/hostname of the always-on Mac/Linux renderer host
+#   HA_HOST         IP/hostname of the HAOS VM
+#   Z2M_HOST        IP/hostname of zigbee2mqtt (or leave default)
+#   PLACE_A_NAME    display name of your primary weather location
+#   PLACE_A_SLUG    HA-entity-id-safe slug for the same (lowercase, no diacritics)
+#   PLACE_B_NAME    secondary weather location
+#   PLACE_B_SLUG    same
+#   INKPLATE_REPO   absolute path to this clone on the renderer host
+#   OPERATOR_USER   the renderer-host username (usually $USER)
+```
+
+Three other operator-specific live files **also** stay out of git, each
+copied once from a tracked `.example` template:
+
+| Live file (gitignored) | Template |
+|---|---|
+| `firmware/include/secrets.h` | `firmware/include/secrets.h.example` |
+| `renderer/launchd/com.inkplate.renderer.plist` | `renderer/launchd/com.inkplate.renderer.plist.example` |
+| `ha/secrets.yaml` | `ha/secrets.yaml.example` |
+
+They contain credentials (WiFi pass, MQTT pass, HA long-lived token,
+renderer bearer token) — never let them enter git. The `local-overrides.env`
+holds the non-credential operator-specific values. Together they cover
+every editable runtime constant.
+
 ## Prerequisites
 
 - A Mac or Linux box with Node ≥20 and Python ≥3.10. (The renderer is tested on Node 25; older may work.)

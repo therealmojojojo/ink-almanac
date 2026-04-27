@@ -17,7 +17,7 @@
 set -euo pipefail
 
 HOST="${RENDERER_HOST:-${RENDERER_HOST}}"
-USER="${RENDERER_USER:-costin}"
+USER="${RENDERER_USER:-${OPERATOR_USER}}"
 KEY="${RENDERER_SSH_KEY:-/config/.ssh/id_ed25519}"
 
 ssh -i "$KEY" -o StrictHostKeyChecking=accept-new "$USER@$HOST" \

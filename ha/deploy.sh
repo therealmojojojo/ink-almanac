@@ -4,7 +4,7 @@
 set -euo pipefail
 
 # --- Configuration (override via env) ---
-HA_HOST="${HA_HOST:-${HA_HOST}}"
+HA_HOST="${HA_HOST:-homeassistant.local}"
 HA_SSH_PORT="${HA_SSH_PORT:-2222}"
 HA_USER="${HA_USER:-root}"
 HA_SSH_KEY="${HA_SSH_KEY:-$HOME/.ssh/id_ed25519}"
@@ -67,15 +67,44 @@ echo "→ Preparing $REMOTE_BASE on the VM (preserving state/)"
 # redeploy. (Using `find` avoids shell-glob ordering surprises.)
 ssh "${SSH_OPTS[@]}" "$SSH_TARGET" "mkdir -p $REMOTE_BASE/state && find $REMOTE_BASE -mindepth 1 -maxdepth 1 ! -name state -exec rm -rf {} +"
 
-echo "→ Streaming ha/ fragments → $REMOTE_BASE"
-tar -C "$HA_DIR" -cf - \
-  --exclude='secrets.yaml' \
-  --exclude='secrets.yaml.example' \
-  --exclude='deploy.sh' \
-  --exclude='README.md' \
-  --exclude='.gitkeep' \
-  --exclude='state' \
-  . | ssh "${SSH_OPTS[@]}" "$SSH_TARGET" "tar -C $REMOTE_BASE -xf -"
+# --- Render templates ---
+# Tracked YAML/scripts use ${VAR} placeholders for operator-specific values
+# (LAN IPs, weather location names + entity-id slugs, repo path, operator
+# username). Real values live in local-overrides.env (gitignored). We
+# render into a temporary work-dir and tar from there, so the HA VM
+# receives substituted values while the tracked tree stays generic.
+OVERRIDES="$REPO_DIR/local-overrides.env"
+if [[ ! -f "$OVERRIDES" ]]; then
+  echo "ERROR: $OVERRIDES not found. Copy local-overrides.env.example and fill in." >&2
+  exit 4
+fi
+# shellcheck disable=SC1090
+set -a; source "$OVERRIDES"; set +a
+
+# Variables we substitute (intentionally explicit — envsubst with no arg
+# would expand every $VAR in the YAML, which collides with HA's own
+# template syntax in some places).
+SUBST_VARS='$RENDERER_HOST $HA_HOST $Z2M_HOST $PLACE_A_NAME $PLACE_A_SLUG $PLACE_B_NAME $PLACE_B_SLUG $INKPLATE_REPO $OPERATOR_USER'
+
+WORK="$(mktemp -d -t inkplate-ha.XXXXXX)"
+# shellcheck disable=SC2064
+trap "rm -rf '$WORK' '$SSH_WRAPPER'" EXIT
+
+# Mirror ha/ to the work dir, then envsubst every text fragment in place.
+# Excludes match the tar excludes below.
+(
+  cd "$HA_DIR" && tar --exclude='secrets.yaml' --exclude='secrets.yaml.example' \
+    --exclude='deploy.sh' --exclude='README.md' --exclude='.gitkeep' \
+    --exclude='state' -cf - . | tar -C "$WORK" -xf -
+)
+find "$WORK" -type f \( -name '*.yaml' -o -name '*.yml' -o -name '*.sh' -o -name '*.md' -o -name '*.json' \) -print0 \
+  | while IFS= read -r -d '' f; do
+      tmp="$f.subst.$$"
+      envsubst "$SUBST_VARS" < "$f" > "$tmp" && mv "$tmp" "$f"
+    done
+
+echo "→ Streaming rendered ha/ fragments → $REMOTE_BASE"
+tar -C "$WORK" -cf - . | ssh "${SSH_OPTS[@]}" "$SSH_TARGET" "tar -C $REMOTE_BASE -xf -"
 
 if [[ -f "$HA_DIR/secrets.yaml" ]]; then
   echo "→ Streaming secrets.yaml → $REMOTE_BASE/secrets.yaml (project-scoped)"

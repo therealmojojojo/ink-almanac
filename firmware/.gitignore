@@ -4,3 +4,6 @@ build-*/
 compile_commands.json
 test/out/
 test/third_party/doctest/*.h.tmp
+
+# Live device secrets — never commit. Use secrets.h.example as the template.
+include/secrets.h
