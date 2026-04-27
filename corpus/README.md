@@ -78,3 +78,85 @@ After hardware review an image may additionally carry `panel_verdict: keep | fla
 ## Manifest
 
 `_manifest.json` enumerates every content body that isn't in git (image binaries, optional body-text files). See `_manifest.README.md` for the schema. The validator checks that the manifest and filesystem agree; `--full` additionally verifies sha256.
+
+## What's tracked vs. ignored
+
+The operator's actual corpus — sidecars, triplets, audits, manifest — is gitignored. A fresh clone has only:
+
+- `_taxonomy/` — controlled vocabulary (tracked; amendments go through the procedure documented there).
+- `EXAMPLE.yaml.template` files in `images/`, `texts/`, `personal_library/`, and `_triplets/` — annotated skeletons.
+- This README and `_manifest.README.md`.
+
+Forks build their own corpus from these primitives. Specifically:
+
+```
+images/*.yaml                tracked? no    (operator-curated)
+texts/*.yaml                 tracked? no
+personal_library/*.yaml      tracked? no
+_triplets/*.yaml             tracked? no    (regenerated artefact)
+_audits/*.md                 tracked? no    (generated reports)
+_caches/*                    tracked? no    (intermediate caches)
+_manifest.json               tracked? no    (binary inventory; rebuilt locally)
+```
+
+If you're authoring a sidecar, write it directly under the right folder — `.gitignore` will keep it out of commits.
+
+## Building a corpus from scratch
+
+The directory tree above is enough to bootstrap. Two flows produce sidecars:
+
+1. **Photographer / artist harvest** (image-heavy, web-sourced).
+
+   ```sh
+   pip install -e pairing
+   corpus harvest <creator-id>          # phase 1: candidate scrape + contact sheet
+   # operator reviews corpus/_staging/harvest-<creator-id>/decisions.yaml
+   corpus harvest --commit <creator-id> # phase 2: vision-tag + write sidecars (in flight)
+   ```
+
+   Phase 1 is implemented and writes a staging report under `corpus/_staging/`. Phase 2 (vision-tag → sidecar → manifest) lands with `openspec/changes/add-ingestion-automation`. Until then, sidecars from a phase-1 staging dir are written by hand using the EXAMPLE template, then validated.
+
+2. **Personal library ingest** (web-sourced reproductions of in-copyright works, EU private-copy tier).
+
+   ```sh
+   corpus ingest-personal --folder /path/to/scans \
+                          --citation '<Author>, *<Title>*, <Publisher>, <Year>'
+   # review staging
+   corpus ingest-personal --commit --batch-id <id>
+   ```
+
+   See `openspec/specs/corpus-schema` "Rights tiers and their obligations" for what `personal_library` requires.
+
+After either flow, validate:
+
+```sh
+corpus validate          # structural + taxonomy + manifest agreement
+corpus validate --full   # + verify sha256 of every binary against the manifest
+corpus audit             # coverage report (themes / register / panel-fidelity mix)
+```
+
+## Building the triplet pool
+
+`_triplets/` is a generated artefact, not authored by hand. Once the corpus has enough texts and images, run:
+
+```sh
+python pairing/corpus_build_triplets_v2.py           # dry-run; prints counts and rules summary
+python pairing/corpus_build_triplets_v2.py --apply   # wipe and regenerate _triplets/
+```
+
+The generator enforces the rules documented at the top of `corpus_build_triplets_v2.py` (wrap-aware summary eligibility, 65/35 visual/text gallery split, per-item cap of 5, 100-position recency window, etc.). Existing `triplet_verdict` annotations on surviving ids are preserved.
+
+After regenerating, review the pool in the browser:
+
+```sh
+cd renderer && npm run dev
+# new shell:
+corpus review                         # all triplets
+corpus review --only-unreviewed       # skip already-judged ones
+```
+
+Each triplet's faces (Summary / Weather / Gallery / Night) are rendered live and you can keep / reject-content / reject-layout per triplet. Verdicts write back to the triplet sidecar.
+
+## Daily rotation
+
+Once `_triplets/` is populated, `pairing/publish_today.py` walks them in `sequence` order, one per day, anchored at the date in `pairing/_state/triplet_epoch.json`. The epoch file is created on first run; delete it (or edit the date) to re-anchor the rotation back to sequence 1. HA fires this script daily at 06:00 via `shell_command.publish_today_pairing`.

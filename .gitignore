@@ -56,3 +56,23 @@ firmware/test/out/
 # at deploy/build time. NEVER commit. See local-overrides.env.example for
 # the template.
 local-overrides.env
+
+# Operator's curated content — sidecars and triplets reflect the operator's
+# personal taste and bibliography. Templates (EXAMPLE.yaml.template) and
+# the README are tracked; everything else under these dirs is ignored so
+# forks can build their own corpus.
+corpus/personal_library/*.yaml
+corpus/texts/*.yaml
+corpus/images/*.yaml
+corpus/_triplets/*.yaml
+corpus/_audits/*.md
+corpus/_caches/*
+corpus/_manifest.json
+!corpus/personal_library/EXAMPLE.yaml.template
+!corpus/texts/EXAMPLE.yaml.template
+!corpus/texts/EXAMPLE-BILINGUAL.yaml.template
+!corpus/images/EXAMPLE.yaml.template
+!corpus/_triplets/EXAMPLE.yaml.template
+
+# Per-deployment runtime state for the daily rotation.
+pairing/_state/triplet_epoch.json
