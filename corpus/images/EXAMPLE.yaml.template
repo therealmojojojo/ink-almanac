@@ -1,0 +1,69 @@
+# Image sidecar template — copy, rename to <id>.yaml, edit.
+# Authoritative schema: openspec/specs/corpus-schema/spec.md
+# Authoritative vocabulary: corpus/_taxonomy/{themes,mood,register,form}.yaml
+
+# Kebab-case, unique corpus-wide, stable for life. Must match the filename basename.
+id: example-artist-work-title
+
+# Original-language title. Empty string only for untitled works.
+title: "Example Work Title"
+
+# Display title for Gallery face — optional; omit to reuse `title`.
+display_title: "Short Title"
+
+# Maker's name. Empty string allowed for anonymous works.
+artist: "Firstname Lastname"
+
+# Integer year. Use ISO date string for finer-grained records. null for unknown provenance.
+year: 1888
+
+# One of public_domain, cc0, personal_library. Must match the folder:
+# - corpus/images/, corpus/nocturne/     → public_domain | cc0
+# - corpus/personal_library/             → personal_library
+rights_tier: public_domain
+
+# Identifier of the institution or source.
+source: met_open_access            # or: rijksmuseum | gallica_bnf | loc_pnp | wikimedia_commons | artic | web
+source_url: "https://..."          # Authoritative record. Required for PD/CC0.
+
+# Required for rights_tier: personal_library only. Remove for PD/CC0.
+# Format: "<Author>, *<Book Title>*, <Publisher>, <Year>, page <N>"
+# citation: ""
+
+# Image form — must belong to the image group in form.yaml:
+# etching, engraving, woodblock, wood-engraving, lithograph, drawing,
+# photograph, painting, ink-wash, silverpoint, poster
+form: etching
+
+# Medium — free-text, human-readable.
+medium: "etching on laid paper"
+
+# Actual dimensions of the stored binary, in pixels. Ingestion populates these from
+# the file; the validator rejects any image whose recorded dimensions disagree with
+# the on-disk binary. Orientation-aware floor:
+#   - landscape (width > height): pixel_width  >= 1080 (MUST)
+#   - portrait  (height >= width): pixel_height >= 693  (MUST)
+#   - max(pixel_width, pixel_height) >= 1800          (SHOULD, audit warns otherwise)
+pixel_width: 2400
+pixel_height: 1600
+
+# How the work survives reduction to luminance on the 3-bit greyscale Inkplate 10 panel.
+# One of:
+#   native           — pure-value work (etching, engraving, drawing, sumi-e, B&W photo, monochrome litho)
+#   robust           — color-origin, but tonal structure carries the composition
+#   color-dependent  — hue/saturation carries it; collapses on the panel — NOT PERMITTED in the corpus
+panel_fidelity: native
+
+# Optional: outcome of hardware-level visual review.
+# panel_verdict: keep | flag | reject
+# verdict_reason: "Required when panel_verdict is flag or reject."
+# verdict_reviewed_at: "YYYY-MM-DD"
+
+# Controlled vocabularies — every entry must be a canonical key in the corresponding
+# _taxonomy file. Non-empty.
+themes:   [old-masters, mortality]
+mood:     [contemplative, austere]
+register: [classical, oracular]
+
+# When the item entered the corpus.
+added: "YYYY-MM-DD"

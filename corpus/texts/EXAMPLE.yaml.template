@@ -1,0 +1,36 @@
+# Text sidecar template (single language) — copy, rename to <id>.yaml, edit.
+# Authoritative schema: openspec/specs/corpus-schema/spec.md
+# Authoritative vocabulary: corpus/_taxonomy/{themes,mood,register,form}.yaml
+#
+# Text items have no binary — the body lives inline in `text` or `text_variants`.
+
+id: example-author-title-fragment
+title: "Example Title"
+author: "Firstname Lastname"
+year: 1950
+rights_tier: public_domain             # public_domain | cc0 | personal_library
+source: project_gutenberg              # or: wikisource | loc_pnp | web | ...
+source_url: "https://..."              # Required for PD/CC0; null allowed only for personal_library.
+
+# Required for rights_tier: personal_library only.
+# citation: "<Author>, *<Book Title>*, <Publisher>, <Year>, page <N>"
+
+# Text form — must belong to the text group in form.yaml:
+# haiku, tanka, sonnet, free-verse, stanzaic, fragment, aphorism,
+# prose-poem, quote, song-chorus, lyric
+form: fragment
+
+# ISO 639-1 codes. Non-empty.
+language: [en]
+
+# Verbatim body. Use a YAML block scalar (|) to preserve line breaks.
+# Use `text` for a single language; use `text_variants` (see EXAMPLE-BILINGUAL) for two or more.
+text: |
+  A single paragraph or short passage,
+  verbatim, in the declared language.
+
+themes:   [contemplative, mortality]
+mood:     [melancholy, attentive]
+register: [plainspoken]
+
+added: "YYYY-MM-DD"

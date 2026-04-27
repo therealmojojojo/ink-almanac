@@ -1,0 +1,44 @@
+# Personal-library sidecar template — copy, rename to <id>.yaml, edit.
+# Authoritative schema: openspec/specs/corpus-schema/spec.md
+#
+# Personal-library items are in-copyright works admitted under the EU private-copy
+# exception (Romania Law 8/1996 Art. 34) for display on the operator's own device.
+# They MUST carry a `citation` with a bibliographic reference to a canonical
+# published source. Binaries and body-text files under corpus/personal_library/
+# are git-ignored and SHALL NOT be uploaded to backup schemes that leave the
+# operator's control.
+#
+# This template is for a TEXT item (inline body). For an image item the shape is
+# the same as corpus/images/EXAMPLE.yaml.template, but placed under
+# corpus/personal_library/ with rights_tier: personal_library and a `citation`.
+
+id: author-work-excerpt
+title: "Example Poem Title"
+author: "Firstname Lastname"
+year: 1978
+
+rights_tier: personal_library
+source: web                            # personal-library items are web-fetched
+source_url: "https://..."              # page where the text was visible, if web-sourced
+
+# REQUIRED for personal_library. Bibliographic reference to a canonical published source.
+# Format: "<Author>, *<Book Title>*, <Publisher>, <Year>[, page <N>]"
+citation: "Author, *Book Title*, Publisher, 1982"
+
+form: fragment                         # see corpus/_taxonomy/form.yaml (text group)
+language: [ro]
+
+text_variants:
+  ro: |
+    Verbatim body in Romanian (or whichever single language),
+    preserving line breaks with a YAML block scalar.
+
+themes:   [romanian-voice, love-longing]
+mood:     [tender, yearning]
+register: [lyric]
+
+# Optional curatorial flag: set true when this is a piece the operator expects to
+# appear in curated rotations even without algorithmic selection.
+# operator_pick_expected: true
+
+added: "YYYY-MM-DD"

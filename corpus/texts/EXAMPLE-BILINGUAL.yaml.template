@@ -1,0 +1,35 @@
+# Bilingual text sidecar template — copy, rename to <id>.yaml, edit.
+# Authoritative schema: openspec/specs/corpus-schema/spec.md
+#
+# Use `text_variants` (map of ISO 639-1 code → verbatim body) instead of `text`
+# for works that are presented in more than one language. The `language` list
+# MUST match the keys in `text_variants` exactly.
+
+id: basho-example-old-pond
+title: "Old pond"
+author: "Matsuo Bashō"
+year: 1686
+rights_tier: public_domain
+source: wikisource
+source_url: "https://ja.wikisource.org/wiki/..."
+
+form: haiku
+
+# Two languages — keys of text_variants must equal this list (any order).
+language: [en, ja]
+
+text_variants:
+  en: |
+    The old pond—
+    a frog jumps in,
+    sound of water.
+  ja: |
+    古池や
+    蛙飛び込む
+    水の音
+
+themes:   [eastern-wisdom, water, attention-and-listening]
+mood:     [serene, contemplative]
+register: [aphoristic, quiet-sovereign]
+
+added: "YYYY-MM-DD"
