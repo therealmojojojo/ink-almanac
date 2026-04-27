@@ -1,79 +1,202 @@
-# ha/ — Home Assistant configuration for the Inkplate dashboard
+# ha/ — Home Assistant configuration
 
-This is the source of truth for the HA side of the system. Deployed to the HAOS VM as
-`/config/custom/inkplate/` by `ha/deploy.sh`.
+Source of truth for the HA side. Deployed to the HAOS VM as
+`/config/custom/inkplate/` by `ha/deploy.sh`. Drives:
+
+- The per-tier face alternation engine (15 / 30 / 15 / static-Night).
+- Tap → flip alternation phase, or peek-to-main during Now-Playing.
+- Sonos override (now-playing activate, linger, restore-prior).
+- Renderer-input publishers (clock, weather, sonos, device, plus the
+  daily triplet trigger that runs `pairing/publish_today.py` over SSH).
+- Sensor pipelines feeding renderer inputs (forecast, astro events, the
+  poetic weather line LLM job).
 
 ## Layout
 
 ```
 ha/
-├── automations/          YAML automations (schedule, pairing trigger, poetic-weather, low-battery, sleep-strategy)
-├── sensors/              template + rest + scrape sensors (weather, HN, news, astro, kitchen climate)
-├── scripts/              helper scripts invoked via shell_command (LLM line generator, pairing runner)
-├── config/               operator-editable config (news_sources.yaml, poetic_weather_line.yaml, night_fallback_lines.yaml)
-├── integrations/         top-level integration snippets included from configuration.yaml
-├── state/                runtime state written by automations (poetic_weather.txt) — gitignored
-├── docs/                 architecture, deploy, troubleshooting, sleep-strategy
-├── deploy.sh             rsync + reload over SSH
-├── secrets.yaml.example  copy to secrets.yaml (gitignored) and fill in
+├── automations/         YAML automations (schedule, gestures, publishers,
+│                        now-playing, sonos remote, weather peek, ...)
+├── sensors/             template / rest / scrape sensors
+├── scripts/             helper scripts invoked via shell_command
+│                        (LLM line generators, pairing runner)
+├── config/              operator-editable lists (poetic_weather, news_sources,
+│                        night_fallback_lines, now_playing_sources)
+├── integrations/        included from configuration.yaml — helpers,
+│                        rest_commands, shell_commands, command_line_sensors,
+│                        weather_forecast template
+├── state/               runtime state files (poetic_weather.txt, astro_event.txt,
+│                        curated_news.json) — gitignored
+├── docs/                architecture, deploy, troubleshooting, sleep-strategy
+├── deploy.sh            rsync + ha core check + restart over SSH
+├── secrets.yaml.example copy to secrets.yaml, fill in, never commit
 └── README.md
 ```
 
-## One-time setup (HAOS VM)
+## Override state machine
 
-1. **SSH & Web Terminal add-on.** Install from the HA Add-on store. Set the operator's public key in the add-on config (`Authorized keys`). Enable *Protection mode off* so the add-on can reload HA configuration. Start the add-on and note the port (default `2222`).
+`input_text.inkplate_active_override` controls what gets published to
+`inkplate/command/active_mode`. Values, in precedence order (highest first):
 
-2. **Inclusion in `configuration.yaml`.** Edit the VM's `/config/configuration.yaml` (via the SSH add-on) to include the project fragments:
+| Value | Set by | Cleared by |
+|---|---|---|
+| `now_playing` | Sonos transitions to playing (outside quiet hours) | linger expiry after Sonos stops, or another override taking over |
+| `weather_peek` | (legacy — no automation creates this any more) | the dedicated 5-min expiry timer or the HA-start cleanup; defensive code paths still honor it for retained MQTT residue |
+| `schedule` | the alternation tick at every 15 min | — |
 
-   ```yaml
-   homeassistant:
-     packages: !include_dir_named custom/inkplate/integrations
-   automation inkplate: !include_dir_merge_list custom/inkplate/automations
-   sensor inkplate: !include_dir_merge_list custom/inkplate/sensors
-   ```
+When `active_override == schedule`, the alternation tick publishes the
+current target face every 15 min:
 
-   `shell_command:` lives inside `integrations/shell_commands.yaml` and is
-   picked up by the `packages` line — do not `!include` it a second time.
+```
+parity = (((minute_of_day - tier_start) // tier_full) + alternation_offset) % 2
+target = parity == 0 ? tier_main : 'weather'
+```
 
-3. **Secrets.** Copy `ha/secrets.yaml.example` → `ha/secrets.yaml`, fill in, then deploy (the deploy script copies it to `/config/secrets.yaml` on the VM).
+| Tier | Hours | tier_full | tier_main |
+|---|---|---|---|
+| Morning | 06:30–10:00 | 15 min | summary |
+| Midday | 10:00–17:00 | 30 min | gallery |
+| Evening | 17:00–22:00 | 15 min | gallery |
+| Night | 22:00–06:30 | n/a | night (no alternation) |
 
-4. **Add-ons required / recommended:**
-   - **Mosquitto broker** — the device talks MQTT (`inkplate/command/*`, `inkplate/state/*`).
-   - **Advanced SSH & Web Terminal** — deploy path.
-   - **File editor** *(optional)* — diagnostic inspection only; **do not edit files in-VM**; in-VM edits are drift.
+When `active_override == now_playing`, the tick still recomputes
+`scheduled_face` so override-restore lands on the right phase, but does
+not publish active_mode.
+
+## Tap handler
+
+`automations/gesture_override.yaml` listens on `inkplate/state/gesture` and
+treats `single` and `double` as the same intent (the wire-tied frame
+mount can latch either depending on tap force; distinguishing them
+forces the operator to calibrate tap force). Two automations:
+
+- **Tap during schedule** → flip `input_number.inkplate_alternation_offset`,
+  recompute `scheduled_face`, publish `active_mode = <new face>`. The
+  flipped phase persists across subsequent ticks until tapped again.
+- **Tap during now_playing** → publish `active_mode = <tier main>`,
+  delay 60 s, then publish `active_mode = now-playing` again (peek
+  semantics). `mode: restart` so a repeated tap during the peek extends
+  the window. Defensive guard: only republishes now-playing if Sonos is
+  still playing.
+
+Both are no-ops during Night (no alternation) and during quiet hours.
+
+## Renderer-input publishers
+
+`automations/publish_inputs.yaml` keeps `renderer/inputs/*.json` in sync
+with HA's view of the world. Five publishers, all gated on
+`input_boolean.inkplate_publisher_enabled`:
+
+| Topic | Trigger | What it writes |
+|---|---|---|
+| clock | every minute + HA start | `time` ("HH:MM") + `date` ("Monday · April 27") |
+| weather | weather sensor state-change + hourly + HA start | locations × {current, forecast, nowcast}, poetic line, astro |
+| sonos | media_player.kitchen_sonos state / content_id change + HA start | state, title, artist, album, source_indicator, art_url — only when actually playing AND has metadata (defensive: empty transients no longer overwrite the file) |
+| device | MQTT message on `inkplate/state/device` + HA start | battery percentage + voltage + build, last_seen |
+
+The daily triplet — `pairing/publish_today.py` over SSH at 06:00 — writes
+`pairing.json`, `companion.jpg`, `gallery.jpg`, `nocturne.jpg`, and
+`news.json` (the smart-pill body) directly via filesystem on the
+renderer host. It does NOT go through the HA REST publisher.
+
+Smart-pill content is **deterministic per-day**: read from the summary
+item's YAML sidecar field `summary.smart_pill.body`. The earlier live
+Claude regen pipeline was removed because it produced different prose
+on every HA restart. If you need a fresh gloss for a new corpus item,
+generate it offline at corpus-build time, not at runtime.
+
+## Sonos remote (IKEA SYMFONISK Sound Remote Gen 2)
+
+`automations/sonos_remote.yaml` maps Z2M button events to media controls:
+
+| Button | Action |
+|---|---|
+| Play/pause | toggle, with cold-start picking a random Spotify playlist from `playlists` |
+| Volume up / hold | +10 % per press |
+| Volume down / hold | −10 % per press |
+| Track next | `media_player.media_next_track` |
+| Track previous | `media_player.media_previous_track` |
+| Dot 1 (short release) | step backwards through the playlist pool |
+| Dot 2 (short release) | step forwards through the playlist pool |
+
+Cursor lives in `input_number.inkplate_sonos_playlist_index` (wraps via
+modulo). The playlist pool is duplicated in three places (play/pause,
+dot-1, dot-2) — keep them in sync.
 
 ## Deploy
 
-```bash
+```sh
 make deploy-ha
-# or
-./ha/deploy.sh
+# or with overrides
+HA_HOST=${HA_HOST} HA_SSH_PORT=2222 HA_USER=root HA_SSH_KEY=~/.ssh/id_ed25519 make deploy-ha
 ```
 
 The script:
-1. Verifies the SSH key works against the HAOS VM.
-2. rsync's `ha/` → `/config/custom/inkplate/` (secrets.yaml separately → `/config/secrets.yaml`).
-3. Calls `ha core reload` over SSH to pick up automations/sensors.
-4. Tails the HA log for any load errors.
 
-## State semantics: `input_text.active_override`
+1. Verifies SSH connectivity to the HAOS VM.
+2. Optionally regenerates `sensors/news_sources.yaml` from
+   `config/news_sources.yaml` (if you maintain RSS feed sensors for
+   custom dashboards).
+3. Wipes `/config/custom/inkplate/*` (preserving `state/` runtime artifacts).
+4. Streams the `ha/` tree over SSH and untars on the VM.
+5. Streams `secrets.yaml` separately to `/config/custom/inkplate/secrets.yaml`.
+6. Runs `ha core check && ha core restart` (full restart — `ha core reload`
+   doesn't pick up newly-introduced helpers / entities).
+7. Tails the recent HA log for visible errors.
 
-Tracked as a helper in `integrations/helpers.yaml`. Allowed values and precedence (highest to lowest):
+A 30-60 s blackout window during the restart is normal.
 
-| Value | Meaning | Precedence |
-|---|---|---|
-| `now_playing` | Sonos is playing in the kitchen; Now-Playing face is shown | 1 (highest) |
-| `weather_peek` | Single-tap gesture requested Weather face for a 5-min window | 2 |
-| `summary_gallery_toggle` | Double-tap toggled Summary ↔ Gallery until next schedule boundary | 3 |
-| `schedule` | No override; the time-of-day schedule drives the active face | 4 (lowest) |
+## Rollback
 
-`input_text.prior_override` records the value displaced by `now_playing` so Now-Playing can restore it when music stops and linger ends.
+```sh
+ssh root@<HA_HOST> -p <HA_SSH_PORT>
+rm -rf /config/custom/inkplate
+# remove the three include lines from /config/configuration.yaml
+ha core check && ha core restart
+```
 
-The scheduled-mode automation (`automations/schedule.yaml`) always updates an internal "current scheduled face" but only issues a device wake when `active_override == schedule` — otherwise the new scheduled face becomes the state Now-Playing restores into.
+Native HA integrations (weather, sun, moon, Sonos, MQTT) can stay —
+they're idempotent.
+
+## One-time setup
+
+See [`../SETUP.md`](../SETUP.md) for the full operator install across
+all four hosts. The HA-specific bits in summary:
+
+1. Install **Mosquitto broker** (MQTT) and **Advanced SSH & Web
+   Terminal** (deploy path) add-ons.
+2. Add the three include lines to `configuration.yaml`.
+3. Copy `secrets.yaml.example` → `secrets.yaml` and fill in (HA
+   long-lived token, renderer auth header, MQTT creds, Anthropic API
+   key only if regenerating corpus seed).
+4. `make deploy-ha`.
+5. In HA UI: confirm `input_boolean.inkplate_publisher_enabled` is **on**
+   (it's the master kill switch — silently turns every renderer
+   publisher into a no-op when off).
+
+## Common operator tasks
+
+```sh
+# Force the alternation tick to fire now (useful right after a deploy)
+curl -H "Authorization: Bearer $HA_TOKEN" -X POST \
+  -d '{"entity_id":"automation.inkplate_per_tier_face_alternation_tick"}' \
+  http://$HA_HOST:8123/api/services/automation/trigger
+
+# Skip Sonos to a different playlist (cycle via the dots, or pin via API)
+curl -H "Authorization: Bearer $HA_TOKEN" -X POST \
+  -d '{"entity_id":"input_number.inkplate_sonos_playlist_index","value":3}' \
+  http://$HA_HOST:8123/api/services/input_number/set_value
+
+# Reset the alternation phase to "tier-main" everywhere
+curl -H "Authorization: Bearer $HA_TOKEN" -X POST \
+  -d '{"entity_id":"input_number.inkplate_alternation_offset","value":0}' \
+  http://$HA_HOST:8123/api/services/input_number/set_value
+```
 
 ## Further docs
 
-- `docs/architecture.md` — component + data-flow diagram.
-- `docs/deploy.md` — SSH setup, deploy command, rollback procedure.
-- `docs/troubleshooting.md` — common failure modes.
-- `docs/sleep-strategy.md` — the sleep-strategy helper defaults and rationale.
+- [`docs/architecture.md`](docs/architecture.md) — component + data-flow diagram.
+- [`docs/deploy.md`](docs/deploy.md) — deploy script details, env vars, rollback.
+- [`docs/secrets-checklist.md`](docs/secrets-checklist.md) — every secret field, what it's for.
+- [`docs/sleep-strategy.md`](docs/sleep-strategy.md) — quiet-hours + override interaction.
+- [`docs/troubleshooting.md`](docs/troubleshooting.md) — known failure modes.

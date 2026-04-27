@@ -14,27 +14,38 @@ npx playwright install chromium
 ## Run
 
 ```bash
-npm run dev            # watch mode on port 8575
-npm start              # one-shot
-npm run build          # TypeScript check
-npm run verify         # lint templates + zones + fonts
-npm test               # snapshot tests (seeds goldens on first run)
-npm run dither-test    # writes ../docs/dither-test-results.md
+npm run dev              # watch mode on port 8575
+npm start                # one-shot
+npm run build            # TypeScript check
+npm run verify           # lint templates + zones + fonts
+npm test                 # snapshot tests (seeds goldens on first run)
+npm run dither-test      # writes ../docs/dither-test-results.md
+npm run bake:clock-glyphs  # bake Fraunces digit/colon glyphs into firmware/src/generated/
 ```
+
+`bake:clock-glyphs` is the build-time tool that produces the on-device
+clock-zone composer's bitmap tables. Run after editing any `.clock`,
+`.gv-clock`, `.np-clock`, or `.gt-corner-time` CSS selector — the
+firmware build picks up the regenerated `clock_glyphs.{h,cpp}`.
 
 ## Endpoints
 
 | Path | Purpose |
 | ---- | ------- |
 | `GET /healthz` | 200 + `{status, playwright_ready}` |
-| `GET /display/{mode}.png` | Rendered PNG at 1200×825, Inkplate palette |
+| `GET /display/{mode}.png` | Rendered PNG at 1200×825, single-channel 8-bit greyscale |
 | `GET /display/{mode}/preview` | Human-facing HTML preview |
+| `GET /display/{mode}/clock-zone.json` | `{x, y, w, h, font_size}` of the clock element on the most recent render of `{mode}`. 404 if the mode hasn't rendered yet or doesn't have a single clock element (Night splits hh/mm). Firmware reads this after every Full so partial-update digits land at the same pixels the Full painted. |
 | `POST /inputs/:name` | Atomic write of an input JSON file (HA publisher target) |
 | `GET /dither-test` | In-browser harness viewer |
 | `GET /static/...` | CSS and self-hosted fonts |
-| `GET /inputs/{file}` | Input JSON files (used by templates for images, etc.) |
+| `GET /inputs/{file}` | Input JSON files (used by templates for image src, etc.) |
 
 Modes: `summary`, `weather`, `gallery`, `night`, `now-playing`.
+
+The PNG response also carries the clock zone in an `x-clock-zone` HTTP
+header (`x=… y=… w=… h=… font_size=…`) so a client can read both in one
+round-trip if it wants to.
 
 ## Inputs
 
@@ -44,15 +55,18 @@ with one exception: `device.json` is optional on every face — when absent
 the battery indicator falls back to its graceful-degradation em-dash per
 the `dashboard-faces` spec.
 
-Per mode:
+Per mode (current; see `src/modes/index.ts:gather*` for the canonical list):
 
-- `summary` ← `clock, weather, climate, hn, pairing, device` (sonos optional)
-- `weather` ← `clock, weather, device`
-- `gallery` ← `clock, pairing, device`
-- `night` ← `clock, weather, pairing, device`
-- `now-playing` ← `clock, sonos, device`
+- `summary` ← `clock, weather, news, pairing` (`sonos`, `device` optional)
+- `weather` ← `clock, weather` (`device` optional)
+- `gallery` ← `clock, pairing` (`device` optional)
+- `night` ← `clock, weather, pairing` (`device` optional)
+- `now-playing` ← `clock, sonos` (`device` optional)
 
-See `src/modes/schema.ts` for the Zod contracts.
+See `src/modes/schema.ts` for the Zod contracts. `news` has been
+simplified to a deterministic single-item smart-pill body sourced from
+the daily summary item's YAML sidecar — the live-LLM regen pipeline
+that used to overwrite it on every HA restart was removed.
 
 ### `POST /inputs/:name`
 
@@ -116,8 +130,23 @@ launchctl load ~/Library/LaunchAgents/com.inkplate.renderer.plist
 curl http://127.0.0.1:8575/healthz
 ```
 
-The service restarts on crash (`KeepAlive`), throttled to 10s. Logs go to
-`/tmp/inkplate-renderer.{out,err}.log`.
+The service restarts on crash (`KeepAlive`), throttled to 10 s. Logs go
+to `/tmp/inkplate-renderer.{out,err}.log`.
+
+The `serve()` startup goes through `listenWithRetry()` (`src/server.ts`),
+which retries `EADDRINUSE` for up to 180 s with 1 s backoff. This covers
+the macOS `TIME_WAIT` window after a launchd restart (typ. 30–60 s),
+where the previous instance's socket hasn't been fully released yet.
+Without the retry, launchd's blanket respawn-and-die loop would spam
+the err log with hundreds of stack traces. Companion fix: graceful
+shutdown waits for `server.close()` to finish before `process.exit()`,
+so the kernel cleanly releases the socket instead of leaving it
+half-closed. `uncaughtException` / `unhandledRejection` are caught and
+logged so a stray Playwright timeout doesn't crash the process.
+
+If `listenWithRetry` exhausts its 180 s budget the process exits 75
+(`EX_TEMPFAIL`) and launchd respawns from scratch — that path is
+genuinely a hard failure (something else is squatting the port).
 
 ## Snapshot tests
 
