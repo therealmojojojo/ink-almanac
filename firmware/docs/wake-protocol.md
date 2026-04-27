@@ -32,6 +32,84 @@ exposes the clock zone in an `x-clock-zone` HTTP header
 (`x=… y=… w=… h=… font_size=…`) so an alternate firmware can read both
 in one round-trip.
 
+## Refresh schedule
+
+Source of truth: `firmware/src/wake.cpp:tierFor()` (per-tier cadences) +
+`ha/automations/schedule.yaml` (face alternation per tier). Anything in
+this section that disagrees with those files is wrong.
+
+### Cadence by tier
+
+The day is partitioned into four tiers. Within a tier, the planner
+classifies every minute into one of five paths (Skip / Partial / Poll /
+PollPartial / Full) by simple modular arithmetic on `minute_of_day`.
+
+| Tier | Hours | Full | Poll | Partial / PollPartial | Skip | Faces shown |
+| --- | --- | --- | --- | --- | --- | --- |
+| Morning | 06:30 – 10:00 | every 15 min (`:00,:15,:30,:45`) | every 3 min (`:03,:06,:09,:12,…`) | **Partial** every other minute (`:01,:02,:04,:05,:07,…`) | — | Summary ↔ Weather, alternates every 15 min |
+| Midday | 10:00 – 17:00 | every 30 min (`:00,:30`) | (none standalone) | **PollPartial** every 5 min (`:05,:10,:15,:20,:25`) | all other minutes | Gallery ↔ Weather, alternates every 30 min |
+| Evening | 17:00 – 22:00 | every 15 min | every 3 min | **Partial** every other minute | — | Gallery ↔ Weather, alternates every 15 min |
+| Night | 22:00 – 06:30 | every 15 min | — | — | all other minutes | Night |
+
+### What each path does
+
+| Path | Wi-Fi up? | MQTT read? | HTTP render fetch? | Draw | Approx. cost |
+| --- | --- | --- | --- | --- | --- |
+| Skip | no | no | no | none — re-arm + deep-sleep | ~0 |
+| Partial | no | no | no | clock zone only, 1-bit `partialUpdate` × 2 (seed + new) | ~0.06 mAh, ~250 ms |
+| Poll | yes | yes (`active_mode`) | only if mode changed → Full | none unless mode changed | ~0.5 mAh per poll |
+| PollPartial | yes | yes | only if mode changed → Full | clock zone if same mode (else Full) | ~0.5 mAh + ~0.06 mAh |
+| Full | yes | yes | yes (PNG + clock-zone JSON) | whole-panel 3-bit refresh + 2 post-Full cleanup pulses on the clock zone | ~3 mAh, ~6–9 s |
+
+### Per-face partial support
+
+Whether `doPartial` actually composes a clock for the active face depends
+on whether the face's clock font size has a baked Fraunces glyph preset
+in `firmware/src/generated/clock_glyphs.{h,cpp}` (built by
+`renderer/src/tools/bake-clock-glyphs.ts`).
+
+| Face | Clock element | Font size | Baked preset | Partials render? |
+| --- | --- | --- | --- | --- |
+| Summary | `.summary-top .clock` | 160u | `kSummaryClock` | yes |
+| Weather | `.weather-header .clock` | 44u | `kCompactClock` | yes |
+| Gallery — visual landscape | `.gv-caption .clock` | 44u | `kCompactClock` | yes |
+| Gallery — visual split | `.gv-root.gv-split .gv-clock` | 28u | `kCornerClock` | yes |
+| Gallery — text | `.gt-corner-time` | 28u | `kCornerClock` | yes |
+| NowPlaying | `.np-clock` | 28u | `kCornerClock` | n/a — planner forces Full every minute (`wake.cpp:pathForMinute`) |
+| Night | (split `.hh` / `.mm`) | — | — | n/a — tier has no Partial cadence and renderer returns 404 |
+
+### Overrides on top of the planner
+
+| Trigger | Effect | Where |
+| --- | --- | --- |
+| Cold boot, OTA, `inkplate/command/wake` | Forces `Path::Full` regardless of cadence | `main_loop.cpp::tick` |
+| Confirmed IMU tap | Reason becomes `IMU` → Full this wake; tap-ack pulse fires first | `main_loop.cpp::tick` |
+| `current_mode == NowPlaying` | Planner returns Full every minute (cadence ignored) | `wake.cpp::pathForMinute` |
+| Mode change detected at Poll / PollPartial | Promotes to Full of the new mode this wake | `main_loop.cpp` Poll / PollPartial branches |
+| No cached clock zone or no matching baked preset | `doPartial` returns false → caller promotes to Full | `main_loop.cpp::doPartial` |
+| Quiet-hours guard (HA-side) | Suppresses tap-driven mode changes; firmware's tier wakes still run | `ha/automations/gesture_override.yaml` |
+
+### Worked example — one Midday hour, Gallery active
+
+Midday tier with Gallery as the alternation phase. 12:00 to 13:00, in
+minute order:
+
+| Min | Path | What happens |
+| --- | --- | --- |
+| :00 | Full | Wi-Fi + MQTT + fetch Gallery PNG + 3-bit refresh + clock-zone fetch + 2 cleanup pulses |
+| :01–:04 | Skip | re-arm + sleep |
+| :05 | PollPartial | Wi-Fi + MQTT poll; same mode → 1-bit partial of clock zone (12:05) |
+| :06–:09 | Skip | sleep |
+| :10, :15, :20, :25 | PollPartial | partials at each cadence boundary |
+| :30 | Full | next Full boundary |
+| :31–:34 | Skip | sleep |
+| :35, :40, :45, :50, :55 | PollPartial | partials |
+| 13:00 | Full | next boundary |
+
+So one Midday hour with Gallery active = **2 Fulls + 10 PollPartials + 48
+Skips**. For comparison, an Evening hour with Gallery (or a Morning hour
+with Summary) = **4 Fulls + 16 Polls + 40 Partials**.
+
 ## Resolving active mode
 
 On every natural wake, the device reads retained `active_mode` from the

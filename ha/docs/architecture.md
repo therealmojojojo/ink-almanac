@@ -29,7 +29,8 @@ and the renderer are otherwise stateless.
 │   └─ astro.yaml             sunrise/sunset/moon/astro_event      │
 │                                                                  │
 │  automations/                                                     │
-│   ├─ schedule.yaml          06:30 / 10:00 / 22:00 transitions    │
+│   ├─ schedule.yaml          per-tier face alternation tick      │
+│   │   (cadence reference: firmware/docs/wake-protocol.md)        │
 │   (no triplet automation — generated all-at-once, on demand)     │
 │   ├─ poetic_weather.yaml    Hourly 21:00–07:00 LLM line          │
 │   ├─ low_battery.yaml       <20% → mobile-app notify             │

@@ -78,6 +78,11 @@ they're the values that actually control the wake cadence.
 | Midday | 10:00 – 17:00 | 30 | — | 5 | true (PollPartial) |
 | Evening | 17:00 – 22:00 | 15 | 3 | 1 | false |
 
+For the per-path semantics (what Skip / Partial / Poll / PollPartial /
+Full each *do*), the per-face partial-rendering matrix, and a worked
+hour-long example, see `firmware/docs/wake-protocol.md § Refresh
+schedule`.
+
 To change the schedule, edit `tierFor()` in `wake.cpp`, update
 `firmware/test/scenarios/schedule_tests.cpp` to cover the new boundaries,
 and (importantly) keep the equivalent ranges in
