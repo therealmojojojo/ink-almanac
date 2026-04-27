@@ -21,7 +21,7 @@ corpus/         ──▶  pairing/  ──▶  pairings/  ──▶  renderer/ 
 ```
 
 - **`corpus/`** — sidecar YAML + binaries + taxonomy. Schema: `openspec/specs/corpus-schema`. Taxonomy: `openspec/specs/corpus-taxonomy`.
-- **`pairing/`** — Python. Today: a validator (`corpus_validate.py`) and a narrow refetcher (`corpus_refetch.py`). Pending: the full `corpus` CLI described in `openspec/changes/add-corpus-ingestion` (propose-list, fetch-list, prune, ingest-personal, restore).
+- **`pairing/`** — Python. Today: a validator (`corpus_validate.py`), a narrow refetcher (`corpus_refetch.py`), and the daily triplet picker (`publish_today.py`, fired by HA cron at 06:00). Pending: the full curator-side CLI (propose-list, fetch-list, prune, restore) tracked under `openspec/changes/add-ingestion-automation/` and `openspec/changes/add-pairing-pipeline/`.
 - **`renderer/`** — Node/TypeScript. HTML templates per face → headless browser → PNG. Templates live in `renderer/templates/`. Output under `renderer/dist/`.
 - **`firmware/`** — Inkplate 10 firmware (ESP32, PlatformIO). See `firmware/README.md`.
 - **`ha/`** — Home Assistant config (secrets, automations, sensors, scripts). Real secrets never leave the operator VM; `ha/secrets.yaml` is git-ignored.
@@ -56,7 +56,7 @@ corpus ingest-personal --folder <path> --citation '...'    # stage a folder of s
 corpus ingest-personal --commit --batch-id <id>            # commit after review
 ```
 
-Without installing: `python3 pairing/inkplate_corpus_cli.py <subcommand>`. Validate exits 0 on pass, 1 on any error. Warnings do not fail. Audit always exits 0. Subcommands `propose-list`, `fetch-list`, `prune`, `restore` are stubs until `add-corpus-ingestion` lands.
+Without installing: `python3 pairing/inkplate_corpus_cli.py <subcommand>`. Validate exits 0 on pass, 1 on any error. Warnings do not fail. Audit always exits 0. Subcommands `propose-list`, `fetch-list`, `prune`, `restore` are stubs (the full curator-side ingestion automation is in flight under `openspec/changes/add-ingestion-automation/`).
 
 ## Do not
 
