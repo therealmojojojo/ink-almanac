@@ -10,7 +10,7 @@ retained MQTT topic `inkplate/command/sleep_strategy` by
 | `input_datetime.inkplate_sonos_active_end` | `20:00` | — | Sonos fast-path wakes end; after this Now-Playing still works but cadence returns to per-mode timer. |
 | `input_datetime.inkplate_quiet_start` | `00:00` | — | Start of the hard-quiet window — no wakes at all. Room dark, no one cooking. |
 | `input_datetime.inkplate_quiet_end` | `05:00` | — | End of the hard-quiet window; Night mode resumes its hourly cadence. |
-| `input_number.inkplate_fast_path_interval_seconds` | `180` | `60–600` | How often the device checks for Now-Playing activation during Sonos active hours. 180 s matches `firmware::config::kSonosFastPathSec`. Lower values raise activation responsiveness at a proportional battery cost. |
+| `input_number.inkplate_fast_path_interval_seconds` | `180` | `60–600` | How often the device checks for Now-Playing activation during Sonos active hours. The firmware's `kSonosFastPathSec` is now 60 s (daytime mode timers also 60 s, so the fast path is mostly redundant under the current schedule). The HA helper still defaults to 180 s for legacy compatibility — overrides via this helper republish to MQTT for the device to read on its next wake, but the planner's per-tier cadence wins for routine wakes. |
 
 The device reads this topic on every wake via `mqttReadRetained()`; HA changes
 propagate on the device's next natural wake (no push needed). The `republish on

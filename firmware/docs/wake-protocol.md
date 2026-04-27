@@ -16,6 +16,22 @@ The full HA ⇄ Renderer ⇄ Device state machine lives in
 | `inkplate/state/gesture` | device → HA | no | `{"kind":"single"\|"double"}` |
 | `inkplate/state/device` | device → HA | yes | `{voltage, percentage, wake_reason, active_mode, build}` |
 
+## HTTP endpoints (renderer)
+
+In addition to the MQTT command surface, the device pulls two endpoints
+from the renderer on each Full wake:
+
+| Path | When | What |
+| --- | --- | --- |
+| `GET /display/:mode.png` | every Full | 1200 × 825 single-channel 8-bit greyscale PNG of the resolved face. |
+| `GET /display/:mode/clock-zone.json` | after the PNG fetch on Full | `{x, y, w, h, font_size}` of the clock element on the most recent render. Cached in `Persisted` RTC slow memory so subsequent Partial wakes can pin their offline-composed clock digits at the same pixels the Full painted. 404 means the mode has no single clock element (Night splits hh/mm). |
+
+The clock-zone JSON is a relatively new addition; see `firmware/README.md`
+for the partial-refresh path that consumes it. The PNG response also
+exposes the clock zone in an `x-clock-zone` HTTP header
+(`x=… y=… w=… h=… font_size=…`) so an alternate firmware can read both
+in one round-trip.
+
 ## Resolving active mode
 
 On every natural wake, the device reads retained `active_mode` from the
@@ -55,11 +71,16 @@ Published in `inkplate/state/device.wake_reason`:
 
 `Reason::SonosFastPath` with an unchanged active mode: the device re-arms
 and sleeps without fetching or refreshing. This bounds the Now-Playing
-activation latency to `kSonosFastPathSec` (default 180 s) without forcing
-a full 3-minute-cadence network round-trip.
+activation latency to `kSonosFastPathSec` (currently 60 s — the daytime
+mode timers are also 60 s, so the fast path is largely redundant under
+the current schedule, retained for non-planner code paths).
 
 ## Ghost cadence
 
-Every `kGhostClearPartialCount` partial refreshes within a mode, the next
-refresh is promoted to a full refresh to clear accumulated ghosting. The
-counter resets on every full refresh.
+Legacy: every `kGhostClearPartialCount` partial refreshes within a mode,
+the next refresh would be promoted to a full refresh. Currently dormant
+— the post-Full zone cleanup (two 1-bit pulses immediately after every
+Full's 3-bit draw) plus the seed-then-draw partial path together keep
+ghosts cleared without the global counter. The constant remains in
+`config.h` so the mechanism can be re-enabled if a future configuration
+reintroduces ghosting.
