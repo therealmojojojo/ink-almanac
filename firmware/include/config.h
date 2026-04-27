@@ -70,6 +70,16 @@ constexpr int kDoubleTapWindowMs = 350;
 // "Tap detection".
 constexpr int kGestureGraceMs = 2000;
 
+// Local-time offset from UTC, in seconds. Applied to `clock.nowEpoch()`
+// before computing minute-of-day for the wake-schedule planner and
+// hour-of-day for the legacy quiet-hours check.
+//
+// Hardcoded for Europe/Bucharest summer (UTC+3). This will read wrong by
+// 1 h between roughly late October and late March each year, in which case
+// schedule tier boundaries (22:00 / 06:30 / 10:00 / 17:00) shift by an hour
+// — acceptable until we wire NTP + a tz-aware library on device.
+constexpr int kTzOffsetSec = 3 * 3600;
+
 // Time-of-day windows (local-hour ints, 0–23).
 constexpr int kQuietStartHour  = 0;
 constexpr int kQuietEndHour    = 5;

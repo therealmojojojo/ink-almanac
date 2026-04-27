@@ -63,4 +63,36 @@ void MockDisplay::setLastRaw(std::vector<uint8_t> bytes) {
   last_raw_ = std::move(bytes);
 }
 
+void MockDisplay::setDisplayMode(DisplayMode mode) {
+  display_mode_ = mode;
+  display_mode_history_.push_back(mode);
+}
+
+void MockDisplay::drawBitmap1Bit(int16_t x, int16_t y,
+                                 const uint8_t* bitmap,
+                                 int16_t w, int16_t h) {
+  // Hash the entire bitmap byte payload. Row stride is ceil(w/8) bytes.
+  const std::size_t row_bytes = static_cast<std::size_t>((w + 7) / 8);
+  const std::size_t total = row_bytes * static_cast<std::size_t>(h);
+  bitmap_blits_.push_back(BitmapBlit{
+      .x = x, .y = y, .w = w, .h = h,
+      .bitmap_hash = bitmap ? fnv1a(bitmap, total) : 0});
+}
+
+void MockDisplay::fillRect1Bit(int16_t x, int16_t y,
+                               int16_t w, int16_t h,
+                               uint8_t value) {
+  // Encode as a synthetic blit so tests can assert clear-before-draw ordering.
+  const uint64_t pseudo_hash = (static_cast<uint64_t>(value) << 56) |
+                               (static_cast<uint64_t>(static_cast<uint16_t>(w)) << 32) |
+                               static_cast<uint64_t>(static_cast<uint16_t>(h));
+  bitmap_blits_.push_back(BitmapBlit{
+      .x = x, .y = y, .w = w, .h = h, .bitmap_hash = pseudo_hash});
+}
+
+uint32_t MockDisplay::partialUpdate1Bit() {
+  ++partial_update_1bit_count_;
+  return partial_update_1bit_return_;
+}
+
 }  // namespace sim

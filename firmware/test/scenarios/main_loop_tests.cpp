@@ -26,8 +26,46 @@ std::vector<uint8_t> fakePng(std::size_t n = 1024, uint8_t fill = 0x80) {
 
 constexpr hal::Epoch kApr14_0800 = 1'744'617'600 + 2 * 3600;  // 08:00 UTC
 
+// Returns a UTC epoch for a given LOCAL time on Apr 14 (config TZ = UTC+3).
+// kApr14_0800 (08:00 UTC) is 11:00 local → minute-of-day 660. Offsets from
+// there are easy to reason about and stable across test runs.
+constexpr hal::Epoch localTime(int local_h, int local_m) {
+  return kApr14_0800 +
+         static_cast<hal::Epoch>((local_h * 60 + local_m - 11 * 60) * 60);
+}
+
 std::string urlFor(const char* mode) {
   return std::string("http://renderer.local:8575/display/") + mode + ".png";
+}
+
+std::string clockZoneUrlFor(const char* mode) {
+  return std::string("http://renderer.local:8575/display/") + mode + "/clock-zone.json";
+}
+
+// Default clock zone for tests. Matches the Compact preset's font_size (44)
+// so the firmware's presetByFontSize lookup returns a real StringPreset and
+// the partial path runs. The Summary face's 160px clock is intentionally not
+// in the baked PRESETS list (flash budget), so a font_size=160 stub would
+// always fall through to Full and most partial-path scenarios would skip.
+// Tests don't depend on which face the font_size belongs to in the live UI.
+void stubClockZone(sim::Scenario& s, const char* mode, int x, int y, int font_size) {
+  const std::string json =
+      std::string("{\"x\":") + std::to_string(x) +
+      ",\"y\":" + std::to_string(y) +
+      ",\"w\":545,\"h\":144,\"font_size\":" + std::to_string(font_size) + "}";
+  std::vector<uint8_t> bytes(json.begin(), json.end());
+  s.transport().setRendererResponse(clockZoneUrlFor(mode), std::move(bytes), 200);
+}
+
+// Helper: arrange a successful prior cold-boot so persisted.current_mode is
+// set to `mode` and the panel has done one full refresh. Stubs both the PNG
+// and the clock-zone JSON so the post-Full clock-zone fetch populates
+// persisted.clock_zone_*.
+void coldBootInto(sim::Scenario& s, const char* mode, int font_size = 44) {
+  s.mqttPublish(fw::config::kTopicActiveMode, mode, /*retained=*/true)
+      .setRendererResponse(urlFor(mode), fakePng());
+  stubClockZone(s, mode, /*x=*/48, /*y=*/73, font_size);
+  fw::tick(s.hal(), fw::wake::Reason::ColdBoot);
 }
 
 }  // namespace
@@ -239,4 +277,257 @@ TEST_CASE("IMU wake: double tap gesture payload") {
   auto gestures = s.publishedMessages(fw::config::kTopicGesture);
   REQUIRE(gestures.size() == 1);
   CHECK(gestures[0].payload.find("double") != std::string::npos);
+}
+
+// =============================================================================
+// Path-routed wakes (Phase 4: planWake-driven dispatch in tick()).
+//
+// Every test below cold-boots into a known mode at a known local time, then
+// issues a Timer wake at a different minute that lands on a specific tier
+// cadence. Assertions cover the path-specific side effects: who connected to
+// WiFi/MQTT, whether the e-ink panel was refreshed (full or 1-bit partial),
+// and whether device-state was published.
+//
+// Local time is derived from the firmware's `kTzOffsetSec` (UTC+3); helpers
+// `localTime(h, m)` and `coldBootInto(...)` are defined at the top of this
+// file.
+
+TEST_CASE("Timer @ Morning :01 → Partial — clock-only, no network") {
+  SIM_RESET();
+  sim::Scenario s;
+  // Cold-boot at local 06:30 (Morning Full minute) so persisted.current_mode
+  // = Summary and the panel is initialised. Cold boot does the Full draw
+  // PLUS a post-Full zone cleanup (solid-black pulse + clean-to-white pulse
+  // with the new digits) so subsequent partial wakes can diff cleanly. That
+  // cleanup also sets last_drawn to the Full's HH:MM, so this first partial
+  // DOES seed against last_drawn rather than skipping the seed step.
+  s.clock().setNow(localTime(6, 30));
+  coldBootInto(s, "summary");
+  const int full_after_boot = s.display().fullRefreshCount();
+  const int partial_after_boot = s.display().partialUpdate1BitCount();
+  const auto blits_after_boot = s.display().bitmapBlits().size();
+  const auto mode_history_after_boot = s.display().displayModeHistory().size();
+  const auto state_pubs_after_boot =
+      s.publishedMessages(fw::config::kTopicDeviceState).size();
+
+  // Advance to local 06:31. Partial cadence (1-min) lands here.
+  s.clock().setNow(localTime(6, 31));
+
+  fw::tick(s.hal(), fw::wake::Reason::Timer);
+
+  // Seed-then-draw partial wake: 12 blits (2 × (fillRect + 5 glyphs)),
+  // 2 partialUpdates.
+  CHECK(s.display().bitmapBlits().size() - blits_after_boot == 12);
+  CHECK(s.display().partialUpdate1BitCount() - partial_after_boot == 2);
+  // Mode flipped to OneBit, then back to ThreeBit (one pair per partial wake).
+  REQUIRE(s.display().displayModeHistory().size() - mode_history_after_boot == 2);
+  // No full refresh, no device-state publish (offline path).
+  CHECK(s.display().fullRefreshCount() == full_after_boot);
+  CHECK(s.publishedMessages(fw::config::kTopicDeviceState).size() == state_pubs_after_boot);
+}
+
+TEST_CASE("Timer @ Morning :02 after :01 partial → seed-then-draw (12 blits)") {
+  SIM_RESET();
+  sim::Scenario s;
+  s.clock().setNow(localTime(6, 30));
+  coldBootInto(s, "summary");
+  // First partial wake at 06:31 — seeds last_drawn = 06:31.
+  s.clock().setNow(localTime(6, 31));
+  fw::tick(s.hal(), fw::wake::Reason::Timer);
+  const int partial_after_first = s.display().partialUpdate1BitCount();
+  const auto blits_after_first = s.display().bitmapBlits().size();
+
+  // Second partial wake at 06:32 — last_drawn = 06:31, so seed step runs.
+  s.clock().setNow(localTime(6, 32));
+  fw::tick(s.hal(), fw::wake::Reason::Timer);
+
+  CHECK(s.display().bitmapBlits().size() - blits_after_first == 12);
+  CHECK(s.display().partialUpdate1BitCount() - partial_after_first == 2);
+}
+
+TEST_CASE("Timer @ Morning :03 → Poll — MQTT read only, no draw") {
+  SIM_RESET();
+  sim::Scenario s;
+  s.clock().setNow(localTime(6, 30));
+  coldBootInto(s, "summary");
+  const int full_after_boot = s.display().fullRefreshCount();
+  const int partial_after_boot = s.display().partialUpdate1BitCount();
+  const auto blits_after_boot = s.display().bitmapBlits().size();
+  const auto state_pubs_after_boot =
+      s.publishedMessages(fw::config::kTopicDeviceState).size();
+
+  // Advance to 06:33 — poll cadence (3-min) hits, partial doesn't.
+  s.clock().setNow(localTime(6, 33));
+
+  fw::tick(s.hal(), fw::wake::Reason::Timer);
+
+  // No e-ink work: neither full nor 1-bit partial. (Cold-boot's seed already
+  // happened above, so we compare deltas.)
+  CHECK(s.display().fullRefreshCount() == full_after_boot);
+  CHECK(s.display().partialUpdate1BitCount() == partial_after_boot);
+  CHECK(s.display().bitmapBlits().size() == blits_after_boot);
+  // No device-state publish (poll-only when mode unchanged).
+  CHECK(s.publishedMessages(fw::config::kTopicDeviceState).size() == state_pubs_after_boot);
+}
+
+TEST_CASE("Timer @ Morning :03 → Poll detects mode change → falls through to Full") {
+  SIM_RESET();
+  sim::Scenario s;
+  s.clock().setNow(localTime(6, 30));
+  coldBootInto(s, "summary");
+  const int full_after_boot = s.display().fullRefreshCount();
+  const auto state_pubs_after_boot =
+      s.publishedMessages(fw::config::kTopicDeviceState).size();
+
+  // HA flips active_mode to weather between cold boot and the poll.
+  s.mqttPublish(fw::config::kTopicActiveMode, "weather", /*retained=*/true)
+      .setRendererResponse(urlFor("weather"), fakePng());
+  s.clock().setNow(localTime(6, 33));
+
+  fw::tick(s.hal(), fw::wake::Reason::Timer);
+
+  // Mode change detected → Full path runs.
+  CHECK(s.display().fullRefreshCount() == full_after_boot + 1);
+  CHECK(s.publishedMessages(fw::config::kTopicDeviceState).size() == state_pubs_after_boot + 1);
+}
+
+TEST_CASE("Timer @ Morning :15 → Full (forced-full at 15-min cadence)") {
+  SIM_RESET();
+  sim::Scenario s;
+  s.clock().setNow(localTime(6, 30));
+  coldBootInto(s, "summary");
+  const int full_after_boot = s.display().fullRefreshCount();
+
+  s.clock().setNow(localTime(6, 45));  // 405 % 15 == 0 → Full
+  fw::tick(s.hal(), fw::wake::Reason::Timer);
+
+  CHECK(s.display().fullRefreshCount() == full_after_boot + 1);
+}
+
+TEST_CASE("Timer @ Midday :05 → PollPartial — WiFi+MQTT then partial draw") {
+  SIM_RESET();
+  sim::Scenario s;
+  s.clock().setNow(localTime(10, 0));
+  coldBootInto(s, "summary");
+  const int full_after_boot = s.display().fullRefreshCount();
+  const int partial_after_boot = s.display().partialUpdate1BitCount();
+  const auto blits_after_boot = s.display().bitmapBlits().size();
+  const auto state_pubs_after_boot =
+      s.publishedMessages(fw::config::kTopicDeviceState).size();
+
+  // 10:05 — PollPartial in Midday. Mode unchanged → MQTT poll then partial.
+  s.clock().setNow(localTime(10, 5));
+  fw::tick(s.hal(), fw::wake::Reason::Timer);
+
+  // Seed-then-draw: 12 blits, 2 partialUpdates. Cold boot's post-Full
+  // cleanup set last_drawn = 10:00 so the seed step runs.
+  CHECK(s.display().bitmapBlits().size() - blits_after_boot == 12);
+  CHECK(s.display().partialUpdate1BitCount() - partial_after_boot == 2);
+  CHECK(s.display().fullRefreshCount() == full_after_boot);
+  CHECK(s.publishedMessages(fw::config::kTopicDeviceState).size() == state_pubs_after_boot);
+}
+
+TEST_CASE("Timer @ Midday :05 → PollPartial detects mode change → Full") {
+  SIM_RESET();
+  sim::Scenario s;
+  s.clock().setNow(localTime(10, 0));
+  coldBootInto(s, "summary");
+  const int full_after_boot = s.display().fullRefreshCount();
+  const int partial_after_boot = s.display().partialUpdate1BitCount();
+
+  s.mqttPublish(fw::config::kTopicActiveMode, "gallery", /*retained=*/true)
+      .setRendererResponse(urlFor("gallery"), fakePng());
+  // Stub a clock zone for the new mode so the post-Full seed lands.
+  stubClockZone(s, "gallery", /*x=*/1058, /*y=*/750, /*font_size=*/44);
+  s.clock().setNow(localTime(10, 5));
+  fw::tick(s.hal(), fw::wake::Reason::Timer);
+
+  CHECK(s.display().fullRefreshCount() == full_after_boot + 1);
+  // Post-Full zone cleanup: 2 partialUpdate1Bit pulses (solid black, then
+  // clean-to-white-with-digits) so the next partial wake can diff cleanly.
+  CHECK(s.display().partialUpdate1BitCount() - partial_after_boot == 2);
+}
+
+TEST_CASE("Timer @ Night :07 → Skip — no network, no draw, no work") {
+  SIM_RESET();
+  sim::Scenario s;
+  s.clock().setNow(localTime(0, 0));  // Night Full
+  coldBootInto(s, "night");
+  const int full_after_boot = s.display().fullRefreshCount();
+  const int partial_after_boot = s.display().partialUpdate1BitCount();
+  const auto blits_after_boot = s.display().bitmapBlits().size();
+  const auto state_pubs_after_boot =
+      s.publishedMessages(fw::config::kTopicDeviceState).size();
+
+  // 00:07 — Night, no cadence matches → Skip.
+  s.clock().setNow(localTime(0, 7));
+  fw::tick(s.hal(), fw::wake::Reason::Timer);
+
+  CHECK(s.display().fullRefreshCount() == full_after_boot);
+  CHECK(s.display().partialUpdate1BitCount() == partial_after_boot);
+  CHECK(s.display().bitmapBlits().size() == blits_after_boot);
+  CHECK(s.publishedMessages(fw::config::kTopicDeviceState).size() == state_pubs_after_boot);
+}
+
+TEST_CASE("Timer in NowPlaying mode → Full at every minute (override)") {
+  SIM_RESET();
+  sim::Scenario s;
+  s.clock().setNow(localTime(10, 0));
+  coldBootInto(s, "now-playing");  // sets persisted.current_mode = NowPlaying
+  const int full_after_boot = s.display().fullRefreshCount();
+
+  // 10:07 — in Midday, this would be Skip for any other mode. NowPlaying
+  // promotes it to Full so track changes land within ~1 minute.
+  s.mqttPublish(fw::config::kTopicActiveMode, "now-playing", /*retained=*/true)
+      .setRendererResponse(urlFor("now-playing"), fakePng());
+  s.clock().setNow(localTime(10, 7));
+  fw::tick(s.hal(), fw::wake::Reason::Timer);
+
+  CHECK(s.display().fullRefreshCount() == full_after_boot + 1);
+}
+
+TEST_CASE("Partial path falls back to Full when renderer reports no clock zone") {
+  SIM_RESET();
+  sim::Scenario s;
+  // Cold-boot into Night WITHOUT stubbing clock-zone.json — simulates the
+  // renderer's 404 response for modes with no clock-shaped DOM element.
+  s.clock().setNow(localTime(0, 0));
+  s.mqttPublish(fw::config::kTopicActiveMode, "night", /*retained=*/true)
+      .setRendererResponse(urlFor("night"), fakePng());
+  fw::tick(s.hal(), fw::wake::Reason::ColdBoot);
+  // persisted.clock_zone_font_size left at 0 (404 from clock-zone fetch).
+  REQUIRE(fw::wake::persisted().clock_zone_font_size == 0);
+  const int full_after_boot = s.display().fullRefreshCount();
+
+  // Move to local 06:31 — Morning Partial cadence. With no cached zone,
+  // the partial path promotes to Full.
+  s.clock().setNow(localTime(6, 31));
+  fw::tick(s.hal(), fw::wake::Reason::Timer);
+
+  CHECK(s.display().fullRefreshCount() == full_after_boot + 1);
+  CHECK(s.display().partialUpdate1BitCount() == 0);
+}
+
+TEST_CASE("IMU tap in Morning :01 → Full (gesture path overrides Partial)") {
+  SIM_RESET();
+  sim::Scenario s;
+  s.clock().setNow(localTime(6, 30));
+  coldBootInto(s, "summary");
+  const int full_after_boot = s.display().fullRefreshCount();
+  const int partial_after_boot = s.display().partialUpdate1BitCount();
+
+  s.mqttPublish(fw::config::kTopicActiveMode, "summary", /*retained=*/true)
+      .setRendererResponse(urlFor("summary"), fakePng());
+  s.clock().setNow(localTime(6, 31));
+  s.fireTap(/*isDouble=*/false);
+  fw::tick(s.hal(), fw::wake::Reason::IMU);
+
+  // Gesture path: IMU wake → Full regardless of cadence. Pulses on this wake:
+  //   - showTapAck: 3 partial pulses (force-black halo, white-with-dot, clear)
+  //   - Post-Full zone cleanup: 2 partial pulses (solid-black then clean)
+  // Total: 5 partialUpdate1Bit pulses.
+  CHECK(s.display().fullRefreshCount() == full_after_boot + 1);
+  CHECK(s.display().partialUpdate1BitCount() - partial_after_boot == 5);
+  auto gestures = s.publishedMessages(fw::config::kTopicGesture);
+  REQUIRE(gestures.size() == 1);
 }

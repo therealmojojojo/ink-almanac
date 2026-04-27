@@ -51,6 +51,49 @@ class RealDisplay : public hal::IDisplay {
 
   void refresh() override { panel_.display(); }
 
+  // -------------------- 1-bit partial-update path --------------------------
+  //
+  // The Soldered Inkplate library's partialUpdate() returns 0 in 3-bit mode
+  // (hardware no-op). Switching to 1-bit makes it actually drive the panel,
+  // so the partial path flips mode → composes glyphs → partialUpdate() →
+  // flips back to 3-bit for the next full refresh.
+  //
+  // setDisplayMode reallocates _pBuffer / _partial inside the library, so
+  // any framebuffer state in the previous mode is lost — acceptable for the
+  // clock partial since each wake re-composes from baked glyphs.
+
+  void setDisplayMode(DisplayMode mode) override {
+    panel_.setDisplayMode(mode == DisplayMode::OneBit ? INKPLATE_1BIT
+                                                       : INKPLATE_3BIT);
+  }
+
+  void drawBitmap1Bit(int16_t x, int16_t y,
+                      const uint8_t* bitmap,
+                      int16_t w, int16_t h) override {
+    // Inkplate 10 (non-color variants) defines BLACK=1, WHITE=0 — see
+    // InkplateLibrary defines.h. Glyph bitmaps draw ink as set bits, so we
+    // need color=BLACK to get visible characters; color=0 would silently
+    // write white-on-white and partialUpdate would return cycles=0.
+    panel_.drawBitmap(x, y, bitmap, w, h, /*color=BLACK*/ 1);
+  }
+
+  void fillRect1Bit(int16_t x, int16_t y,
+                    int16_t w, int16_t h,
+                    uint8_t value) override {
+    // HAL contract: value=0 means white (background), 1 means black (ink).
+    // Maps directly to Inkplate's WHITE=0 / BLACK=1 in 1-bit mode.
+    panel_.fillRect(x, y, w, h, value ? /*BLACK*/ 1 : /*WHITE*/ 0);
+  }
+
+  uint32_t partialUpdate1Bit() override {
+    // _forced=true bypasses the library's `_blockPartial` guard, which is
+    // set after every 3-bit display3b() and after begin() — without forcing
+    // it, the first partial after wake degrades into a full B&W refresh and
+    // returns 0. The library's own header comment flags this as the
+    // "advanced use with deep sleep" path; that is exactly our use case.
+    return panel_.partialUpdate(/*_forced=*/true);
+  }
+
  private:
   Inkplate& panel_;
 };

@@ -27,16 +27,23 @@ fw::wake::Reason detectWakeReason() {
   }
 }
 
-int timerSecondsFor(fw::wake::Reason reason) {
-  (void)reason;
-  // Persisted mode guides the timer; default to 15 min if unknown.
-  switch (fw::wake::persisted().current_mode) {
-    case fw::modes::Mode::Summary: return fw::config::kSummaryTimerSec;
-    case fw::modes::Mode::Weather: return fw::config::kWeatherTimerSec;
-    case fw::modes::Mode::Gallery: return fw::config::kGalleryTimerSec;
-    case fw::modes::Mode::Night:   return fw::config::kNightTimerSec;
-    default:                       return fw::config::kSummaryTimerSec;
-  }
+// Sleep until the next non-Skip wake on the schedule planner. Aligns to the
+// next minute boundary minus seconds-into-current-minute and tick-elapsed,
+// clamped to a sane lower bound so we never spin on a tight loop if planning
+// math somehow underflows.
+int plannedSleepSec(uint32_t tick_start_unix, uint32_t tick_end_unix) {
+  const uint32_t local_now =
+      tick_end_unix + static_cast<uint32_t>(fw::config::kTzOffsetSec);
+  const int local_min_of_day = static_cast<int>((local_now / 60u) % 1440u);
+  const int seconds_into_minute = static_cast<int>(local_now % 60u);
+  const auto plan = fw::wake::planWake(local_min_of_day, fw::wake::persisted().current_mode);
+  // tick_elapsed = how many seconds the wake itself burned; subtract so the
+  // next wake lands on the wall-clock minute, not 60 s after the present one.
+  const int tick_elapsed = static_cast<int>(tick_end_unix - tick_start_unix);
+  int s = plan.minutes_to_next_wake * 60 - seconds_into_minute - tick_elapsed;
+  if (s < 5) s = 5;     // never sleep less than 5 s — guard against loops
+  if (s > 3600) s = 3600;  // never sleep more than 1 h — guard against bad RTC
+  return s;
 }
 
 }  // namespace
@@ -65,10 +72,12 @@ void setup() {
   const fw::wake::Reason reason = detectWakeReason();
   Serial.printf("[fw] wake reason=%d\n", static_cast<int>(reason));
 
+  const uint32_t tick_start = static_cast<uint32_t>(clock.nowEpoch());
   fw::tick(hal, reason);
+  const uint32_t tick_end = static_cast<uint32_t>(clock.nowEpoch());
 
-  const int secs = timerSecondsFor(reason);
-  Serial.printf("[fw] sleeping %d s\n", secs);
+  const int secs = plannedSleepSec(tick_start, tick_end);
+  Serial.printf("[fw] sleeping %d s (path-aligned)\n", secs);
   Serial.flush();
   clock.sleepFor(secs);  // does not return
 }

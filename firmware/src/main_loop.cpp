@@ -1,15 +1,21 @@
-// Firmware main tick — wakes up, resolves mode, fetches PNG, draws, publishes
-// device state, arms wake sources. Pure logic over the HAL interfaces so the
-// same code runs on-device (with real wrappers) and in the host simulator.
+// Firmware main tick — wakes up, decides the wake path from the schedule
+// planner (Full / Poll / Partial / PollPartial / Skip), executes that path,
+// publishes device state where appropriate, and arms the next wake.
+//
+// Pure logic over the HAL interfaces so the same code runs on-device (with
+// real wrappers) and in the host simulator. The schedule planner lives in
+// fw::wake::planWake() (firmware/src/wake.cpp); the on-device clock
+// rasterizer lives in fw::clock (clock_render.cpp + generated/clock_glyphs.*).
 
 #include "firmware.h"
 
-#include <cmath>
 #include <cstring>
 #include <ctime>
+#include <optional>
 #include <string>
 
 #include "battery.h"
+#include "clock_render.h"
 #include "config.h"
 #include "gestures.h"
 #include "modes.h"
@@ -27,10 +33,19 @@ namespace fw {
 
 namespace {
 
-int hourOfDay(hal::Epoch now) {
-  std::time_t t = static_cast<std::time_t>(now);
+// ---------- helpers ---------------------------------------------------------
+
+int hourOfDay(hal::Epoch local_now) {
+  std::time_t t = static_cast<std::time_t>(local_now);
   std::tm* gm = std::gmtime(&t);
   return gm ? gm->tm_hour : 0;
+}
+
+int minuteOfDay(hal::Epoch local_now) {
+  std::time_t t = static_cast<std::time_t>(local_now);
+  std::tm* gm = std::gmtime(&t);
+  if (!gm) return 0;
+  return gm->tm_hour * 60 + gm->tm_min;
 }
 
 fw::modes::Mode timeOfDayFallback(int hour) {
@@ -57,28 +72,181 @@ std::string pickString(const std::string& json, const char* key) {
   return end == std::string::npos ? std::string{} : json.substr(pos, end - pos);
 }
 
+// Sibling: `"key": <int>` → int. Returns `default_` if the key is missing,
+// no digits follow, or parsing overflows int.
+int pickInt(const std::string& json, const char* key, int default_) {
+  std::string needle = std::string("\"") + key + "\":";
+  auto pos = json.find(needle);
+  if (pos == std::string::npos) return default_;
+  pos += needle.size();
+  while (pos < json.size() && (json[pos] == ' ' || json[pos] == '\t')) ++pos;
+  int sign = 1;
+  if (pos < json.size() && json[pos] == '-') { sign = -1; ++pos; }
+  long long v = 0;
+  bool any = false;
+  while (pos < json.size() && json[pos] >= '0' && json[pos] <= '9') {
+    v = v * 10 + (json[pos] - '0');
+    ++pos;
+    any = true;
+    if (v > 1'000'000'000LL) return default_;
+  }
+  return any ? static_cast<int>(sign * v) : default_;
+}
+
+fw::modes::Mode parseModePayload(const std::string& payload) {
+  std::string as_json = pickString(payload, "mode");
+  std::string candidate = trim(as_json.empty() ? payload : as_json);
+  return fw::modes::parse(candidate);
+}
+
 fw::modes::Mode resolveActiveMode(hal::ITransport& mqtt, int hour) {
   auto payload = mqtt.mqttReadRetained(fw::config::kTopicActiveMode);
   if (!payload.empty()) {
-    // Payload might be `summary` or `{"mode":"summary"}`. Accept both.
-    std::string as_json = pickString(payload, "mode");
-    std::string candidate = trim(as_json.empty() ? payload : as_json);
-    auto m = fw::modes::parse(candidate);
+    auto m = parseModePayload(payload);
     if (m != fw::modes::Mode::Unknown) return m;
   }
   return timeOfDayFallback(hour);
 }
 
-std::string rendererUrl(fw::modes::Mode m) {
-  // Host sim: the `INKPLATE_RENDERER_BASE` is set via secrets.h on device;
-  // on host we allow scenarios to inject the full URL via
-  // setRendererResponse(). Both paths end up in this format.
+std::string rendererBase() {
 #if defined(INKPLATE_RENDERER_BASE)
-  std::string base = INKPLATE_RENDERER_BASE;
+  return INKPLATE_RENDERER_BASE;
 #else
-  std::string base = "http://renderer.local:8575";
+  return "http://renderer.local:8575";
 #endif
-  return base + "/display/" + fw::modes::toString(m) + ".png";
+}
+
+std::string rendererUrl(fw::modes::Mode m) {
+  return rendererBase() + "/display/" + fw::modes::toString(m) + ".png";
+}
+
+std::string clockZoneUrl(fw::modes::Mode m) {
+  return rendererBase() + "/display/" + fw::modes::toString(m) + "/clock-zone.json";
+}
+
+// Portable short blocking sleep — Arduino's delay() blocks the main task
+// for `ms` milliseconds. On the host simulator the body compiles to a no-op
+// (tests assert blits/partialUpdate counts, not real-time pacing).
+inline void msleepShort(int ms) {
+#ifdef ARDUINO
+  delay(ms);
+#else
+  (void)ms;
+#endif
+}
+
+// Tap-acknowledgment glyph. On every IMU wake with a confirmed tap, paint
+// 1 black dot (single tap) or 2 black dots (double tap) on a small white
+// halo, just to the LEFT of the typical battery-indicator slot in the
+// top-right corner. Three partial pulses:
+//
+//   1. Solid black over the halo region. Forces DMemoryNew to black so the
+//      next white pulse actually drives the panel — without this, "writing
+//      white" is a no-op when DMemoryNew is already white, and the halo
+//      stays invisible against a dark gallery image.
+//   2. White halo with black dot(s). Halo pixels diff black→white → pulse
+//      white. Dot pixels diff black→black → no pulse → stay black.
+//   3. (After the 700 ms hold) Solid white over the halo region. Halo
+//      pixels are white→white no-op; dot pixels diff black→white → pulse
+//      white → dots clear.
+//
+// Three ~250 ms partial pulses + a 700 ms hold = ack visible for ~700-900 ms,
+// total ~1.5 s added to the wake cost, ~0.18 mAh per tap (3 × 0.06).
+//
+// Why a halo: gallery faces draw a full-bleed image that covers the
+// top-right corner. Without the halo the dots are unreadable over dark
+// portions of the image. The halo guarantees readability regardless of
+// what the underlying face has painted there.
+//
+// Position is fixed-coordinate top-right. The default `.battery-indicator`
+// sits at top:14u right:22u, so its glyph + percentage text occupies
+// roughly x=1118..1180, y=14..32. Halo at x=1068..1100, y=18..34 lands in
+// the empty chrome strip just left of the battery without overlapping it
+// on any current face.
+//
+// The 1-bit pulses leave a small zone in inconsistent state vs the prior
+// 3-bit Full's gray pixels, but the next Full naturally repaints over it.
+void showTapAck(hal::IDisplay& panel, fw::gestures::TapKind kind) {
+  if (kind == fw::gestures::TapKind::None) return;
+
+  constexpr int16_t kDotSize  = 8;
+  constexpr int16_t kDotY     = 22;
+  constexpr int16_t kSingleX  = 1080;
+  constexpr int16_t kDoubleX0 = 1072;
+  constexpr int16_t kDoubleX1 = 1090;
+  // Halo region (also the rect used to force-black, force-white, and clear).
+  // Dimensioned to surround either single- or double-dot layout with a few
+  // px of margin so the halo reads as a deliberate badge, not as a tight
+  // box around the dots.
+  constexpr int16_t kHaloX    = 1068;
+  constexpr int16_t kHaloY    = 18;
+  constexpr int16_t kHaloW    = 32;
+  constexpr int16_t kHaloH    = 16;
+
+  panel.setDisplayMode(hal::IDisplay::DisplayMode::OneBit);
+
+  // Pulse 1 — force halo region to known black. Briefly visible black
+  // square; the next pulse swaps it to white-with-dots almost immediately.
+  panel.fillRect1Bit(kHaloX, kHaloY, kHaloW, kHaloH, /*value=*/1);
+  panel.partialUpdate1Bit();
+
+  // Pulse 2 — white halo + black dot(s). White halo pixels diff
+  // black→white → pulse white. Dot pixels remain black (no diff).
+  panel.fillRect1Bit(kHaloX, kHaloY, kHaloW, kHaloH, /*value=*/0);
+  if (kind == fw::gestures::TapKind::Single) {
+    panel.fillRect1Bit(kSingleX, kDotY, kDotSize, kDotSize, /*value=*/1);
+  } else {
+    panel.fillRect1Bit(kDoubleX0, kDotY, kDotSize, kDotSize, /*value=*/1);
+    panel.fillRect1Bit(kDoubleX1, kDotY, kDotSize, kDotSize, /*value=*/1);
+  }
+  panel.partialUpdate1Bit();
+
+  msleepShort(700);
+
+  // Pulse 3 — clear back to white. Dots diff black→white → pulse white;
+  // halo is white→white no-op.
+  panel.fillRect1Bit(kHaloX, kHaloY, kHaloW, kHaloH, /*value=*/0);
+  panel.partialUpdate1Bit();
+
+  panel.setDisplayMode(hal::IDisplay::DisplayMode::ThreeBit);
+}
+
+// Map a renderer-reported font_size to the firmware's baked Preset. Returns
+// nullptr when no preset matches — caller falls back to Full so the missing
+// preset shows up as a visible "wrong cadence" rather than a wrong-shape draw.
+const fw::clock::Preset* presetByFontSize(uint16_t font_size) {
+  if (font_size == fw::clock::kSummaryClock.font_size_px) return &fw::clock::kSummaryClock;
+  if (font_size == fw::clock::kCompactClock.font_size_px) return &fw::clock::kCompactClock;
+  if (font_size == fw::clock::kCornerClock.font_size_px) return &fw::clock::kCornerClock;
+  return nullptr;
+}
+
+// Fetch the active mode's clock zone from the renderer and cache it in
+// Persisted RTC RAM. Called after every successful Full draw. On 404 / parse
+// failure the firmware leaves the previous zone in place — Partial wakes
+// will then either still draw correctly (if the layout didn't move) or fall
+// through to Full when the cached preset doesn't match a baked one.
+void fetchAndStoreClockZone(hal::ITransport& t, fw::modes::Mode mode) {
+  auto resp = t.httpGet(clockZoneUrl(mode));
+  if (!resp.ok() || resp.body.empty()) {
+    FW_LOG("clock-zone fetch failed status=%d", resp.status);
+    // Mark zone unknown so Partial promotes to Full until we get a fresh one.
+    wake::persisted().clock_zone_font_size = 0;
+    return;
+  }
+  const std::string body(resp.body.begin(), resp.body.end());
+  const int x = pickInt(body, "x", -1);
+  const int y = pickInt(body, "y", -1);
+  const int fs = pickInt(body, "font_size", -1);
+  if (x < 0 || y < 0 || fs <= 0) {
+    FW_LOG("clock-zone parse failed body='%s'", body.c_str());
+    wake::persisted().clock_zone_font_size = 0;
+    return;
+  }
+  wake::persisted().clock_zone_x = static_cast<int16_t>(x);
+  wake::persisted().clock_zone_y = static_cast<int16_t>(y);
+  wake::persisted().clock_zone_font_size = static_cast<uint16_t>(fs);
+  FW_LOG("clock-zone stored x=%d y=%d fs=%d", x, y, fs);
 }
 
 bool backoffFetch(hal::ITransport& t,
@@ -90,69 +258,98 @@ bool backoffFetch(hal::ITransport& t,
       *out = std::move(r);
       return true;
     }
-    // No real sleep in the sim — on-device would delay here.
     (void)fw::config::kRendererBackoffSec;
   }
   return false;
 }
 
-}  // namespace
+// ---------- partial-path helper --------------------------------------------
 
-void tick(hal::HAL h, wake::Reason reason) {
-  const auto now = h.clock.nowEpoch();
-  const int hour = hourOfDay(now);
+// Compose the clock zone from baked Fraunces glyphs, push via partialUpdate.
+// Returns true if the partial actually drove the panel. False means we
+// don't have a usable zone for the current mode (cold boot before any Full
+// landed, renderer reports no clock element, or the renderer's font_size
+// has no matching baked Preset) — caller falls back to Full.
+//
+// Two partialUpdate calls per wake to defeat the "ghost from previous
+// minute" problem that arises because PSRAM is zeroed on every deep-sleep
+// wake (so the library's DMemoryNew "previous frame" buffer can't naturally
+// seed itself):
+//
+//   1. Seed: draw the previously-drawn digits into `_partial`, partialUpdate
+//      with DMemoryNew=0 → library pulses white-to-black on those pixels
+//      (visually a no-op — they're already black on the panel from the
+//      prior full or partial). Library memcpys DMemoryNew := old pattern.
+//
+//   2. Draw: clear `_partial` (fillRect inside `clock::draw`), draw new
+//      digits, partialUpdate with DMemoryNew=old, _partial=new → diff has
+//      both directions → cleans old-only pixels to white AND draws
+//      new-only pixels to black in a single waveform cycle.
+//
+// On cold boot or after a mode change, last_drawn is 0xff and step 1 is
+// skipped — first partial after a Full smudges, but only that first one;
+// the Full path also runs a one-shot seed (see doFull) so even that case
+// is clean as long as the renderer published a zone.
+bool doPartial(hal::HAL& h, hal::Epoch local_now) {
+  const auto& p = wake::persisted();
+  if (p.clock_zone_font_size == 0) {
+    FW_LOG("partial skipped (no zone cached for mode=%s)",
+           fw::modes::toString(p.current_mode));
+    return false;
+  }
+  const auto* preset = presetByFontSize(p.clock_zone_font_size);
+  if (!preset) {
+    FW_LOG("partial skipped (no preset for font_size=%u, mode=%s)",
+           static_cast<unsigned>(p.clock_zone_font_size),
+           fw::modes::toString(p.current_mode));
+    return false;
+  }
+  std::time_t t = static_cast<std::time_t>(local_now);
+  std::tm* gm = std::gmtime(&t);
+  if (!gm) return false;
 
-  // Latched-tap polling: without INT1 wired to an ESP32 GPIO the device can't
-  // ext1-wake on a tap, but LSM6DSO's LATCHED_INT bit keeps the event visible
-  // across deep sleep. On every Timer wake we drain TAP_SRC; if a tap is
-  // pending, we upgrade the reason to IMU so the gesture-publish path below
-  // runs. Worst-case latency is one timer period (~60 s).
-  fw::gestures::TapKind polled_tap = fw::gestures::TapKind::None;
-  if (reason == wake::Reason::Timer) {
-    polled_tap = fw::gestures::readTapKind(h.imu);
-    if (polled_tap != fw::gestures::TapKind::None) {
-      FW_LOG("latched tap picked up on timer wake (kind=%d)", (int)polled_tap);
-      reason = wake::Reason::IMU;
-    }
+  h.display.setDisplayMode(hal::IDisplay::DisplayMode::OneBit);
+
+  // Step 1 — seed DMemoryNew with the previously-drawn digit pattern.
+  // Skipped on cold boot when last_drawn is the 0xff sentinel.
+  if (p.last_drawn_hh != 0xff && p.last_drawn_mm != 0xff) {
+    fw::clock::draw(h.display, *preset, p.clock_zone_x, p.clock_zone_y,
+                    p.last_drawn_hh, p.last_drawn_mm);
+    h.display.partialUpdate1Bit();
   }
 
-  fw::gestures::TapKind tap = fw::gestures::TapKind::None;
-  if (reason == wake::Reason::IMU) {
-    // Reuse the polled kind if we already drained TAP_SRC above; otherwise
-    // (ext0 path, or IMU reason from the caller) read it now.
-    tap = polled_tap != fw::gestures::TapKind::None
-              ? polled_tap
-              : fw::gestures::readTapKind(h.imu);
+  // Step 2 — draw new digits; partialUpdate diff cleans old + draws new.
+  fw::clock::draw(h.display, *preset, p.clock_zone_x, p.clock_zone_y,
+                  gm->tm_hour, gm->tm_min);
+  [[maybe_unused]] const uint32_t cycles = h.display.partialUpdate1Bit();
+  h.display.setDisplayMode(hal::IDisplay::DisplayMode::ThreeBit);
 
-    // Spurious-wake guard. ext0 fired (IO36 went LOW) but TAP_SRC has no
-    // single- or double-tap bit set. The pulse came from something other
-    // than the IMU: EMI, the SW3 wake button in operator mode, or a
-    // sub-threshold motion that briefly toggled INT1. Skip the entire tick —
-    // no network bring-up, no fetch, no e-paper refresh — and go straight
-    // back to sleep on the same wake sources. See gestures.md "Tap detection".
-    if (tap == fw::gestures::TapKind::None) {
-      FW_LOG("spurious ext0 wake (TAP_SRC empty); re-sleeping%s", "");
-      h.clock.scheduleWake(
-          wake::armMask(wake::persisted().current_mode, hour));
-      return;
-    }
-  }
+  wake::persisted().last_drawn_hh = static_cast<uint8_t>(gm->tm_hour);
+  wake::persisted().last_drawn_mm = static_cast<uint8_t>(gm->tm_min);
 
-  // Network bring-up. On failure: show placeholder (no PNG), still publish
-  // device state if MQTT is up; otherwise arm and sleep.
-  const bool wifi = h.transport.wifiConnect();
-  FW_LOG("wifi=%d", wifi ? 1 : 0);
-  const bool mqtt = wifi ? h.transport.mqttConnect() : false;
-  FW_LOG("mqtt=%d", mqtt ? 1 : 0);
+  FW_LOG("partial mode=%s %02d:%02d at (%d,%d) fs=%u cycles=%u",
+         fw::modes::toString(p.current_mode), gm->tm_hour, gm->tm_min,
+         p.clock_zone_x, p.clock_zone_y,
+         static_cast<unsigned>(p.clock_zone_font_size),
+         static_cast<unsigned>(cycles));
+  return true;
+}
 
-  // On an IMU wake the tap is a wake signal, not a policy decision — HA
-  // decides what face to show. Publish the gesture first so HA can process
-  // it, then open a short grace window on active_mode before committing.
-  // If HA responds in-window, we fetch the post-gesture face in this cycle;
-  // otherwise we fall back to the pre-gesture retained value and HA's
-  // decision lands on the next natural wake.
+// ---------- full-path helper (original tick body, lightly factored) --------
+
+void doFull(hal::HAL& h,
+            wake::Reason reason,
+            fw::gestures::TapKind tap,
+            int local_hour,
+            hal::Epoch local_now,
+            bool wifi,
+            bool mqtt,
+            // If the caller (Poll/PollPartial) already decoded a mode payload
+            // and decided to escalate, pass it here so we don't re-fetch.
+            std::optional<fw::modes::Mode> already_resolved) {
   bool gesture_published = false;
   fw::modes::Mode active = wake::persisted().current_mode;
+
   if (reason == wake::Reason::IMU && tap != fw::gestures::TapKind::None && mqtt) {
     const char* kind = tap == fw::gestures::TapKind::Double ? "double" : "single";
     h.transport.mqttPublish(
@@ -166,53 +363,31 @@ void tick(hal::HAL h, wake::Reason reason) {
     auto payload = h.transport.mqttWaitForMessage(
         fw::config::kTopicActiveMode, fw::config::kGestureGraceMs);
     if (!payload.empty()) {
-      std::string as_json = pickString(payload, "mode");
-      std::string candidate = trim(as_json.empty() ? payload : as_json);
-      auto m = fw::modes::parse(candidate);
+      auto m = parseModePayload(payload);
       if (m != fw::modes::Mode::Unknown) active = m;
     }
+  } else if (already_resolved.has_value() &&
+             *already_resolved != fw::modes::Mode::Unknown) {
+    active = *already_resolved;
   } else if (mqtt) {
-    active = resolveActiveMode(h.transport, hour);
+    active = resolveActiveMode(h.transport, local_hour);
   }
-  if (active == fw::modes::Mode::Unknown) active = timeOfDayFallback(hour);
+  if (active == fw::modes::Mode::Unknown) active = timeOfDayFallback(local_hour);
 
   [[maybe_unused]] const bool mode_changed = active != wake::persisted().current_mode;
   FW_LOG("mode=%s changed=%d", fw::modes::toString(active), mode_changed ? 1 : 0);
 
-  // Refresh policy on Inkplate 10 in 3-bit grayscale mode:
-  //   ALWAYS FULL.
-  //
-  // The Soldered Inkplate library's partialUpdate() is a no-op when the
-  // panel runs in 3-bit (grayscale) mode — see Inkplate10.cpp:
-  //     if (getDisplayMode() == 1) return 0;
-  // We need 3-bit for the gallery, nocturne, and companion images (the
-  // corpus is built around 8-shade greyscale on this panel), so we live
-  // with full refreshes everywhere. Each wake re-fetches the rendered PNG
-  // and does a full e-ink update; the clock zone advances at the wake
-  // cadence (60 s in summary/weather/gallery, 15 min at night). The brief
-  // black flash is visible but acceptable on a wire-tied frame.
-  //
-  // partial_refresh_count is kept as a counter for symmetry with the spec
-  // and the host simulator's MockDisplay assertions, but it never gates a
-  // forced full because every refresh on this hardware is already full.
-
-  // Draw the active face. Device path: let the Inkplate library fetch and
-  // decode the PNG directly from the URL (pngle streaming). Simulator path:
-  // the URL-based call returns false by default, so we fall back to fetching
-  // bytes via the transport and handing them to the buffer-based drawImage,
-  // which MockDisplay hashes for scenario assertions.
+  // Draw the active face. URL path on device; buffer-fallback in sim.
   bool draw_succeeded = false;
   if (wifi) {
     const auto url = rendererUrl(active);
-    const bool full = true;  // 3-bit Inkplate 10 — partial is hardware no-op.
+    const bool full = true;  // 3-bit Inkplate 10 — partial in 3-bit is a no-op.
     const hal::Rect full_rect{0, 0, 1200, 825};
     FW_LOG("draw full=%d url=%s", full ? 1 : 0, url.c_str());
 
     const bool drawn_from_url = h.display.drawImageFromUrl(url, full, full_rect);
     if (drawn_from_url) {
       FW_LOG("drew (url path)%s", "");
-      if (full) wake::persisted().partial_refresh_count = 0;
-      else ++wake::persisted().partial_refresh_count;
       draw_succeeded = true;
     } else {
       hal::HttpResponse resp;
@@ -220,33 +395,66 @@ void tick(hal::HAL h, wake::Reason reason) {
         FW_LOG("resp status=%d len=%u (buffer path)", resp.status, (unsigned)resp.body.size());
         h.display.drawImage(resp.body.data(), resp.body.size(), full, full_rect);
         FW_LOG("drew (buffer path)%s", "");
-        if (full) wake::persisted().partial_refresh_count = 0;
-        else ++wake::persisted().partial_refresh_count;
         draw_succeeded = true;
       } else {
         FW_LOG("fetch FAILED%s", "");
-        // Unavailable indicator — 80×80 corner box (rendered as a no-op on
-        // device until a proper glyph exists; MockDisplay records the call).
+        // Unavailable indicator — 80×80 corner box.
         uint8_t empty[1] = {0};
         h.display.drawImage(empty, 1, /*full=*/false, hal::Rect{1100, 720, 80, 80});
       }
     }
   }
 
-  // Only advance persisted current_mode when we actually drew the new face.
-  // If the draw was skipped (no wifi/mqtt) or failed (fetch error), leave
-  // persisted at whatever the panel last successfully showed. The next wake
-  // will see mode_changed=true and retry instead of minute-tick-skipping
-  // forever with the wrong face stuck on screen.
-  //
-  // First boot path: persisted is Unknown, draw fails — leave Unknown. The
-  // default-to-kSummaryTimerSec branch in timerSecondsFor still gives a
-  // sensible 60 s cadence; next wake retries with mode_changed=true.
   if (draw_succeeded) {
     wake::persisted().current_mode = active;
+    wake::persisted().partial_refresh_count = 0;
+    // Refresh the clock-zone cache for the just-drawn mode. Done after
+    // the e-ink update so the visible refresh isn't blocked by this fetch.
+    if (wifi) fetchAndStoreClockZone(h.transport, active);
+
+    // Post-Full zone cleanup. The Full draws at 3-bit grayscale, so digits
+    // have anti-aliased gray edges around the solid-black centers. The 1-bit
+    // partial path's diff can only "see" black-vs-white at the digit ink
+    // positions; it never pulses the AA gray pixels just outside, so they
+    // ghost as the minute changes. Fix: pulse the zone solid black, then
+    // pulse it white-with-digits. The first pulse forces the panel and
+    // DMemoryNew to a known 1-bit state (gray AA gets overwritten); the
+    // second cleans the zone to white where the new digits aren't.
+    // Subsequent partial wakes diff against last_drawn (set here to the
+    // current minute) and produce ghost-free updates until the next Full.
+    const auto* preset = presetByFontSize(wake::persisted().clock_zone_font_size);
+    if (preset) {
+      std::time_t t = static_cast<std::time_t>(local_now);
+      std::tm* gm = std::gmtime(&t);
+      if (gm) {
+        const int16_t zx = wake::persisted().clock_zone_x;
+        const int16_t zy = wake::persisted().clock_zone_y;
+        const auto zw = static_cast<int16_t>(fw::clock::zoneWidthPx(*preset));
+        const auto zh = static_cast<int16_t>(fw::clock::zoneHeightPx(*preset));
+
+        h.display.setDisplayMode(hal::IDisplay::DisplayMode::OneBit);
+        // Pulse 1: solid black over zone.
+        h.display.fillRect1Bit(zx, zy, zw, zh, /*value=*/1);
+        h.display.partialUpdate1Bit();
+        // Pulse 2: white background + new digits black.
+        fw::clock::draw(h.display, *preset, zx, zy, gm->tm_hour, gm->tm_min);
+        h.display.partialUpdate1Bit();
+        h.display.setDisplayMode(hal::IDisplay::DisplayMode::ThreeBit);
+
+        wake::persisted().last_drawn_hh = static_cast<uint8_t>(gm->tm_hour);
+        wake::persisted().last_drawn_mm = static_cast<uint8_t>(gm->tm_min);
+      } else {
+        wake::persisted().last_drawn_hh = 0xff;
+        wake::persisted().last_drawn_mm = 0xff;
+      }
+    } else {
+      // No baked preset for this mode (e.g. Summary at 160u). Reset
+      // last_drawn so any future partial path skips the seed step.
+      wake::persisted().last_drawn_hh = 0xff;
+      wake::persisted().last_drawn_mm = 0xff;
+    }
   }
 
-  // Publish device state + any gesture
   if (mqtt) {
     auto reading = fw::battery::read(h.battery);
     auto json = fw::battery::toDeviceStateJson(
@@ -254,10 +462,6 @@ void tick(hal::HAL h, wake::Reason reason) {
         fw::kBuildVersion);
     h.transport.mqttPublish(fw::config::kTopicDeviceState, json, /*retained=*/true);
 
-    // Gesture publication happens up front (before the grace window) on IMU
-    // wakes; republishing here would double-count. Only publish now if the
-    // up-front path didn't (e.g., MQTT wasn't yet connected at that point
-    // but is now — a corner case not currently exercised).
     if (reason == wake::Reason::IMU && tap != fw::gestures::TapKind::None &&
         !gesture_published) {
       const char* kind = tap == fw::gestures::TapKind::Double ? "double" : "single";
@@ -267,9 +471,134 @@ void tick(hal::HAL h, wake::Reason reason) {
           /*retained=*/false);
     }
   }
+}
 
-  // Arm wake sources for the upcoming sleep.
-  h.clock.scheduleWake(wake::armMask(active, hour));
+}  // namespace
+
+// ---------- tick orchestrator ----------------------------------------------
+
+void tick(hal::HAL h, wake::Reason reason) {
+  const auto now = h.clock.nowEpoch();
+  const auto local_now = static_cast<hal::Epoch>(
+      static_cast<long long>(now) + fw::config::kTzOffsetSec);
+  const int local_hour = hourOfDay(local_now);
+  const int local_min_of_day = minuteOfDay(local_now);
+
+  // Latched-tap polling — Timer wake might mask a pending IMU event because
+  // INT1 isn't ext1-wired but TAP_SRC is latched across deep sleep.
+  fw::gestures::TapKind polled_tap = fw::gestures::TapKind::None;
+  if (reason == wake::Reason::Timer) {
+    polled_tap = fw::gestures::readTapKind(h.imu);
+    if (polled_tap != fw::gestures::TapKind::None) {
+      FW_LOG("latched tap picked up on timer wake (kind=%d)", (int)polled_tap);
+      reason = wake::Reason::IMU;
+    }
+  }
+
+  fw::gestures::TapKind tap = fw::gestures::TapKind::None;
+  if (reason == wake::Reason::IMU) {
+    tap = polled_tap != fw::gestures::TapKind::None
+              ? polled_tap : fw::gestures::readTapKind(h.imu);
+    if (tap == fw::gestures::TapKind::None) {
+      // Spurious ext0 — skip the whole tick and re-sleep on the same mask.
+      FW_LOG("spurious ext0 wake (TAP_SRC empty); re-sleeping%s", "");
+      h.clock.scheduleWake(
+          wake::armMask(wake::persisted().current_mode, local_hour));
+      return;
+    }
+    // Visual ack: paint 1 (single) or 2 (double) dots adjacent to the
+    // battery indicator and clear them ~700 ms later. Runs BEFORE WiFi
+    // connect / path planning so the user sees confirmation within
+    // ~450 ms of the tap, well ahead of the 6-9 s pipeline to a face
+    // change. ~1.2 s extra wake latency, ~0.12 mAh battery cost (two
+    // partial pulses).
+    showTapAck(h.display, tap);
+  }
+
+  // Decide path. Non-Timer reasons (ColdBoot, IMU-with-tap, HACommand,
+  // SonosFastPath, PostOTA) all want a full refresh. Timer wakes consult the
+  // schedule planner; NowPlaying override happens inside planWake().
+  wake::Path path;
+  if (reason == wake::Reason::Timer) {
+    const auto plan = wake::planWake(local_min_of_day, wake::persisted().current_mode);
+    path = plan.path;
+  } else {
+    path = wake::Path::Full;
+  }
+  FW_LOG("path=%s reason=%s mode=%s min=%d",
+         wake::pathName(path), wake::toString(reason),
+         fw::modes::toString(wake::persisted().current_mode), local_min_of_day);
+
+  // Skip — schedule says nothing happens this minute. Re-arm and sleep.
+  if (path == wake::Path::Skip) {
+    h.clock.scheduleWake(wake::armMask(wake::persisted().current_mode, local_hour));
+    return;
+  }
+
+  // Partial — offline clock-only refresh. Promote to Full if mode lacks a
+  // baked partial zone (Night, NowPlaying, Unknown).
+  if (path == wake::Path::Partial) {
+    if (doPartial(h, local_now)) {
+      h.clock.scheduleWake(wake::armMask(wake::persisted().current_mode, local_hour));
+      return;
+    }
+    path = wake::Path::Full;
+  }
+
+  // Network bring-up for Poll, PollPartial, Full.
+  const bool wifi = h.transport.wifiConnect();
+  FW_LOG("wifi=%d", wifi ? 1 : 0);
+  const bool mqtt = wifi ? h.transport.mqttConnect() : false;
+  FW_LOG("mqtt=%d", mqtt ? 1 : 0);
+
+  // Poll — read the retained active_mode. If it changed, fall through to
+  // Full (so the new face is drawn this wake instead of waiting another
+  // minute). If unchanged or MQTT failed, just sleep.
+  if (path == wake::Path::Poll) {
+    fw::modes::Mode resolved = fw::modes::Mode::Unknown;
+    if (mqtt) resolved = resolveActiveMode(h.transport, local_hour);
+    if (mqtt && resolved != fw::modes::Mode::Unknown &&
+        resolved != wake::persisted().current_mode) {
+      FW_LOG("poll detected mode change %s -> %s",
+             fw::modes::toString(wake::persisted().current_mode),
+             fw::modes::toString(resolved));
+      doFull(h, reason, tap, local_hour, local_now, wifi, mqtt, resolved);
+    }
+    h.clock.scheduleWake(wake::armMask(wake::persisted().current_mode, local_hour));
+    return;
+  }
+
+  // PollPartial — same as Poll but on no-change we still do a partial draw.
+  // The MQTT fetch piggybacks on the WiFi we already have up; the marginal
+  // cost over a pure Partial is one MQTT round-trip.
+  //
+  // When the active mode has no baked partial zone (Gallery, NowPlaying, etc.)
+  // we fall through to Full so the clock zone doesn't get stuck on the
+  // 30-minute Full boundary. That keeps the panel visibly fresh for the
+  // operator at the cost of one extra Full per cadence boundary in
+  // partial-less modes.
+  if (path == wake::Path::PollPartial) {
+    fw::modes::Mode resolved = fw::modes::Mode::Unknown;
+    if (mqtt) resolved = resolveActiveMode(h.transport, local_hour);
+    const bool mode_changed =
+        mqtt && resolved != fw::modes::Mode::Unknown &&
+        resolved != wake::persisted().current_mode;
+    if (mode_changed) {
+      FW_LOG("poll-partial detected mode change %s -> %s",
+             fw::modes::toString(wake::persisted().current_mode),
+             fw::modes::toString(resolved));
+      doFull(h, reason, tap, local_hour, local_now, wifi, mqtt, resolved);
+    } else if (!doPartial(h, local_now)) {
+      // No zone for this mode — promote to Full so the clock keeps moving.
+      doFull(h, reason, tap, local_hour, local_now, wifi, mqtt, std::nullopt);
+    }
+    h.clock.scheduleWake(wake::armMask(wake::persisted().current_mode, local_hour));
+    return;
+  }
+
+  // Full — the original unrefactored path.
+  doFull(h, reason, tap, local_hour, local_now, wifi, mqtt, std::nullopt);
+  h.clock.scheduleWake(wake::armMask(wake::persisted().current_mode, local_hour));
 }
 
 }  // namespace fw

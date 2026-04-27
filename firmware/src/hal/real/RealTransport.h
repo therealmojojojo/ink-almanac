@@ -30,14 +30,53 @@ class RealTransport : public hal::ITransport {
   }
 
   bool wifiConnect() override {
-    if (WiFi.status() == WL_CONNECTED) return true;
+    if (WiFi.status() == WL_CONNECTED) {
+      ensureTimeSynced();
+      return true;
+    }
     WiFi.mode(WIFI_STA);
     WiFi.begin(INKPLATE_WIFI_SSID, INKPLATE_WIFI_PASSWORD);
     uint32_t start = millis();
     while (WiFi.status() != WL_CONNECTED && (millis() - start) < 10000) {
       delay(100);
     }
+    if (WiFi.status() == WL_CONNECTED) ensureTimeSynced();
     return WiFi.status() == WL_CONNECTED;
+  }
+
+  // NTP sync. The schedule planner keys off minute-of-day, so an accurate
+  // wall clock matters — RTC alone boots to 1970 on every cold start. The
+  // ESP32 RTC keeps running across deep sleep once set, but it drifts at
+  // ~20 ppm (~1.7 s/day) and the partial-clock path paints whatever the
+  // device thinks the time is — diverging from the renderer's host clock
+  // that the Full-wake PNG was painted with.
+  //
+  // We re-sync on every wake where WiFi is up. SNTP is one UDP exchange
+  // (~200-500 ms); cheap enough that there's no point trying to skip it.
+  // Cold-boot pre-1970 case still gets the original 5 s blocking wait so
+  // the schedule planner doesn't fire with bogus time. Subsequent calls
+  // re-arm sntp without blocking.
+  void ensureTimeSynced() {
+    const time_t kMinValid = 1'700'000'000;  // Nov 2023 — anything below = unset
+    const bool first_sync = time(nullptr) < kMinValid;
+    configTime(/*gmtOffset_sec=*/0, /*daylightOffset_sec=*/0,
+               "pool.ntp.org", "time.nist.gov");
+    if (first_sync) {
+      uint32_t start = millis();
+      while (time(nullptr) < kMinValid && (millis() - start) < 5000) {
+        delay(100);
+      }
+    } else {
+      // Give SNTP a small budget to receive the response in-line so the
+      // re-sync actually lands before this wake's render. 600 ms covers a
+      // typical pool.ntp.org RTT comfortably; if it doesn't land in time,
+      // the next wake will pick up the freshly-skewed offset.
+      delay(600);
+    }
+    Serial.printf("[ntp] time=%ld synced=%d first=%d\n",
+                  static_cast<long>(time(nullptr)),
+                  time(nullptr) >= kMinValid ? 1 : 0,
+                  first_sync ? 1 : 0);
   }
 
   hal::HttpResponse httpGet(const std::string& url) override {
