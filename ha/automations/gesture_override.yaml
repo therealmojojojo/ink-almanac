@@ -6,92 +6,51 @@
 #     fetches whichever face the retained value points to.
 #   - Device does NOT interpret gestures; HA is authoritative.
 #
-# Activation model (see openspec/changes/revise-tap-override-semantics):
-#   Explicit (tap) beats ambient (schedule, music). Precedence only governs
-#   *deactivation*'s restore target, not whether activation is allowed.
+# Activation model:
+#   Explicit (tap) beats ambient (schedule, music). On the wire-tied frame
+#   mount, the LSM6DSO's tap classification is unreliable — a firm tap rings
+#   the frame and latches `double` (two shocks within 350 ms), while a softer
+#   tap latches only `single`. Distinguishing the two would force the
+#   operator to calibrate their tap force, so we treat both kinds as the
+#   same intent. Both `single` and `double` MQTT payloads run the same
+#   automation actions.
 #
 # Rules:
-#   - Gestures are SUPPRESSED during quiet hours (user tapped, ack glyph shows
-#     on the device, but no face change here — honest UX).
-#   - Single tap → weather_peek works during now_playing. prior=now_playing;
-#     peek expires in 60 s and restores now_playing if Sonos is still playing.
-#   - Double tap stays suppressed during now_playing (asymmetric by design:
-#     toggle persists until the next schedule boundary, which interacts badly
-#     with long music sessions; revisit if we want a different semantic).
-#   - Double-tap toggles Summary↔Gallery. During Night (scheduled_face == night)
-#     the toggle is a no-op (no meaningful "other" face for Night).
+#   - Gestures are SUPPRESSED during quiet hours.
+#   - Tap during the schedule (Summary/Gallery/Weather slot) → flip the
+#     alternation offset. The currently-shown face swaps to its counterpart
+#     and the flipped phase persists across subsequent ticks until tapped
+#     again.
+#   - Tap during Night → no-op (no main face to swap to).
+#   - Tap during now_playing → peek to the tier's main face (Summary or
+#     Gallery) for ~60 s, then revert to now_playing.
+#   - Tap during weather_peek (legacy) → handled by the legacy single-tap
+#     re-arm path above (kept defensively — nothing creates weather_peek
+#     under the current design but a stale retained MQTT state could).
 #
-# prior_override invariant: prior_override SHALL NEVER equal active_override.
-# Re-triggering the same state (tap during peek, double-tap during toggle)
-# refreshes the state but leaves prior_override untouched so the original
-# pre-override value survives.
+# Compared to the previous design: the dedicated single-tap → weather_peek
+# automation is removed because the new alternation engine cycles Weather
+# in naturally (every 15-30 min depending on tier), making the explicit
+# 5-min peek redundant. The `weather_peek` state value still lives in the
+# helpers and the expiry / HA-start cleanup automations are kept as a safety
+# net for any operator-initiated peek (e.g. via a dashboard button) and to
+# survive an HA restart mid-peek with retained MQTT state.
 #
 # Tap-to-face-change latency target: < 2 s (the device's grace window). MQTT
 # publish in the same action block is sub-second in a healthy HA, so this is
 # comfortable.
 
-- id: inkplate_gesture_single_tap
-  alias: "Inkplate: single tap → Weather peek"
-  mode: queued
-  max: 3
-  trigger:
-    - platform: mqtt
-      topic: inkplate/state/gesture
-      payload: "single"
-      value_template: "{{ value_json.kind }}"
-  condition:
-    # Not within quiet hours (midnight-wrap aware).
-    - condition: template
-      value_template: >-
-        {% set qs = states('input_datetime.inkplate_quiet_start') %}
-        {% set qe = states('input_datetime.inkplate_quiet_end') %}
-        {% set now_t = now().strftime('%H:%M:%S') %}
-        {% if qs <= qe %}
-          {{ not (qs <= now_t < qe) }}
-        {% else %}
-          {{ not (now_t >= qs or now_t < qe) }}
-        {% endif %}
-    # now_playing no longer suppresses single tap — explicit intent (tap) beats
-    # ambient (music). Peek auto-returns to now_playing at expiry if Sonos is
-    # still playing.
-  action:
-    # Save current override so we can restore it when the peek expires — unless
-    # we're already in weather_peek, in which case preserve the original prior
-    # (this lets a repeated tap extend the window without losing what we were on).
-    - choose:
-        - conditions:
-            - condition: template
-              value_template: "{{ states('input_text.inkplate_active_override') != 'weather_peek' }}"
-          sequence:
-            - service: input_text.set_value
-              target: { entity_id: input_text.inkplate_prior_override }
-              data: { value: "{{ states('input_text.inkplate_active_override') }}" }
-    - service: input_text.set_value
-      target: { entity_id: input_text.inkplate_active_override }
-      data: { value: weather_peek }
-    # Arm (or re-arm) the expiry: now + configured peek seconds (60 by default).
-    - service: input_datetime.set_datetime
-      target: { entity_id: input_datetime.inkplate_weather_peek_expires_at }
-      data:
-        datetime: >-
-          {% set s = states('input_number.inkplate_weather_peek_seconds') | int(60) %}
-          {{ (now() + timedelta(seconds=s)).strftime('%Y-%m-%d %H:%M:%S') }}
-    # Publish active_mode so the device's post-publish grace window picks it up.
-    - service: mqtt.publish
-      data:
-        topic: inkplate/command/active_mode
-        payload: weather
-        retain: true
-    # Wake pulse is redundant (device is already awake doing the grace-window
-    # subscribe) but keeps the pattern consistent with schedule/Sonos paths.
-    - service: mqtt.publish
-      data:
-        topic: inkplate/command/wake
-        payload: ""
-        retain: false
+# NOTE: the dedicated single-tap → weather_peek automation has been removed.
+# Both `single` and `double` MQTT payloads now drive the two automations
+# below (phase flip during schedule, peek during now_playing). The new
+# alternation engine surfaces Weather every 15-30 min on its own, so the
+# 5-min peek window is no longer needed.
 
-- id: inkplate_gesture_double_tap
-  alias: "Inkplate: double tap → Summary/Gallery toggle"
+# Tap during the schedule: flip the alternation phase. Triggers on either
+# kind (single OR double) — the wire-tied frame mount can latch either,
+# depending on tap force, and we treat them as the same intent.
+- id: inkplate_gesture_tap_phase_flip
+  alias: "Inkplate: tap (schedule) → flip alternation phase"
   mode: queued
   max: 3
   trigger:
@@ -99,8 +58,12 @@
       topic: inkplate/state/gesture
       payload: "double"
       value_template: "{{ value_json.kind }}"
+    - platform: mqtt
+      topic: inkplate/state/gesture
+      payload: "single"
+      value_template: "{{ value_json.kind }}"
   condition:
-    # Quiet-hours guard (same as single tap).
+    # Quiet-hours guard.
     - condition: template
       value_template: >-
         {% set qs = states('input_datetime.inkplate_quiet_start') %}
@@ -111,37 +74,124 @@
         {% else %}
           {{ not (now_t >= qs or now_t < qe) }}
         {% endif %}
-    # Double-tap stays suppressed during now_playing (deliberate asymmetry —
-    # see file header).
-    - condition: template
-      value_template: "{{ states('input_text.inkplate_active_override') != 'now_playing' }}"
-    # Toggle only meaningful when the scheduled face is Summary or Gallery.
-    # During Night (scheduled_face == night) the double-tap is a no-op.
+    # Only when the schedule owns the panel (not now_playing, not peek).
+    - condition: state
+      entity_id: input_text.inkplate_active_override
+      state: schedule
+    # Night has no alternation — taps in Night are no-ops.
     - condition: template
       value_template: >-
-        {{ states('input_text.inkplate_scheduled_face') in ['summary', 'gallery'] }}
+        {% set m = now().hour * 60 + now().minute %}
+        {{ not (m >= 22*60 or m < 6*60 + 30) }}
   action:
+    # Compute the new offset (0↔1) and the resulting alternated face. Same
+    # formula as schedule.yaml's alternation tick — kept inline because Jinja
+    # macros aren't shared across HA's flat automation list.
     - variables:
-        toggled: >-
-          {% set s = states('input_text.inkplate_scheduled_face') %}
-          {% if s == 'summary' %}gallery{% elif s == 'gallery' %}summary{% else %}{{ s }}{% endif %}
-    # Save prior only when we're not already in the toggle state; re-toggling
-    # must not overwrite the original prior (invariant: prior != current).
-    - choose:
-        - conditions:
-            - condition: template
-              value_template: "{{ states('input_text.inkplate_active_override') != 'summary_gallery_toggle' }}"
-          sequence:
-            - service: input_text.set_value
-              target: { entity_id: input_text.inkplate_prior_override }
-              data: { value: "{{ states('input_text.inkplate_active_override') }}" }
+        minute_of_day: "{{ now().hour * 60 + now().minute }}"
+        new_offset: "{{ 1 - (states('input_number.inkplate_alternation_offset') | int(0)) }}"
+        target: >-
+          {% set m = minute_of_day | int %}
+          {% if m < 10*60 %}
+            {% set tier_start = 6*60 + 30 %}
+            {% set tier_full = 15 %}
+            {% set tier_main = 'summary' %}
+          {% elif m < 17*60 %}
+            {% set tier_start = 10*60 %}
+            {% set tier_full = 30 %}
+            {% set tier_main = 'gallery' %}
+          {% else %}
+            {% set tier_start = 17*60 %}
+            {% set tier_full = 15 %}
+            {% set tier_main = 'gallery' %}
+          {% endif %}
+          {% set parity = (((m - tier_start) // tier_full) + (new_offset | int)) % 2 %}
+          {% if parity == 0 %}{{ tier_main }}{% else %}weather{% endif %}
+        target_face: "{{ target | trim }}"
+    - service: input_number.set_value
+      target: { entity_id: input_number.inkplate_alternation_offset }
+      data: { value: "{{ new_offset }}" }
     - service: input_text.set_value
-      target: { entity_id: input_text.inkplate_active_override }
-      data: { value: summary_gallery_toggle }
+      target: { entity_id: input_text.inkplate_scheduled_face }
+      data: { value: "{{ target_face }}" }
     - service: mqtt.publish
       data:
         topic: inkplate/command/active_mode
-        payload: "{{ toggled }}"
+        payload: "{{ target_face }}"
+        retain: true
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/wake
+        payload: ""
+        retain: false
+
+# Tap during now-playing: peek the tier's main face for ~60 s, then revert
+# to now-playing. Triggers on either kind (single OR double).
+- id: inkplate_gesture_tap_now_playing_peek
+  alias: "Inkplate: tap (now-playing) → peek to tier main for 60 s"
+  # `restart` so a second tap during the peek resets the 60-s timer rather
+  # than queueing a stale follow-up revert.
+  mode: restart
+  trigger:
+    - platform: mqtt
+      topic: inkplate/state/gesture
+      payload: "double"
+      value_template: "{{ value_json.kind }}"
+    - platform: mqtt
+      topic: inkplate/state/gesture
+      payload: "single"
+      value_template: "{{ value_json.kind }}"
+  condition:
+    - condition: state
+      entity_id: input_text.inkplate_active_override
+      state: now_playing
+    - condition: template
+      value_template: >-
+        {% set qs = states('input_datetime.inkplate_quiet_start') %}
+        {% set qe = states('input_datetime.inkplate_quiet_end') %}
+        {% set now_t = now().strftime('%H:%M:%S') %}
+        {% if qs <= qe %}
+          {{ not (qs <= now_t < qe) }}
+        {% else %}
+          {{ not (now_t >= qs or now_t < qe) }}
+        {% endif %}
+    # Only peek to a real face — Night has no main worth peeking to.
+    - condition: template
+      value_template: >-
+        {% set m = now().hour * 60 + now().minute %}
+        {{ not (m >= 22*60 or m < 6*60 + 30) }}
+  action:
+    - variables:
+        # Peek target is the TIER MAIN, not the alternated face — the user
+        # explicitly wants Summary/Gallery during now-playing peek, not the
+        # Weather-alternated current schedule.
+        peek_face: >-
+          {% set m = now().hour * 60 + now().minute %}
+          {% if m < 10*60 %}summary
+          {% elif m < 22*60 %}gallery
+          {% else %}gallery{% endif %}
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/active_mode
+        payload: "{{ peek_face | trim }}"
+        retain: true
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/wake
+        payload: ""
+        retain: false
+    # Hold the peek for ~60 s — matches the device's now-playing 1-min Full
+    # cadence so the peek shows for exactly one full-draw window.
+    - delay: "00:01:00"
+    # Defensive: if Sonos has already stopped (override flipped to schedule
+    # via linger expiry) during the delay, don't republish now-playing.
+    - condition: state
+      entity_id: input_text.inkplate_active_override
+      state: now_playing
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/active_mode
+        payload: now-playing
         retain: true
     - service: mqtt.publish
       data:

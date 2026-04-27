@@ -168,6 +168,19 @@
     - condition: state
       entity_id: input_boolean.inkplate_publisher_enabled
       state: "on"
+    # Only publish when Sonos is actually playing AND has populated track
+    # metadata. Without this gate, transitions through paused/idle/off (or
+    # the brief metadata-empty window between AirPlay reconnects) overwrite
+    # the previously-good sonos.json with `{title:"", artist:"", art_url:""}`,
+    # which the now-playing face renders as the bare "SONOS" fallback. With
+    # the gate, the file holds the last-good track until Sonos reports new
+    # metadata. Skipped publishes leave sonos.json untouched.
+    - condition: state
+      entity_id: media_player.kitchen_sonos
+      state: "playing"
+    - condition: template
+      value_template: >-
+        {{ (state_attr('media_player.kitchen_sonos','media_title') or '') | trim != '' }}
   action:
     - variables:
         # HA's entity_picture is a relative URL like
@@ -209,39 +222,13 @@
       data:
         body: "{{ body }}"
 
-# 4. Curated news — attribute change on the inkplate_curated_news sensor.
-#    Sensor reads state/curated_news.json, which generate_curated_news.sh
-#    writes once a day from Kottke + Atlas Obscura + Aeon via Claude Haiku.
-#    Already-curated to {title, subtitle} shape, so the body template just
-#    passes items through.
-- alias: "Inkplate: publish news"
-  id: inkplate_publish_news
-  mode: single
-  max_exceeded: silent
-  trigger:
-    - platform: state
-      entity_id: sensor.inkplate_curated_news
-    - platform: homeassistant
-      event: start
-  condition:
-    - condition: state
-      entity_id: input_boolean.inkplate_publisher_enabled
-      state: "on"
-  action:
-    - variables:
-        items: "{{ (state_attr('sensor.inkplate_curated_news', 'items') or [])[:2] }}"
-        body: >-
-          {
-            "items": [
-              {%- for it in items -%}
-              {{ ',' if not loop.first else '' }}
-              { "body": "{{ it.body | replace('\"','\\\"') }}" }
-              {%- endfor -%}
-            ]
-          }
-    - service: rest_command.inkplate_publish_news
-      data:
-        body: "{{ body }}"
+# 4. (Smart-pill / news previously published here from a live LLM regen
+#     pipeline.) Removed — the Summary face's smart pill is now sourced
+#     from the deterministic per-day sidecar field `summary.smart_pill.body`,
+#     written to renderer/inputs/news.json by `pairing/publish_today.py` at
+#     06:00 daily over the renderer-host SSH path. No HA-side publisher and
+#     no live Claude regeneration is involved any more, so the smart pill
+#     is stable across HA restarts and across the day.
 
 # 5. Device — MQTT trigger on retained `inkplate/state/device`. Re-publishes
 #    into renderer/inputs/device.json on every device wake.

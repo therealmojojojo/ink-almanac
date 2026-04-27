@@ -1,76 +1,96 @@
-# Scheduled-mode transitions: 06:30 Summary, 10:00 Gallery, 22:00 Night.
+# Per-tier face alternation engine.
 #
-# One automation with a trigger id per slot; a single `choose` maps the id
-# to the target face. The scheduled_face helper is always updated (so Now-Playing
-# can return to the right face when music stops).
+# Each Full-refresh boundary toggles the displayed face between the tier's
+# main and Weather:
 #
-# Device-wake publish rules at a schedule boundary:
-#   * active_override == schedule                → publish new active_mode + wake
-#   * active_override == summary_gallery_toggle  → toggle's lifetime ends here
-#                                                   (per spec: "persists until next
-#                                                   scheduled transition"); clear
-#                                                   the override, publish new
-#                                                   active_mode + wake
-#   * active_override == weather_peek            → leave alone; peek has its own
-#                                                   5-min expiry automation
-#   * active_override == now_playing             → leave alone; now_playing
-#                                                   supersedes the schedule until
-#                                                   linger expires and restores
-#                                                   prior (which will then use
-#                                                   the updated scheduled_face)
+#   Morning  (06:30–10:00, Full=15m): Summary ↔ Weather
+#   Midday   (10:00–17:00, Full=30m): Gallery ↔ Weather
+#   Evening  (17:00–22:00, Full=15m): Gallery ↔ Weather
+#   Night    (22:00–06:30):           Night (no alternation)
+#
+# Trigger fires every 15 min (the LCM of the active tiers' Full intervals).
+# Midday's 30-min cadence self-debounces: floor((m - 10*60) / 30) doesn't
+# change between :00 and :15 (or :30 and :45), so the recompute returns the
+# same target and the publish is skipped (no-op).
+#
+# input_number.inkplate_alternation_offset (0 or 1) is XOR'd into the
+# parity, so a tap-driven flip persists through subsequent ticks (and tier
+# transitions) until tapped again.
+#
+# Active-override gating: this engine only publishes active_mode when
+# inkplate_active_override == schedule. While now_playing or weather_peek
+# is active, the underlying scheduled_face still updates so override-restore
+# lands on the right face.
 
-- id: inkplate_schedule_transitions
-  alias: "Inkplate: scheduled-mode transitions"
+- id: inkplate_alternation_tick
+  alias: "Inkplate: per-tier face alternation tick"
   mode: queued
+  max: 4
   trigger:
-    - platform: time
-      at: "06:30:00"
-      id: summary
-    - platform: time
-      at: "10:00:00"
-      id: gallery
-    - platform: time
-      at: "22:00:00"
-      id: night
+    # Every quarter-hour: covers Morning/Evening 15m boundaries naturally,
+    # and Midday's 30m boundaries land on the :00/:30 ticks (the :15/:45
+    # ticks compute the same target as the prior tick, so they no-op).
+    # `/15` = every 15 min starting at :00. HA's time_pattern doesn't
+    # accept comma-separated lists; the prior "0,15,30,45" syntax is invalid
+    # and silently disabled the automation at startup.
+    - platform: time_pattern
+      minutes: "/15"
+    # HA-start: re-publish the current target so a restart can't leave the
+    # device on whatever it last fetched.
+    - platform: homeassistant
+      event: start
   variables:
-    face: "{{ trigger.id }}"
+    minute_of_day: "{{ now().hour * 60 + now().minute }}"
+    offset: "{{ states('input_number.inkplate_alternation_offset') | int(0) }}"
+    target: >-
+      {% set m = minute_of_day | int %}
+      {% if m >= 22*60 or m < 6*60+30 %}
+        night
+      {% else %}
+        {% if m < 10*60 %}
+          {% set tier_start = 6*60 + 30 %}
+          {% set tier_full = 15 %}
+          {% set tier_main = 'summary' %}
+        {% elif m < 17*60 %}
+          {% set tier_start = 10*60 %}
+          {% set tier_full = 30 %}
+          {% set tier_main = 'gallery' %}
+        {% else %}
+          {% set tier_start = 17*60 %}
+          {% set tier_full = 15 %}
+          {% set tier_main = 'gallery' %}
+        {% endif %}
+        {% set parity = (((m - tier_start) // tier_full) + offset) % 2 %}
+        {% if parity == 0 %}{{ tier_main }}{% else %}weather{% endif %}
+      {% endif %}
+    target_face: "{{ target | trim }}"
   action:
-    - service: input_text.set_value
-      target: { entity_id: input_text.inkplate_scheduled_face }
-      data: { value: "{{ face }}" }
+    # Always update scheduled_face — overrides restore to it on expiry, so it
+    # must reflect the current alternation state regardless of what's drawn.
     - choose:
-        # Normal path — schedule is the active override; advance the device.
         - conditions:
-            - condition: state
-              entity_id: input_text.inkplate_active_override
-              state: schedule
-          sequence:
-            - service: mqtt.publish
-              data:
-                topic: inkplate/command/active_mode
-                payload: "{{ face }}"
-                retain: true
-            - service: mqtt.publish
-              data:
-                topic: inkplate/command/wake
-                payload: ""
-        # Double-tap toggle's lifetime ends at a scheduled transition. Clear
-        # the override and advance the device to the new scheduled face.
-        - conditions:
-            - condition: state
-              entity_id: input_text.inkplate_active_override
-              state: summary_gallery_toggle
+            - condition: template
+              value_template: "{{ target_face != states('input_text.inkplate_scheduled_face') }}"
           sequence:
             - service: input_text.set_value
-              target: { entity_id: input_text.inkplate_active_override }
-              data: { value: schedule }
-            - service: mqtt.publish
-              data:
-                topic: inkplate/command/active_mode
-                payload: "{{ face }}"
-                retain: true
-            - service: mqtt.publish
-              data:
-                topic: inkplate/command/wake
-                payload: ""
-      # weather_peek and now_playing: no action; let their own expiry paths run.
+              target: { entity_id: input_text.inkplate_scheduled_face }
+              data: { value: "{{ target_face }}" }
+    # Only push to the device when the schedule is the active override. Any
+    # other override (now_playing, weather_peek) owns the active_mode topic
+    # until it expires; their restore cascades will use the freshly-updated
+    # scheduled_face.
+    - condition: state
+      entity_id: input_text.inkplate_active_override
+      state: schedule
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/active_mode
+        payload: "{{ target_face }}"
+        retain: true
+    # Wake pulse — best-effort; only seen if the device is in its post-wake
+    # grace window. Routine boundaries are covered by the device's own
+    # Full cadence picking up the retained active_mode.
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/wake
+        payload: ""

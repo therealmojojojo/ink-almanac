@@ -5,18 +5,10 @@
 # !include_dir_merge_list but the new dict-root format isn't).
 
 command_line:
-  # Curated news — Kottke + Atlas Obscura + Aeon, LLM-picked daily. Reads
-  # the JSON file produced by generate_curated_news.sh. State = item count;
-  # `items` attribute carries the [{title, subtitle}, ...] list that
-  # publish_inputs.yaml iterates. Replaces the earlier HN top-5 feed.
-  - sensor:
-      name: inkplate_curated_news
-      unique_id: inkplate_curated_news
-      command: "/bin/sh -c 'cat /config/custom/inkplate/state/curated_news.json 2>/dev/null || echo {}'"
-      scan_interval: 300
-      value_template: "{{ value_json.count | int(0) }}"
-      json_attributes:
-        - items
+  # (inkplate_curated_news sensor removed alongside the curated-news live
+  # regeneration pipeline. The Smart pill is now sourced from the
+  # deterministic per-day `summary.smart_pill.body` field, staged into
+  # renderer/inputs/news.json directly by pairing/publish_today.py.)
 
   # Night-mode poetic weather line — reads the file written by
   # generate_poetic_weather_line.sh. scan_interval keeps the sensor fresh

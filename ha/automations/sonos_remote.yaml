@@ -1,0 +1,248 @@
+# IKEA SYMFONISK Sound Remote Gen 2 (E2123) → Sonos media controls.
+#
+# Pairing: Zigbee2MQTT, friendly name `sonos-remote`. Z2M publishes one MQTT
+# message per button event to `zigbee2mqtt/sonos-remote` with `{"action": ...}`.
+# Triggers below are MQTT-topic-based (not state-based on
+# sensor.sonos_remote_action) because state triggers miss repeated identical
+# values — and `volume_*_hold` fires repeatedly while the button is held.
+#
+# Action vocabulary observed on Z2M for E2123 (firmware 1.0.35):
+#   toggle                                (play/pause button — confirmed)
+#   track_next, track_previous            (confirmed)
+#   volume_up,   volume_down              (single press — confirmed)
+#   volume_up_hold, volume_down_hold      (repeats while held — same step;
+#                                          per Z2M docs, not yet observed live)
+#   dots_1_short_release, dots_1_long_release    (currently unbound)
+#   dots_2_short_release, dots_2_long_release    (currently unbound)
+# `play` is matched alongside `toggle` so the automation survives a firmware
+# rename — older Z2M handlers emitted `play` for the same physical button.
+#
+# The dot buttons are reserved for Inkplate-side interactions and are not
+# wired here yet. The media buttons just talk to Sonos; the Inkplate's
+# Now-Playing face follows automatically through now_playing_override.yaml.
+#
+# Sonos entity is taken from input_text.inkplate_kitchen_sonos_entity for
+# consistency with the rest of the project (the helper lets the operator
+# repoint at a different speaker without editing automations).
+#
+# Cold-start playlist pool: defined inline below. Ported from the previous
+# TRADFRI shortcut button's long-hold "surprise me" pool — play picks one
+# at random when starting from idle/off. Edit the list in the play
+# automation's variables block.
+
+- id: inkplate_sonos_remote_play
+  alias: "Sonos remote: play/pause"
+  mode: single
+  trigger:
+    - platform: mqtt
+      topic: zigbee2mqtt/sonos-remote
+      value_template: "{{ value_json.action }}"
+      payload: "toggle"
+    - platform: mqtt
+      topic: zigbee2mqtt/sonos-remote
+      value_template: "{{ value_json.action }}"
+      payload: "play"
+  action:
+    - variables:
+        sonos: "{{ states('input_text.inkplate_kitchen_sonos_entity') }}"
+        # Spotify playlist pool. Cold-start (idle/off) play picks one at
+        # random — mirrors the "surprise me" long-hold behaviour the operator
+        # had on the previous TRADFRI button. Edit this list to change the
+        # rotation; the YAML is the source of truth.
+        playlists:
+          - "spotify:playlist:37i9dQZF1FbFSZUOQvgqEC"
+          - "spotify:playlist:37i9dQZF1E37hFUP4OBNpF"
+          - "spotify:playlist:37i9dQZF1E38irIBambFuG"
+          - "spotify:playlist:37i9dQZF1E39Isle6mfvkW"
+          - "spotify:playlist:37i9dQZF1E38pKzzJoZSI3"
+          - "spotify:playlist:37i9dQZF1E359ADH6iQjFr"
+          - "spotify:playlist:37i9dQZF1E376un9GUDQSy"
+          - "spotify:playlist:37i9dQZEVXcJgoeiSNCReh"
+    - choose:
+        # Currently playing → pause.
+        - conditions:
+            - condition: template
+              value_template: "{{ states(sonos) == 'playing' }}"
+          sequence:
+            - service: media_player.media_pause
+              data:
+                entity_id: "{{ sonos }}"
+        # Paused → resume from queued position (preserves seek and volume).
+        - conditions:
+            - condition: template
+              value_template: "{{ states(sonos) == 'paused' }}"
+          sequence:
+            - service: media_player.media_play
+              data:
+                entity_id: "{{ sonos }}"
+      # Idle/off cold start → pick a random playlist from the pool. Floor
+      # volume at 30% if it's near-zero (the daily 04:00 reset zeroes it),
+      # so a silent speaker doesn't ambush the operator. Anything ≥ 5% is
+      # left alone — operator's choice.
+      default:
+        - choose:
+            - conditions:
+                - condition: template
+                  value_template: "{{ (state_attr(sonos, 'volume_level') | float(0)) < 0.05 }}"
+              sequence:
+                - service: media_player.volume_set
+                  data:
+                    entity_id: "{{ sonos }}"
+                    volume_level: 0.30
+        - service: media_player.play_media
+          data:
+            entity_id: "{{ sonos }}"
+            media_content_type: playlist
+            media_content_id: "{{ playlists | random }}"
+
+- id: inkplate_sonos_remote_volume_up
+  alias: "Sonos remote: volume up (+10%)"
+  # `volume_up` and `volume_up_hold` both step by 10%. Hold fires repeatedly
+  # at Z2M's hold cadence, so the same step compounds into a smooth ramp.
+  # mode: parallel so a held-down press doesn't queue stale increments
+  # behind a slow Sonos response.
+  mode: parallel
+  max: 10
+  trigger:
+    - platform: mqtt
+      topic: zigbee2mqtt/sonos-remote
+      value_template: "{{ value_json.action }}"
+      payload: "volume_up"
+    - platform: mqtt
+      topic: zigbee2mqtt/sonos-remote
+      value_template: "{{ value_json.action }}"
+      payload: "volume_up_hold"
+  action:
+    - variables:
+        sonos: "{{ states('input_text.inkplate_kitchen_sonos_entity') }}"
+    - service: media_player.volume_set
+      data:
+        entity_id: "{{ sonos }}"
+        volume_level: >-
+          {% set v = state_attr(sonos, 'volume_level') | float(0) %}
+          {{ [v + 0.10, 1.0] | min }}
+
+- id: inkplate_sonos_remote_volume_down
+  alias: "Sonos remote: volume down (-10%)"
+  mode: parallel
+  max: 10
+  trigger:
+    - platform: mqtt
+      topic: zigbee2mqtt/sonos-remote
+      value_template: "{{ value_json.action }}"
+      payload: "volume_down"
+    - platform: mqtt
+      topic: zigbee2mqtt/sonos-remote
+      value_template: "{{ value_json.action }}"
+      payload: "volume_down_hold"
+  action:
+    - variables:
+        sonos: "{{ states('input_text.inkplate_kitchen_sonos_entity') }}"
+    - service: media_player.volume_set
+      data:
+        entity_id: "{{ sonos }}"
+        volume_level: >-
+          {% set v = state_attr(sonos, 'volume_level') | float(0) %}
+          {{ [v - 0.10, 0.0] | max }}
+
+- id: inkplate_sonos_remote_track_next
+  alias: "Sonos remote: next track"
+  mode: single
+  trigger:
+    - platform: mqtt
+      topic: zigbee2mqtt/sonos-remote
+      value_template: "{{ value_json.action }}"
+      payload: "track_next"
+  action:
+    - service: media_player.media_next_track
+      data:
+        entity_id: "{{ states('input_text.inkplate_kitchen_sonos_entity') }}"
+
+- id: inkplate_sonos_remote_track_previous
+  alias: "Sonos remote: previous track"
+  mode: single
+  trigger:
+    - platform: mqtt
+      topic: zigbee2mqtt/sonos-remote
+      value_template: "{{ value_json.action }}"
+      payload: "track_previous"
+  action:
+    - service: media_player.media_previous_track
+      data:
+        entity_id: "{{ states('input_text.inkplate_kitchen_sonos_entity') }}"
+
+# Dot buttons → step backwards / forwards through the cold-start playlist
+# pool. dot-1 is the upper "•" button, dot-2 the lower "••" — physically
+# the convention reads dot-1 = back, dot-2 = forward.
+#
+# State lives in input_number.inkplate_sonos_playlist_index. Index wraps
+# around the pool length via modulo, so out-of-range values from manual
+# edits or pool resizes self-correct on the next press.
+#
+# IMPORTANT: this `playlists` list MUST stay in sync with the one in the
+# play/pause automation above. Both source the same pool — duplicated here
+# because HA's automations file is a flat list and YAML anchors aren't
+# usable across the entries. If you edit one, edit the other.
+- id: inkplate_sonos_remote_dots1_prev_playlist
+  alias: "Sonos remote: dot-1 → previous playlist"
+  mode: single
+  trigger:
+    - platform: mqtt
+      topic: zigbee2mqtt/sonos-remote
+      value_template: "{{ value_json.action }}"
+      payload: "dots_1_short_release"
+  action:
+    - variables:
+        sonos: "{{ states('input_text.inkplate_kitchen_sonos_entity') }}"
+        playlists:
+          - "spotify:playlist:37i9dQZF1FbFSZUOQvgqEC"
+          - "spotify:playlist:37i9dQZF1E37hFUP4OBNpF"
+          - "spotify:playlist:37i9dQZF1E38irIBambFuG"
+          - "spotify:playlist:37i9dQZF1E39Isle6mfvkW"
+          - "spotify:playlist:37i9dQZF1E38pKzzJoZSI3"
+          - "spotify:playlist:37i9dQZF1E359ADH6iQjFr"
+          - "spotify:playlist:37i9dQZF1E376un9GUDQSy"
+          - "spotify:playlist:37i9dQZEVXcJgoeiSNCReh"
+        cur: "{{ states('input_number.inkplate_sonos_playlist_index') | int(0) }}"
+        next_idx: "{{ (cur - 1) % (playlists | length) }}"
+    - service: input_number.set_value
+      data:
+        entity_id: input_number.inkplate_sonos_playlist_index
+        value: "{{ next_idx }}"
+    - service: media_player.play_media
+      data:
+        entity_id: "{{ sonos }}"
+        media_content_type: playlist
+        media_content_id: "{{ playlists[next_idx | int] }}"
+
+- id: inkplate_sonos_remote_dots2_next_playlist
+  alias: "Sonos remote: dot-2 → next playlist"
+  mode: single
+  trigger:
+    - platform: mqtt
+      topic: zigbee2mqtt/sonos-remote
+      value_template: "{{ value_json.action }}"
+      payload: "dots_2_short_release"
+  action:
+    - variables:
+        sonos: "{{ states('input_text.inkplate_kitchen_sonos_entity') }}"
+        playlists:
+          - "spotify:playlist:37i9dQZF1FbFSZUOQvgqEC"
+          - "spotify:playlist:37i9dQZF1E37hFUP4OBNpF"
+          - "spotify:playlist:37i9dQZF1E38irIBambFuG"
+          - "spotify:playlist:37i9dQZF1E39Isle6mfvkW"
+          - "spotify:playlist:37i9dQZF1E38pKzzJoZSI3"
+          - "spotify:playlist:37i9dQZF1E359ADH6iQjFr"
+          - "spotify:playlist:37i9dQZF1E376un9GUDQSy"
+          - "spotify:playlist:37i9dQZEVXcJgoeiSNCReh"
+        cur: "{{ states('input_number.inkplate_sonos_playlist_index') | int(0) }}"
+        next_idx: "{{ (cur + 1) % (playlists | length) }}"
+    - service: input_number.set_value
+      data:
+        entity_id: input_number.inkplate_sonos_playlist_index
+        value: "{{ next_idx }}"
+    - service: media_player.play_media
+      data:
+        entity_id: "{{ sonos }}"
+        media_content_type: playlist
+        media_content_id: "{{ playlists[next_idx | int] }}"

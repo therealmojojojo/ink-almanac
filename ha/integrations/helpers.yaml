@@ -99,13 +99,42 @@ input_number:
     min: 60
     max: 900
     step: 30
-    initial: 60
+    initial: 300
     unit_of_measurement: s
-    # How long a single-tap-triggered weather_peek override lasts before
-    # the expiry automation auto-reverts. 60 s matches the device's timer
-    # cadence (kSummaryTimerSec), so the visible-weather window lands in
-    # [60,120] s depending on when the next device wake hits. See
-    # openspec/changes/revise-tap-override-semantics.
+    # How long a tap-triggered weather_peek override lasts before the expiry
+    # automation auto-reverts. Bumped from 60 s → 300 s when the gesture
+    # handler moved from single-tap (which the wire-tied frame mount can't
+    # reliably emit — every shock rings as a double) to double-tap as the
+    # weather-peek trigger. Five minutes gives the operator enough time to
+    # actually use the forecast before it auto-reverts.
+
+  inkplate_alternation_offset:
+    name: Inkplate face alternation offset (0 or 1)
+    min: 0
+    max: 1
+    step: 1
+    initial: 0
+    # Phase shift for the per-tier face alternation engine (schedule.yaml).
+    # Each tier alternates its main face (Summary in Morning, Gallery in
+    # Midday/Evening) with Weather every Full-refresh interval. The offset
+    # XORs the natural parity, so a double-tap in Summary/Gallery flips the
+    # currently-shown face to Weather (and from Weather flips back to main).
+    # The flip persists across tier boundaries so a chosen phase carries
+    # forward through the day.
+
+  inkplate_sonos_playlist_index:
+    name: Sonos playlist cursor (0-based index into the cold-start pool)
+    min: 0
+    # Bumped manually if the playlist list in sonos_remote.yaml grows beyond
+    # 8 entries. The dots automations clamp via modulo so an out-of-range
+    # value wraps cleanly.
+    max: 31
+    step: 1
+    initial: 0
+    # Persists current cursor into the playlist pool so the remote's dot
+    # buttons step deterministically (dot-1 = previous, dot-2 = next) and
+    # so play/pause from idle starts from a known position rather than
+    # random. Wraps with modulo against the in-YAML pool length.
 
 input_boolean:
   inkplate_publisher_enabled:
