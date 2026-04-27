@@ -101,6 +101,30 @@ Exit code is always 0.
 
 Re-fetch images whose sidecar carries `panel_verdict: reject`, walking three free sources in order (Wikimedia Commons → ARTIC → Met Open Access). Strict artist+title matching and a short-edge ≥ 1200 floor. See the file header for usage.
 
+## corpus_review.py — triplet review tool
+
+```sh
+# Renderer in one terminal, reviewer in another:
+cd renderer && npm run dev
+corpus review                                # default port 8081
+corpus review --only-unreviewed              # incremental review across sessions
+corpus review --start <triplet-id>           # jump to a specific triplet
+```
+
+Walks `corpus/_triplets/`, stages each into the renderer, opens an
+in-browser review UI showing the live Summary / Weather / Gallery /
+Night previews, and captures a verdict back to the triplet sidecar:
+`triplet_verdict: keep | reject-content | reject-layout` plus
+`triplet_verdict_reason`.
+
+⚠️ Each navigation rewrites `renderer/inputs/pairing.json` — meaning
+the live device's next Full will display whatever triplet was last
+staged. After a review session, run `python3 pairing/publish_today.py`
+to restore today's actual triplet.
+
+See [`docs/review.md`](docs/review.md) for the full reference,
+keyboard shortcuts, and the `/sim` device simulator view.
+
 ## What it does NOT do yet
 
 - Fetch binaries or body files from the web.
