@@ -5,10 +5,23 @@ import { escapeHtml, htmlShell } from './shell.js';
 import type { NightInput } from './schema.js';
 
 /**
- * Approximate-time phrase for the Night face. Shared algorithm with the
- * firmware's local-tick renderer (see `add-local-clock-tick` spec "Local-tick
- * rendering"). Renderer and firmware MUST agree on this function; divergence
- * is a spec violation.
+ * Approximate-time phrase for the Night face.
+ *
+ * Bucketed to the NEAREST quarter-hour (5 buckets, centered on each
+ * quarter-hour mark with boundaries at the half-quarter midpoints). Replaces
+ * the prior floor-bucketed (4-bucket) version which would say "half past ten"
+ * at 10:40 — closer to 10:45 than 10:30, so it should already say
+ * "quarter to eleven". The Night face renders at the device's 15-min Full
+ * cadence and the bucket boundaries (m = 7/8, 22/23, 37/38, 52/53) sit at
+ * the midpoints between rendering moments, so off-quarter renders (initial
+ * cold-boot wake, post-tap re-render) pick the phrase that's least wrong
+ * on average across the next display window.
+ *
+ *   m ∈ [ 0, 7 ]  → "X o'clock"
+ *   m ∈ [ 8,22 ]  → "quarter past X"
+ *   m ∈ [23,37 ]  → "half past X"
+ *   m ∈ [38,52 ]  → "quarter to (X+1)"
+ *   m ∈ [53,59 ]  → "(X+1) o'clock"
  */
 const HOUR_WORDS = [
   'twelve', 'one', 'two', 'three', 'four', 'five',
@@ -23,10 +36,11 @@ function wordForHour12(h12: number): string {
 export function nightPhrase(h: number, m: number): string {
   const hour12 = ((h + 11) % 12) + 1;       // 1..12
   const nextHour12 = (hour12 % 12) + 1;
-  if (m <= 14) return `${wordForHour12(hour12)} o'clock`;
-  if (m <= 29) return `quarter past ${wordForHour12(hour12)}`;
-  if (m <= 44) return `half past ${wordForHour12(hour12)}`;
-  return `quarter to ${wordForHour12(nextHour12)}`;
+  if (m <=  7) return `${wordForHour12(hour12)} o'clock`;
+  if (m <= 22) return `quarter past ${wordForHour12(hour12)}`;
+  if (m <= 37) return `half past ${wordForHour12(hour12)}`;
+  if (m <= 52) return `quarter to ${wordForHour12(nextHour12)}`;
+  return `${wordForHour12(nextHour12)} o'clock`;
 }
 
 /** Compress wordy condition strings so the hard_weather line fits its 16-char budget. */

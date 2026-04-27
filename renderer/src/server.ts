@@ -8,7 +8,7 @@ import { closeBrowser, ensureBrowser, isBrowserReady } from './browser.js';
 import { MODES, PORT, HOST, ROOT, TEMPLATES_DIR, inputsDir, isMode, type Mode } from './config.js';
 import { log } from './logger.js';
 import { MissingInputError, prepareMode } from './modes/index.js';
-import { renderToPng } from './render.js';
+import { renderToPng, type ClockZone } from './render.js';
 import { VerseOverflowError } from './zoneApply.js';
 
 /** Input names that `POST /inputs/:name` will accept. Matches the canonical
@@ -33,6 +33,16 @@ const app = new Hono();
  * so relative /static and /inputs URLs resolve against this server.
  */
 const htmlByToken = new Map<string, string>();
+
+/*
+ * Most-recent clock-zone bbox per mode, populated on every PNG render and
+ * served by `/display/:mode/clock-zone.json`. The device firmware fetches
+ * this on every Full wake to position its 1-bit partial-update digits at
+ * the exact same pixel coordinates the renderer painted, regardless of
+ * which mode/variant rendered. Map is in-memory and survives only while
+ * the renderer process runs — the firmware refreshes it on next Full wake.
+ */
+const clockZoneByMode = new Map<string, ClockZone>();
 
 app.get('/healthz', (c) =>
   c.json({ status: 'ok', playwright_ready: isBrowserReady() }, 200),
@@ -204,15 +214,26 @@ app.get('/display/:file', async (c) => {
       // for tests that use randomized ports).
       const origin = new URL(c.req.url).origin.replace(/^http:\/\/0\.0\.0\.0/, 'http://127.0.0.1');
       const url = `${origin}/internal/html/${token}`;
-      const png = await renderToPng({ url, dither: prepared.dither });
-      return new Response(png as unknown as BodyInit, {
+      const result = await renderToPng({ url, dither: prepared.dither });
+      if (result.clockZone) {
+        clockZoneByMode.set(mode, result.clockZone);
+      } else {
+        clockZoneByMode.delete(mode);
+      }
+      const headers: Record<string, string> = {
+        'content-type': 'image/png',
+        'content-length': String(result.png.length),
+        'cache-control': 'no-store',
+        'x-render-mode': mode,
+      };
+      if (result.clockZone) {
+        const z = result.clockZone;
+        headers['x-clock-zone'] =
+          `x=${z.x} y=${z.y} w=${z.w} h=${z.h} font_size=${z.font_size}`;
+      }
+      return new Response(result.png as unknown as BodyInit, {
         status: 200,
-        headers: {
-          'content-type': 'image/png',
-          'content-length': String(png.length),
-          'cache-control': 'no-store',
-          'x-render-mode': mode,
-        },
+        headers,
       });
     } finally {
       htmlByToken.delete(token);
@@ -220,6 +241,27 @@ app.get('/display/:file', async (c) => {
   } catch (err) {
     return mapError(err, c);
   }
+});
+
+// --- Clock-zone metadata endpoint --------------------------------------------
+//
+// Returns the most recent (x, y, w, h, font_size) of the clock element from
+// the named mode's last PNG render. The device firmware fetches this on every
+// Full wake and caches the values in RTC RAM so the offline 1-bit partial
+// path can place its baked Fraunces glyphs at exactly where the rendered face
+// painted the clock — no matter which face/variant rendered last.
+//
+// 404 means either:
+//   - The mode hasn't been rendered yet (cold renderer start), or
+//   - The mode has no clock-shaped DOM element (e.g. Night, which splits hh/mm).
+// In both cases the firmware falls back to Full at the cadence boundary.
+
+app.get('/display/:mode/clock-zone.json', (c) => {
+  const mode = c.req.param('mode');
+  if (!isMode(mode)) return c.text(notFoundBody(mode), 404);
+  const z = clockZoneByMode.get(mode);
+  if (!z) return c.text('no clock zone for mode\n', 404);
+  return c.json(z, 200);
 });
 
 // --- Eval pages: side-by-side variant comparison -----------------------------
@@ -383,20 +425,95 @@ function mapError(err: unknown, _c: unknown): Response {
 
 // --- Bootstrap ---------------------------------------------------------------
 
+/**
+ * Try to bind the listening socket, retrying with backoff on EADDRINUSE.
+ *
+ * Why this exists: when the process is restarted by launchd's KeepAlive,
+ * the previous instance's socket is often still in TIME_WAIT. Without a
+ * retry the new process dies with EADDRINUSE; launchd waits its
+ * ThrottleInterval (10 s) and tries again — repeating until TIME_WAIT
+ * clears (30-60 s on macOS), spamming the err log with hundreds of stack
+ * traces. The retry inside the same process drains those waits cheaply.
+ */
+async function listenWithRetry(): Promise<ReturnType<typeof serve>> {
+  const maxAttempts = 180;  // 3 min @ 1 s — covers macOS TIME_WAIT (typ. 30-60 s) plus margin.
+  const backoffMs = 1000;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await new Promise<ReturnType<typeof serve>>((resolve, reject) => {
+        const s = serve({ fetch: app.fetch, hostname: HOST, port: PORT }, (info) => {
+          log.info(
+            { port: info.port, host: HOST, templates: TEMPLATES_DIR, attempt },
+            'renderer listening',
+          );
+          resolve(s);
+        });
+        // The serve() callback fires only on success; bind failures surface
+        // as an 'error' event on the underlying http.Server.
+        s.on('error', (err: Error) => reject(err));
+      });
+    } catch (err) {
+      const code = (err as NodeJS.ErrnoException)?.code;
+      if (code === 'EADDRINUSE' && attempt < maxAttempts) {
+        // Stop logging every attempt — every 10th is enough to confirm progress
+        // without filling the err log with hundreds of identical lines.
+        if (attempt === 1 || attempt % 10 === 0) {
+          log.warn({ attempt, port: PORT }, 'EADDRINUSE — retrying in 1 s');
+        }
+        await new Promise((r) => setTimeout(r, backoffMs));
+        continue;
+      }
+      throw err;
+    }
+  }
+  // Retry budget exhausted — likely a real conflict (another renderer running
+  // standalone, or a different service grabbed the port). Exit so launchd
+  // re-spawns us with a fresh ThrottleInterval instead of leaving an orphaned
+  // process alive (which the uncaughtException/unhandledRejection handlers
+  // would otherwise mask). Exit code 75 = EX_TEMPFAIL by sysexits convention.
+  log.fatal(
+    { port: PORT, attempts: maxAttempts },
+    'EADDRINUSE persisted past retry budget — exiting for launchd to restart',
+  );
+  process.exit(75);
+}
+
 async function main(): Promise<void> {
+  // Catch-all error handlers — without these, any stray unhandled rejection
+  // (e.g. a Playwright timeout that escapes the request scope) takes down
+  // the whole process, which then triggers a launchd relaunch and a fresh
+  // EADDRINUSE crash-loop episode.
+  process.on('uncaughtException', (err) => {
+    log.error({ err }, 'uncaughtException — keeping process alive');
+  });
+  process.on('unhandledRejection', (reason) => {
+    log.error({ reason }, 'unhandledRejection — keeping process alive');
+  });
+
   // Warm the browser in the background so first request is fast.
   ensureBrowser().catch((err) => log.error({ err }, 'playwright launch failed'));
 
-  const server = serve({ fetch: app.fetch, hostname: HOST, port: PORT }, (info) => {
-    log.info(
-      { port: info.port, host: HOST, templates: TEMPLATES_DIR },
-      'renderer listening',
-    );
-  });
+  const server = await listenWithRetry();
 
   const shutdown = async (signal: string): Promise<void> => {
     log.info({ signal }, 'shutting down');
-    server.close();
+    // Wait for the listening socket to fully close before exit. If we let
+    // process.exit() run before close completes, the kernel keeps the
+    // socket in TIME_WAIT and the next launchd-spawned instance hits
+    // EADDRINUSE. A 5-s safety timeout covers the case where a hung
+    // request-in-flight blocks close() from completing — better to drop
+    // the connection than hang forever.
+    await new Promise<void>((resolve) => {
+      let settled = false;
+      const finish = (): void => {
+        if (!settled) {
+          settled = true;
+          resolve();
+        }
+      };
+      server.close(() => finish());
+      setTimeout(finish, 5000).unref();
+    });
     await closeBrowser();
     process.exit(0);
   };
