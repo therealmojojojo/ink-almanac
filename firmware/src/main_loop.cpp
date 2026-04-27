@@ -135,10 +135,43 @@ inline void msleepShort(int ms) {
 #endif
 }
 
+// === Notifications zone =====================================================
+//
+// Reserved area in the top-right corner of every face for transient,
+// device-driven indicators painted via 1-bit partial updates outside the
+// renderer's Full-refresh pipeline. Today the only notification is the
+// tap-acknowledgment glyph below; future candidates include a WiFi/HTTP
+// error mark, an OTA-in-progress indicator, or a low-battery warning that
+// flashes ahead of the chrome battery dropping below threshold.
+//
+// Slot geometry. The renderer's `.battery-indicator` sits at top:14u
+// right:22u (~x=1115..1180, y=14..32). Notifications anchor in or just
+// left of that slot at fixed pixel coordinates. The slot is *reserved*
+// across all faces — even where the chrome battery isn't drawn (Night) or
+// is occluded by a full-bleed image (gallery-visual landscape variants),
+// nothing else competes for those pixels. So notifications use the same
+// coordinates everywhere; on faces with a visible battery they read as
+// "next to the battery", on the others they read as "a small mark in the
+// device's status zone". We accept the latter ambiguity because every
+// notification is paired with a Full that follows within 5-10 s, replacing
+// the transient mark with full chrome before the user has time to wonder.
+//
+// Common shape contract for any notification added here:
+//   - 1-bit partial-update path; never trigger a Full from the notification
+//   - Self-clearing within ~1-2 s (so it doesn't bleed into the next Full)
+//   - Anchored within the slot so it overlaps no other element on any face
+//   - Begin with a force-black pulse (see below) to guarantee the
+//     subsequent white pulse drives the panel even when DMemoryNew is
+//     already white
+//
+// The 1-bit pulses leave a small zone in inconsistent state vs the prior
+// 3-bit Full's gray pixels, but the next Full naturally repaints over it.
+// ============================================================================
+
 // Tap-acknowledgment glyph. On every IMU wake with a confirmed tap, paint
 // 1 black dot (single tap) or 2 black dots (double tap) on a small white
-// halo, just to the LEFT of the typical battery-indicator slot in the
-// top-right corner. Three partial pulses:
+// halo, anchored in the notifications zone (see above). Three partial
+// pulses:
 //
 //   1. Solid black over the halo region. Forces DMemoryNew to black so the
 //      next white pulse actually drives the panel — without this, "writing
@@ -158,28 +191,25 @@ inline void msleepShort(int ms) {
 // portions of the image. The halo guarantees readability regardless of
 // what the underlying face has painted there.
 //
-// Position is fixed-coordinate top-right. The default `.battery-indicator`
-// sits at top:14u right:22u, so its glyph + percentage text occupies
-// roughly x=1118..1180, y=14..32. Halo at x=1068..1100, y=18..34 lands in
-// the empty chrome strip just left of the battery without overlapping it
-// on any current face.
-//
-// The 1-bit pulses leave a small zone in inconsistent state vs the prior
-// 3-bit Full's gray pixels, but the next Full naturally repaints over it.
+// Halo at x=1068..1100, y=18..34 lands just left of the battery slot on
+// every face without overlapping the indicator where it's drawn.
 void showTapAck(hal::IDisplay& panel, fw::gestures::TapKind kind) {
   if (kind == fw::gestures::TapKind::None) return;
 
   constexpr int16_t kDotSize  = 8;
-  constexpr int16_t kDotY     = 22;
-  constexpr int16_t kSingleX  = 1080;
-  constexpr int16_t kDoubleX0 = 1072;
-  constexpr int16_t kDoubleX1 = 1090;
+  // Position calibrated against the live panel 2026-04-27: the original
+  // (1080, 22) target landed 15 px right and 4 px high of the operator-
+  // intended slot. Shifted to (1065, 26).
+  constexpr int16_t kDotY     = 26;
+  constexpr int16_t kSingleX  = 1065;
+  constexpr int16_t kDoubleX0 = 1057;
+  constexpr int16_t kDoubleX1 = 1075;
   // Halo region (also the rect used to force-black, force-white, and clear).
   // Dimensioned to surround either single- or double-dot layout with a few
   // px of margin so the halo reads as a deliberate badge, not as a tight
   // box around the dots.
-  constexpr int16_t kHaloX    = 1068;
-  constexpr int16_t kHaloY    = 18;
+  constexpr int16_t kHaloX    = 1053;
+  constexpr int16_t kHaloY    = 22;
   constexpr int16_t kHaloW    = 32;
   constexpr int16_t kHaloH    = 16;
 
@@ -510,7 +540,7 @@ void tick(hal::HAL h, wake::Reason reason) {
     // battery indicator and clear them ~700 ms later. Runs BEFORE WiFi
     // connect / path planning so the user sees confirmation within
     // ~450 ms of the tap, well ahead of the 6-9 s pipeline to a face
-    // change. ~1.2 s extra wake latency, ~0.12 mAh battery cost (two
+    // change. ~1.5 s extra wake latency, ~0.18 mAh battery cost (three
     // partial pulses).
     showTapAck(h.display, tap);
   }
