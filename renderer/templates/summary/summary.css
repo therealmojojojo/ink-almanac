@@ -358,10 +358,17 @@
 }
 
 /* ---- Bottom band: delight + Smart pill ----------------------------- */
+/* Cell widths are explicit `u` values (not fr) so the bottom-band split
+ * stays in lockstep with the predictor in `debugDelight.ts`. The face
+ * content area is 1104u (1200u − 2×48u face padding); subtract the 28u
+ * gap and we have 1076u to allocate. The +60u boundary shift toward the
+ * pill (validated via the /debug/face-test grid) gives the pill enough
+ * room for 28u-body smart-pill content while keeping the delight cell
+ * wide enough for haiku side-by-side anthology layout at JA 30u / EN 24u. */
 .summary-bottom {
   border-top: 2px solid var(--ink);
   display: grid;
-  grid-template-columns: 1.45fr 1fr;
+  grid-template-columns: calc(577 * var(--u)) calc(499 * var(--u));
   padding-top: calc(20 * var(--u));
   gap: calc(28 * var(--u));
   min-height: 0;
@@ -393,26 +400,69 @@
   flex-direction: column;
   justify-content: center;
 }
-.summary-delight.text .body[data-form='haiku'],
-.summary-delight.text .body[data-form='tanka'] {
-  font-size: calc(36 * var(--u));
-  line-height: calc(52 * var(--u));
-}
-.summary-delight.text .body[data-form='fragment'],
-.summary-delight.text .body[data-form='aphorism'] {
+/* Monolingual delight bodies sized by content-fit tier (set on the
+ * `data-fit-tier` attribute by summary.ts:pickFitTier). Tiers shrink the
+ * font and tighten line-height to fit ≤14 author-lines into the cell.
+ * Floor: 28u (parity with the pill — the delight is the visual
+ * centerpiece and must never read as smaller than the pill commentary
+ * to its right). When more lines are needed, line-height shrinks below
+ * the natural 1.4× rhythm rather than the font itself. */
+.summary-delight.text .body[data-fit-tier='1'] {
   font-size: calc(36 * var(--u));
   line-height: calc(48 * var(--u));
 }
-.summary-delight.text .body[data-form='quote'] {
-  font-size: calc(34 * var(--u));
-  line-height: calc(46 * var(--u));
+.summary-delight.text .body[data-fit-tier='2'] {
+  font-size: calc(32 * var(--u));
+  line-height: calc(44 * var(--u));
 }
-.summary-delight.text .body[data-form='sonnet'],
-.summary-delight.text .body[data-form='free-verse'],
-.summary-delight.text .body[data-form='stanzaic'],
-.summary-delight.text .body[data-form='prose-poem'] {
-  font-size: calc(28 * var(--u));
+.summary-delight.text .body[data-fit-tier='3'] {
+  font-size: calc(30 * var(--u));
   line-height: calc(40 * var(--u));
+}
+.summary-delight.text .body[data-fit-tier='4'] {
+  font-size: calc(28 * var(--u));
+  line-height: calc(34 * var(--u));
+}
+.summary-delight.text .body[data-fit-tier='5'] {
+  font-size: calc(28 * var(--u));
+  line-height: calc(30 * var(--u));
+}
+/* Below-pill escape tiers — used only when smaller font keeps the
+ * author's line breaks intact (Phase 1 prefers unwrapped at any size
+ * over wrapped). Tier 6 fits 40-46c lines, tier 7 fits 47-50c lines. */
+.summary-delight.text .body[data-fit-tier='6'] {
+  font-size: calc(24 * var(--u));
+  line-height: calc(32 * var(--u));
+}
+.summary-delight.text .body[data-fit-tier='7'] {
+  font-size: calc(22 * var(--u));
+  line-height: calc(28 * var(--u));
+}
+/* Each author line goes in its own `.line` block so the renderer can
+ * detect-and-style wraps. */
+.summary-delight.text .body .line {
+  display: block;
+}
+/* Hanging-indent (a.k.a. "turnover") for poems whose lines exceed the
+ * cell's natural cpl. The wrap continuation indents by 2em so the
+ * reader sees "this is a continuation, not a new poetic line." Standard
+ * Faber/Norton/FSG poetry typesetting convention. Center-alignment is
+ * incompatible with hanging indent; the renderer switches to left when
+ * any line will wrap (.wrap-turnover modifier on the section). Applies
+ * ONLY to .wrap-turnover sections — non-wrapping items keep clean
+ * centered text without a phantom 1em shift. */
+.summary-delight.text.wrap-turnover .body {
+  text-align: left;
+}
+.summary-delight.text.wrap-turnover .body .line {
+  text-indent: -2em;
+  padding-left: 2em;
+}
+/* Bilingual haiku/tanka keeps a fixed pair size (anthology grid below). */
+.summary-delight.text .body[data-form='haiku']:not([data-fit-tier]),
+.summary-delight.text .body[data-form='tanka']:not([data-fit-tier]) {
+  font-size: calc(36 * var(--u));
+  line-height: calc(52 * var(--u));
 }
 
 /* Bilingual haiku: Japanese original on left, translation on right.
@@ -434,7 +484,7 @@
 .summary-delight.anthology .body .ja {
   font-family: 'Noto Serif JP', var(--font-serif);
   font-weight: 500;
-  font-size: calc(40 * var(--u));
+  font-size: calc(30 * var(--u));
   line-height: calc(56 * var(--u));
   color: var(--ink);
   /* Hard newlines in the source are the intended line breaks for haiku/
@@ -442,11 +492,17 @@
    * visibly (operator flags it) rather than silently breaking mid-phrase. */
   white-space: pre;
 }
+/* EN sits 1u below the project's 25u readability floor — a deliberate
+ * trade for the anthology layout, where keeping JA[i] and EN[i] on the
+ * same baseline row matters more than per-line legibility for short
+ * translations. The 24u choice was validated against the bilingual
+ * corpus (28 haiku/tanka pairs); every EN translation fits its column
+ * without soft-wrap given the post-shift 549u delight body width. */
 .summary-delight.anthology .body .en {
   font-family: var(--font-serif);
   font-variation-settings: 'opsz' 36, 'wght' 500;
   font-style: normal;
-  font-size: calc(32 * var(--u));
+  font-size: calc(24 * var(--u));
   line-height: calc(56 * var(--u));
   color: var(--mid);
   text-align: left;
@@ -515,9 +571,14 @@
 .summary-smart-pill .news .item .body {
   font-family: var(--font-sans);
   font-weight: 400;
-  /* font-size set inline by summary.ts based on body length (step-down
-   * ladder 36u → 21u). Line-height stays 1.35 across all steps. */
-  line-height: 1.35;
+  /* Fixed 28u + 1.1 line-height. Validated against the corpus via the
+   * /debug/face-test grid: at the post-shift 499u cell width, capacity
+   * is 35cpl × 13r = 455 chars — comfortably above the 450-char ceiling
+   * the LLM-authored pill bodies are written to. Bodies authored above
+   * 455 chars will overflow visibly so the operator catches them at
+   * ingestion rather than the renderer silently shrinking below 25u. */
+  font-size: calc(28 * var(--u));
+  line-height: 1.1;
   text-align: justify;
   text-justify: inter-word;
   hyphens: auto;

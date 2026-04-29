@@ -54,7 +54,43 @@ corpus audit --out corpus/_audits/audit-$(date +%F).md
 corpus refetch                                             # rotate panel_verdict=reject images
 corpus ingest-personal --folder <path> --citation '...'    # stage a folder of scans
 corpus ingest-personal --commit --batch-id <id>            # commit after review
+corpus review                                              # interactive triplet review UI
+corpus build-review-page                                   # static HTML review of Stage-1 extracts
 ```
+
+Two complementary review tools:
+
+- **`corpus review`** — interactive, browser-served, walks every triplet under
+  `corpus/_triplets/` and captures accept / reject-content / reject-layout
+  verdicts back into the triplet sidecar. Use when curating the daily rotation.
+- **`corpus build-review-page`** — static HTML artifact, one card per sidecar
+  whose body was rewritten by Stage-1 fragment extraction
+  (`excerpt_provenance.extracted_at` present). Each card embeds a production
+  summary-face PNG (delight cell + smart_pill) so the operator can spot bad
+  cuts, full-poem upgrades, and form-fit issues at a glance. Output lands at
+  `openspec/changes/expand-summary-pool/rework-review.html` by default.
+
+  Both tools require the renderer running locally. To avoid colliding with
+  the production renderer (which serves operator-facing PNGs on the default
+  port 8575), use a separate **test** instance on port **8585**:
+
+  ```sh
+  # production renderer (default port 8575) — leave running for operators
+  cd renderer && npm run dev
+
+  # test renderer (port 8585) for review-page rendering
+  cd renderer && RENDERER_PORT=8585 npm run dev
+  ```
+
+  `corpus build-review-page` and `corpus review` both default to the test
+  port (8585). Override with the `RENDERER_URL` env var if needed:
+
+  ```sh
+  RENDERER_URL=http://127.0.0.1:8576 corpus build-review-page
+  ```
+
+  Production scripts (`publish_today.py`, HA cron jobs) target 8575 and
+  are unaffected by the test instance.
 
 Without installing: `python3 pairing/inkplate_corpus_cli.py <subcommand>`. Validate exits 0 on pass, 1 on any error. Warnings do not fail. Audit always exits 0. Subcommands `propose-list`, `fetch-list`, `prune`, `restore` are stubs (the full curator-side ingestion automation is in flight under `openspec/changes/add-ingestion-automation/`).
 

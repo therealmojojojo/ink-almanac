@@ -203,6 +203,52 @@ The manifest SHALL be regenerated whenever binaries are added, replaced, or remo
 - **WHEN** a fresh clone of the repository is made and binaries are absent, then a restore is run against `_manifest.json` with access to the external backup
 - **THEN** every binary referenced by the manifest is present on disk with a matching sha256 after the restore completes
 
+### Requirement: Summary-cell eligibility
+
+Text sidecars MAY include a `summary_eligible` boolean field. Default-true semantics: absence of the field is equivalent to `summary_eligible: true`. When the field is set to `false`, the picker (`pairing/corpus_build_triplets_v2.py`) SHALL exclude the item from the summary delight cell pool. Such items remain eligible for the gallery and anchor slots.
+
+The flag is intended for items whose body is structurally complete and editorially desirable but does not fit the summary delight cell at the production typography (≥28u serif body, ≤14 visual lines after wrap, in a 552u-wide cell). Typical cases: full sonnets, multi-stanza poems with more than 5 author lines, very wide free verse.
+
+The flag is independent of `triplet_verdict` (which scopes to a specific triplet selection) and `panel_verdict` (which scopes to image fidelity).
+
+#### Scenario: Sidecar with summary_eligible: false
+
+- **WHEN** `dickinson-hope-is-the-thing.yaml` carries `summary_eligible: false`
+- **THEN** the picker's summary pool excludes it from selection, but the item still appears in `gallery_texts` if it otherwise qualifies (themes present, kind=text)
+
+#### Scenario: Sidecar without the field
+
+- **WHEN** a sidecar omits `summary_eligible` entirely
+- **THEN** the picker treats the item as summary-eligible (default-true)
+
+### Requirement: Excerpt provenance
+
+Text sidecars whose body has been rewritten by the Stage-1 fragment extractor (`pairing/corpus_extract_fragments.py`) SHALL carry an `excerpt_provenance` block with the following structure:
+
+```yaml
+excerpt_provenance:
+  is_full_poem: true | false      # whether the body is the entire poem or a fragment
+  rationale: string               # ≤140 chars: why this cut/whole choice
+  source_path: string             # relative path to the source file used (under corpus/_sources/)
+  lines_in_source: string         # approximate line range, e.g. "12-15", or "all"
+  model: string                   # model id that produced the rewrite (e.g. claude-opus-4-7)
+  extracted_at: ISO date string   # YYYY-MM-DD
+```
+
+The block is informational and consumed by `corpus build-review-page --mode extracts`, which lists every Stage-1-touched sidecar in a single review HTML so the operator can audit cuts and full-poem upgrades.
+
+`excerpt_provenance` does NOT replace `citation` or any rights-tier obligations; those remain on the sidecar.
+
+#### Scenario: Stage-1 rewrites a stanzaic body
+
+- **WHEN** `corpus extract-fragments --apply` rewrites `eliot-hollow-men-v-closing.yaml` body from the truncated 4-line excerpt to the canonical closing
+- **THEN** the sidecar gains an `excerpt_provenance` block with `is_full_poem: true`, a one-line rationale, the source-path under `corpus/_sources/t-s-eliot/`, model id, and today's date
+
+#### Scenario: Build review page
+
+- **WHEN** the operator runs `corpus build-review-page --mode extracts`
+- **THEN** every sidecar with `excerpt_provenance.extracted_at` set is included in the page (excluding items marked `summary_eligible: false`), grouped by full-poem vs fragment
+
 ### Requirement: Stable identifiers
 
 Item `id` values SHALL be stable for the lifetime of the corpus. Renaming an item's file basename SHALL be treated as removal of the old item and addition of a new item, and SHALL be recorded in the corpus change log.

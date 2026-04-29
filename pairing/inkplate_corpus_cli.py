@@ -56,6 +56,23 @@ Implemented subcommands:
                                      accept / reject-content / reject-layout
                                      per triplet and writes verdicts back to
                                      the triplet sidecar.
+  build-review-page  [--mode extracts|unterminated] [--out-html PATH]
+                                     [--out-renders-dir PATH] [--force]
+                                     Build a static HTML review page.
+                                     mode=extracts (default) shows every
+                                     sidecar touched by Stage-1 fragment
+                                     extraction. mode=unterminated shows
+                                     every body that doesn't end at a
+                                     phrase delimiter (with KEEP / RE-
+                                     EXTRACT suggestions). Each card
+                                     embeds a production summary-face
+                                     PNG rendered via the test renderer.
+  audit-truncations  [--ids id ...]  Print every corpus body that ends
+                                     with a comma, a dangling function
+                                     word, or no terminal punctuation —
+                                     a quick text-only audit of
+                                     truncation patterns. Run after
+                                     large ingest passes.
   harvest  <creator> [--shortlist PATH] [--query STR] [--max-results N]
                                      Photographer-level DDG harvest: query,
                                      gate, pHash dedup, render contact sheet
@@ -103,6 +120,10 @@ def main() -> int:
         import corpus_restore as m
     elif sub == "review":
         import corpus_review as m
+    elif sub == "build-review-page":
+        import corpus_build_review_page as m
+    elif sub == "audit-truncations":
+        import corpus_audit_truncations as m
     elif sub == "harvest":
         import corpus_harvest as m
     elif sub == "fetch-work":

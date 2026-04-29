@@ -58,7 +58,7 @@ export function buildHtml(input: WeatherModeInput): string {
       </div>
     </div>
     <div class="cell">
-      <div class="label">Tonight</div>
+      <div class="label">Stars</div>
       <div class="value">${escapeHtml(
         applyZone('astro_event', astro?.event?.title ?? 'no event tonight'),
       )}</div>

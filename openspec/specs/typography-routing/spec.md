@@ -97,11 +97,14 @@ Across all modes, non-body typography SHALL follow:
 
 ### Requirement: Size floor
 
-No text SHALL render below 25u effective size (≈ 5mm on the physical panel), except for the battery percentage and similarly tiny chrome indicators explicitly marked in templates.
+No text SHALL render below 25u effective size (≈ 5mm on the physical panel), with the following documented exceptions:
+
+- The battery percentage and similarly tiny chrome indicators explicitly marked in templates.
+- The Summary face's bilingual anthology EN row (`.summary-delight.anthology .body .en`), at 24u, when paired with a 30u JA original. Side-by-side baseline alignment for haiku/tanka pairs is the higher priority for this small element; the 1u below-floor reduction was validated against every bilingual entry in the corpus and is the only path that keeps EN translations on the same row as their JA originals.
 
 #### Scenario: Below-floor violation
 
-- **WHEN** a template specifies `font-size: 18u` for any non-chrome zone
+- **WHEN** a template specifies `font-size: 18u` for any non-chrome zone outside the documented exception list
 - **THEN** the build lint step fails with an error naming the offending selector and file
 
 ### Requirement: Palette

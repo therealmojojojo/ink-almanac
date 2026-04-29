@@ -46,8 +46,11 @@ async function previewHtml(mode: string): Promise<string> {
 // The fixture device.json pins battery.percentage = 82.
 const EXPECTED_LABEL = '82%';
 
+// Night mode intentionally drops the battery indicator — the redesigned
+// night face has its own minimal chrome (phrase, weekday, weather, caption)
+// and battery state is not surfaced there. All other faces still carry it.
 describe('battery indicator is populated on every face', () => {
-  const modes = ['summary', 'weather', 'gallery', 'night', 'now-playing'];
+  const modes = ['summary', 'weather', 'gallery', 'now-playing'];
   for (const mode of modes) {
     it(`${mode} shows ${EXPECTED_LABEL}`, async () => {
       const html = await previewHtml(mode);

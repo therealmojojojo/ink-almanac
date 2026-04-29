@@ -154,6 +154,94 @@ function buildWxBlock(variant: SummaryVariant, f: WxFields): string {
 </div>`;
 }
 
+/** Pick a font-size tier for the delight body cell. Each tier is defined
+ * by a (font, line-height, max-cpl, max-lines) tuple — `cpl` is what fits
+ * one visual line in the ~552u cell at that font, `max-lines` is what
+ * fits the ~440u height at that line-height. We pick the LARGEST tier
+ * where every author line fits in 1 visual line AND the total line count
+ * fits the cell — so the poet's chosen breaks render as written, never
+ * mid-clause wrapping.
+ *
+ * Floor preference: 28u (parity with the pill, which is 28u/lh 1.1). The
+ * cell wins on hierarchy when content allows. We drop below 28u only
+ * when no higher tier fits the content without ugly wrap (long German
+ * lines, Whitman, Eliot pentameter — Rilke "Der Panther" has 47-char
+ * lines that need 24u to live on one row each). */
+/** Tier: (tier, font, line-height, soft-cpl, max-visual-lines).
+ * Tiers 1-5 are pill-parity (≥28u). Tiers 6-7 drop below the pill and
+ * are the unwrapped-escape last-resort — only used when neither
+ * unwrapped at ≥28u NOR wrapped at 28u fits the cell.
+ *
+ * Body cell vertical budget: ~380u (panel height 825u − top section ~220u
+ * − forecast 130u − padding-bottom 18u − padding-top 20u − attribution
+ * 36u − attribution-gap 10u). max-visual-lines = floor(380/lh) with one
+ * line of margin to avoid edge clip. */
+// soft-cpl values calibrated against IBM Plex Serif at 552u cell width
+// (≈0.42× font width per char for English mixed case in this typeface).
+const DELIGHT_TIERS = [
+  // [tier, font, line-height, soft-cpl, max-visual-lines]
+  [1, 36, 48, 34,  7],
+  [2, 32, 44, 38,  8],
+  [3, 30, 40, 41,  9],
+  [4, 28, 34, 44, 11],
+  [5, 28, 30, 44, 12],
+  [6, 24, 32, 52, 11],
+  [7, 22, 28, 57, 13],
+] as const;
+const PILL_FLOOR_TIERS = [1, 2, 3, 4, 5];   // ≥28u
+const WRAP_TIERS_AT_FLOOR = [4, 5];          // 28u tiers used in Phase 2
+const SUB_FLOOR_TIERS = [6, 7];               // <28u escape (Phase 3)
+
+/** Estimate the number of visual lines a body will occupy at a given
+ * cpl budget — each author line wraps to ⌈len / cpl⌉ visual lines. */
+function visualLinesAt(authorLines: string[], cpl: number): number {
+  let total = 0;
+  for (const ln of authorLines) {
+    total += Math.max(1, Math.ceil(ln.length / cpl));
+  }
+  return total;
+}
+
+function pickFitTier(body: string): number {
+  const lines = body.split(/\r?\n/).map(s => s.trimEnd()).filter(s => s.length > 0);
+  const n = lines.length;
+  const longest = lines.reduce((m, ln) => Math.max(m, ln.length), 0);
+  const tierCfg = (t: number) => DELIGHT_TIERS.find(x => x[0] === t)!;
+
+  // Phase 1 — prefer largest unwrapped at ≥28u.
+  for (const t of PILL_FLOOR_TIERS) {
+    const [, , , cpl, mvl] = tierCfg(t);
+    if (longest <= cpl && n <= mvl) return t;
+  }
+  // Phase 2 — wrap at 28u. Tier 4 first (more line-height room),
+  // fall back to tier 5 (tighter lh) when tier 4's vertical budget is
+  // exceeded. Larger fonts (tiers 1-3) with wrap are deliberately NOT
+  // considered: the same wrap looks heavier the larger the font.
+  for (const t of WRAP_TIERS_AT_FLOOR) {
+    const [, , , cpl, mvl] = tierCfg(t);
+    if (visualLinesAt(lines, cpl) <= mvl) return t;
+  }
+  // Phase 3 — below-pill unwrapped escape. Used only when 28u-with-wrap
+  // overflows vertically (very rare for summary-eligible items, since
+  // those are gated to ≤5 author lines).
+  for (const t of SUB_FLOOR_TIERS) {
+    const [, , , cpl, mvl] = tierCfg(t);
+    if (longest <= cpl && n <= mvl) return t;
+  }
+  // Last resort — accept wrap below pill at the smallest tier.
+  return 7;
+}
+
+/** True when any author line at the chosen tier's cpl will wrap to ≥2
+ * visual lines. Used to switch alignment from centered to left+turnover. */
+function delightWillWrap(body: string, tier: number): boolean {
+  const t = DELIGHT_TIERS.find(t => t[0] === tier);
+  if (!t) return false;
+  const softCpl = t[3];
+  const lines = body.split(/\r?\n/).map(s => s.trimEnd()).filter(s => s.length > 0);
+  return lines.some(ln => ln.length > softCpl);
+}
+
 function buildDelight(input: SummaryInput): string {
   const g = input.pairing.gallery;
   const c = g.companion;
@@ -181,8 +269,24 @@ function buildDelight(input: SummaryInput): string {
   <div class="attrib">${escapeHtml(applyZone('delight_attrib', attrib))}</div>
 </section>`;
     }
-    return `<section class="summary-delight text" data-form="${escapeHtml(c.form)}">
-  <div class="body" data-form="${escapeHtml(c.form)}">${escapeHtml(applyZone('delight_text', c.body))}</div>
+    const tier = pickFitTier(c.body);
+    const wraps = delightWillWrap(c.body, tier);
+    // Each author line in its own <div class="line"> so CSS can apply the
+    // hanging-indent rule (text-indent: -2em; padding-left: 2em) — first
+    // visual sub-line stays at column 0; any wrap continuation indents
+    // by 2em so the reader reads the indent as "this is a wrap, not a
+    // new poetic line." Center alignment is incompatible with the
+    // turnover; switch to left+turnover when wrap is detected.
+    const cookedBody = applyZone('delight_text', c.body);
+    const lineDivs = cookedBody
+      .split(/\r?\n/)
+      .map(s => s.trim())
+      .filter(s => s.length > 0)
+      .map(s => `<div class="line">${escapeHtml(s)}</div>`)
+      .join('\n');
+    const wrapClass = wraps ? ' wrap-turnover' : '';
+    return `<section class="summary-delight text${wrapClass}" data-form="${escapeHtml(c.form)}" data-fit-tier="${tier}">
+  <div class="body" data-form="${escapeHtml(c.form)}" data-fit-tier="${tier}">${lineDivs}</div>
   <div class="attrib">${escapeHtml(applyZone('delight_attrib', attrib))}</div>
 </section>`;
   }
@@ -195,35 +299,6 @@ function buildDelight(input: SummaryInput): string {
 </section>`;
 }
 
-/** Step-down font sizing for the smart pill body. The cell is ~437u wide
- * and ~400u tall; line-height 1.35 in proportional sans, char width ~0.5×
- * font-size. We pick the largest size whose capacity (chars/line × lines)
- * covers the body's char count. The 25u floor (typography-routing rule)
- * is the minimum; bodies longer than the 25u capacity (~385 chars) must
- * be authored shorter — there is no truncation, no ellipsis. */
-// Empirical calibration measured against actual Plex Sans renders. Cell
-// height is 408u when the header label is dropped (was 372u with label).
-// Char-width ratio 0.55 (proportional sans averages wider than 0.5 of
-// em-square in practice). Ladder extends below the 25u typography-routing
-// floor to 21u: the smart pill is body content, not chrome, but the operator
-// authorized stepping below the floor here so longer concept dives fit
-// without truncation. Inline font-size bypasses the lint (which only checks
-// CSS rules). Documented exception, not general license.
-const PILL_CELL_WIDTH_U = 437;
-const PILL_CELL_HEIGHT_U = 408;
-const PILL_LINE_HEIGHT_RATIO = 1.35;
-const PILL_CHAR_WIDTH_RATIO = 0.55;
-const PILL_FONT_LADDER = [36, 32, 30, 28, 26, 25, 23, 21, 19] as const;
-
-function smartPillFontSize(charCount: number): number {
-  for (const size of PILL_FONT_LADDER) {
-    const charsPerLine = Math.floor(PILL_CELL_WIDTH_U / (size * PILL_CHAR_WIDTH_RATIO));
-    const lines = Math.floor(PILL_CELL_HEIGHT_U / (size * PILL_LINE_HEIGHT_RATIO));
-    if (charCount <= charsPerLine * lines) return size;
-  }
-  return PILL_FONT_LADDER[PILL_FONT_LADDER.length - 1]!;
-}
-
 /** Convert markdown-style `*word*` to bolded inline content, after HTML
  *  escaping. Asterisks are not HTML-special so they survive escapeHtml,
  *  letting us run the regex on the escaped string. */
@@ -234,9 +309,12 @@ function boldHeadword(escaped: string): string {
 function buildSmartPill(input: SummaryInput, _variant: SummaryVariant): string {
   // Smart pill — lower-right zone of the Summary face. A single deep-dive
   // entry (word-of-day or concept-of-day) bound to the companion on the left.
-  // Font size steps down to fit the body in the cell without truncation.
-  // Header label intentionally dropped — the column reads as primary content
-  // beside the delight cell, not as a chrome-labelled side panel.
+  // Font size + line-height are fixed in `summary.css` (28u / 1.1 in the
+  // post-shift 499u cell) — capacity 35cpl × 13r = 455 chars. The earlier
+  // step-down ladder (36u → 21u) was removed when calibration validated
+  // that 28u accommodates every authored pill body in the corpus without
+  // dropping below the 25u readability floor. Bodies authored above 455
+  // chars overflow visibly so the operator catches them at ingestion.
   const first = input.news.items[0];
   if (!first) {
     return `<section class="summary-smart-pill">
@@ -244,11 +322,9 @@ function buildSmartPill(input: SummaryInput, _variant: SummaryVariant): string {
 </section>`;
   }
   const safe = applyZone('news_body', first.body);
-  const sizeU = smartPillFontSize(safe.length);
-  const styleAttr = `style="font-size: calc(${sizeU} * var(--u))"`;
   const bodyHtml = boldHeadword(escapeHtml(safe));
   return `<section class="summary-smart-pill">
-  <div class="news"><div class="item"><div class="body" ${styleAttr}>${bodyHtml}</div></div></div>
+  <div class="news"><div class="item"><div class="body">${bodyHtml}</div></div></div>
 </section>`;
 }
 

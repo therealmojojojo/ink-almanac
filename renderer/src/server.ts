@@ -8,6 +8,19 @@ import { closeBrowser, ensureBrowser, isBrowserReady } from './browser.js';
 import { MODES, PORT, HOST, ROOT, TEMPLATES_DIR, inputsDir, isMode, type Mode } from './config.js';
 import { log } from './logger.js';
 import { MissingInputError, prepareMode } from './modes/index.js';
+import {
+  prepareDelightTest,
+  predictAnthologyWidth,
+  listBilingualHaiku,
+  prepareSmartPillTest,
+  prepareTextSummaryTest,
+  predictSmartPillFit,
+  listSmartPillTexts,
+  prepareFaceTest,
+  predictAllTriplets,
+  dominanceFilter,
+  type FaceTestParams,
+} from './modes/debugDelight.js';
 import { renderToPng, type ClockZone } from './render.js';
 import { VerseOverflowError } from './zoneApply.js';
 
@@ -242,6 +255,585 @@ app.get('/display/:file', async (c) => {
     return mapError(err, c);
   }
 });
+
+// --- Debug: bilingual delight cell at custom font sizes ----------------------
+//
+// Spot-check tool for the haiku/tanka anthology layout. Loads a corpus text
+// directly and renders the full Summary face with that haiku in the delight
+// cell at the supplied JA/EN sizes. Not part of the production face rotation.
+//
+//   GET /debug/delight-test/preview?id=<haiku-id>&ja=32&en=30 [&lh=56]   → HTML
+//   GET /debug/delight-test.png?id=<haiku-id>&ja=32&en=30 [&lh=56]       → PNG
+
+function parseDelightTestQuery(c: { req: { query: (k: string) => string | undefined } }) {
+  const id = c.req.query('id');
+  if (!id) throw new Error("missing required query param 'id'");
+  const num = (k: string, fallback: number) => {
+    const v = c.req.query(k);
+    if (v == null) return fallback;
+    const n = Number(v);
+    if (!Number.isFinite(n) || n <= 0) throw new Error(`'${k}' must be a positive number`);
+    return n;
+  };
+  const out: { id: string; jaSize: number; enSize: number; lineHeight?: number } = {
+    id,
+    jaSize: num('ja', 32),
+    enSize: num('en', 30),
+  };
+  if (c.req.query('lh') != null) out.lineHeight = num('lh', 56);
+  return out;
+}
+
+app.get('/debug/delight-test/preview', async (c) => {
+  try {
+    const opts = parseDelightTestQuery(c);
+    const prepared = await prepareDelightTest(opts);
+    return new Response(prepared.html, {
+      status: 200,
+      headers: { 'content-type': 'text/html; charset=utf-8' },
+    });
+  } catch (err) {
+    return mapError(err, c);
+  }
+});
+
+// Grid view: every bilingual haiku predicted to overflow at the requested
+// sizes, each rendered live in an iframe so the operator can scroll through
+// and judge readability in one pass.
+//
+//   GET /debug/delight-test/all?ja=32&en=30           → just the overflow set
+//   GET /debug/delight-test/all?ja=32&en=30&all=1     → all bilingual haiku
+//   GET /debug/delight-test/all?ja=32&en=30&margin=20 → also includes any
+//     haiku that fit within `margin` u of the 609u budget (borderline checks)
+app.get('/debug/delight-test/all', async (c) => {
+  try {
+    const ja = Number(c.req.query('ja') ?? 32);
+    const en = Number(c.req.query('en') ?? 30);
+    const lh = c.req.query('lh') != null ? Number(c.req.query('lh')) : undefined;
+    const showAll = c.req.query('all') === '1';
+    const margin = Number(c.req.query('margin') ?? 0);
+    if (!Number.isFinite(ja) || ja <= 0) throw new Error("'ja' must be a positive number");
+    if (!Number.isFinite(en) || en <= 0) throw new Error("'en' must be a positive number");
+
+    const haiku = await listBilingualHaiku();
+    const rows = haiku.map((h) => {
+      const w = predictAnthologyWidth(h.ja, h.en, ja, en);
+      return { h, ...w, over: w.width - w.budget };
+    });
+    const filtered = showAll
+      ? rows
+      : rows.filter((r) => r.over > -margin || r.lineMismatch);
+    filtered.sort((a, b) => b.over - a.over);
+
+    const lhParam = lh ? `&lh=${lh}` : '';
+    const cards = filtered.map((r) => {
+      const previewUrl = `/debug/delight-test/preview?id=${encodeURIComponent(r.h.id)}&ja=${ja}&en=${en}${lhParam}`;
+      const verdict = r.lineMismatch
+        ? `<span class="bad">LINE MISMATCH</span> ja=${r.h.ja.split('\n').filter(Boolean).length} en=${r.h.en.split('\n').filter(Boolean).length}`
+        : r.over > 0
+          ? `<span class="bad">+${r.over}u over</span>`
+          : `<span class="ok">${-r.over}u to spare</span>`;
+      return `
+<section class="card">
+  <header>
+    <h2>${r.h.id}</h2>
+    <div class="meta">
+      <span>form: ${r.h.form}</span>
+      <span>JA max: ${r.ja_max} · EN max: ${r.en_max}</span>
+      <span>predicted: ${r.width}u / ${r.budget}u</span>
+      ${verdict}
+      <span><a href="${previewUrl}" target="_blank">open</a></span>
+    </div>
+  </header>
+  <iframe loading="lazy" src="${previewUrl}" width="1200" height="825"></iframe>
+</section>`;
+    }).join('\n');
+
+    const summary = `Sizes: JA=${ja}u · EN=${en}u${lh ? ` · LH=${lh}u` : ''}. ` +
+      `Showing ${filtered.length} of ${rows.length} bilingual haiku/tanka` +
+      (showAll ? ' (all).' : margin > 0 ? ` (overflow + within ${margin}u of budget).` : ' (overflow only).');
+
+    const page = `<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Delight overflow grid · ja=${ja} en=${en}</title>
+<style>
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f4f4f4; color: #222; }
+  .summary { position: sticky; top: 0; background: #fff; border-bottom: 1px solid #ddd; padding: 12px 24px; z-index: 10; }
+  .summary form { display: inline-flex; gap: 12px; align-items: center; margin-left: 24px; font-size: 13px; }
+  .summary input[type=number] { width: 60px; }
+  .card { margin: 24px auto; width: 1200px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+  .card header { padding: 12px 16px; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 4px; }
+  .card h2 { margin: 0; font-size: 16px; font-family: ui-monospace, SFMono-Regular, monospace; }
+  .card .meta { display: flex; gap: 16px; font-size: 12px; color: #666; flex-wrap: wrap; }
+  .card .meta .bad { color: #b00; font-weight: 600; }
+  .card .meta .ok { color: #060; }
+  .card iframe { display: block; border: 0; }
+</style>
+</head><body>
+<div class="summary">
+  <strong>Delight overflow grid</strong>
+  <span style="margin-left:12px;color:#666">${summary}</span>
+  <form method="get" action="/debug/delight-test/all">
+    JA <input name="ja" type="number" value="${ja}" min="20" max="60">
+    EN <input name="en" type="number" value="${en}" min="20" max="60">
+    LH <input name="lh" type="number" value="${lh ?? ''}" placeholder="56">
+    margin <input name="margin" type="number" value="${margin}" min="0" max="200">
+    <label><input name="all" type="checkbox" value="1" ${showAll ? 'checked' : ''}> all</label>
+    <button type="submit">apply</button>
+  </form>
+</div>
+${cards || '<p style="padding:48px;text-align:center;color:#666">No haiku in the requested set.</p>'}
+</body></html>`;
+    return new Response(page, { status: 200, headers: { 'content-type': 'text/html; charset=utf-8' } });
+  } catch (err) {
+    return mapError(err, c);
+  }
+});
+
+app.get('/debug/delight-test.png', async (c) => {
+  try {
+    const opts = parseDelightTestQuery(c);
+    const prepared = await prepareDelightTest(opts);
+    const token = randomUUID();
+    htmlByToken.set(token, prepared.html);
+    try {
+      const origin = new URL(c.req.url).origin.replace(/^http:\/\/0\.0\.0\.0/, 'http://127.0.0.1');
+      const url = `${origin}/internal/html/${token}`;
+      const result = await renderToPng({ url, dither: prepared.dither });
+      return new Response(result.png as unknown as BodyInit, {
+        status: 200,
+        headers: {
+          'content-type': 'image/png',
+          'content-length': String(result.png.length),
+          'cache-control': 'no-store',
+          'x-render-mode': 'debug:delight-test',
+          'x-delight-id': opts.id,
+          'x-delight-sizes': `ja=${opts.jaSize} en=${opts.enSize}`,
+        },
+      });
+    } finally {
+      htmlByToken.delete(token);
+    }
+  } catch (err) {
+    return mapError(err, c);
+  }
+});
+
+// --- Debug: smart-pill cell at custom size / line-height / padding ----------
+//
+//   GET /debug/smart-pill-test/preview?id=<text-id>&size=30&lh=1.35&pad=1   → HTML
+//   GET /debug/smart-pill-test.png?id=<text-id>&size=30&lh=1.35&pad=1       → PNG
+//   GET /debug/smart-pill-test/all?size=30&lh=1.35&pad=1                    → grid
+//
+// Loads `smart_pill.body` from a corpus text and renders the full Summary
+// face with that body in the pill cell at the supplied geometry. `pad=0`
+// strips the cell's bottom padding and top-aligns the body (vs. the
+// production vertical-center) — the same toggle the audit model uses.
+
+function parseSmartPillQuery(c: { req: { query: (k: string) => string | undefined } }) {
+  const id = c.req.query('id');
+  if (!id) throw new Error("missing required query param 'id'");
+  const num = (k: string, fallback: number, allowFloat = false) => {
+    const v = c.req.query(k);
+    if (v == null) return fallback;
+    const n = Number(v);
+    if (!Number.isFinite(n) || n <= 0) throw new Error(`'${k}' must be a positive number`);
+    if (!allowFloat && !Number.isInteger(n)) throw new Error(`'${k}' must be an integer`);
+    return n;
+  };
+  return {
+    id,
+    size: num('size', 30),
+    lineHeight: num('lh', 1.35, true),
+    pad: c.req.query('pad') !== '0',
+  };
+}
+
+app.get('/debug/smart-pill-test/preview', async (c) => {
+  try {
+    const opts = parseSmartPillQuery(c);
+    const prepared = await prepareSmartPillTest(opts);
+    return new Response(prepared.html, {
+      status: 200,
+      headers: { 'content-type': 'text/html; charset=utf-8' },
+    });
+  } catch (err) {
+    return mapError(err, c);
+  }
+});
+
+app.get('/debug/smart-pill-test.png', async (c) => {
+  try {
+    const opts = parseSmartPillQuery(c);
+    const prepared = await prepareSmartPillTest(opts);
+    const token = randomUUID();
+    htmlByToken.set(token, prepared.html);
+    try {
+      const origin = new URL(c.req.url).origin.replace(/^http:\/\/0\.0\.0\.0/, 'http://127.0.0.1');
+      const url = `${origin}/internal/html/${token}`;
+      const result = await renderToPng({ url, dither: prepared.dither });
+      return new Response(result.png as unknown as BodyInit, {
+        status: 200,
+        headers: {
+          'content-type': 'image/png',
+          'content-length': String(result.png.length),
+          'cache-control': 'no-store',
+          'x-render-mode': 'debug:smart-pill-test',
+          'x-pill-id': opts.id,
+          'x-pill-params': `size=${opts.size} lh=${opts.lineHeight} pad=${opts.pad ? 1 : 0}`,
+        },
+      });
+    } finally {
+      htmlByToken.delete(token);
+    }
+  } catch (err) {
+    return mapError(err, c);
+  }
+});
+
+// Render the production summary face for a single corpus text id —
+// delight cell shows the body, pill cell shows that text's smart_pill.
+// Used by the truncation-audit review page (a one-glance view of the text
+// the device would show when this item is the daily summary).
+app.get('/debug/text-summary-test/preview', async (c) => {
+  try {
+    const id = c.req.query('id');
+    if (!id) throw new Error("missing required query param 'id'");
+    const prepared = await prepareTextSummaryTest(id);
+    return new Response(prepared.html, {
+      status: 200,
+      headers: { 'content-type': 'text/html; charset=utf-8' },
+    });
+  } catch (err) {
+    return mapError(err, c);
+  }
+});
+
+app.get('/debug/text-summary-test.png', async (c) => {
+  try {
+    const id = c.req.query('id');
+    if (!id) throw new Error("missing required query param 'id'");
+    const prepared = await prepareTextSummaryTest(id);
+    const token = randomUUID();
+    htmlByToken.set(token, prepared.html);
+    try {
+      const origin = new URL(c.req.url).origin.replace(/^http:\/\/0\.0\.0\.0/, 'http://127.0.0.1');
+      const url = `${origin}/internal/html/${token}`;
+      const result = await renderToPng({ url, dither: prepared.dither });
+      return new Response(result.png as unknown as BodyInit, {
+        status: 200,
+        headers: {
+          'content-type': 'image/png',
+          'content-length': String(result.png.length),
+          'cache-control': 'no-store',
+          'x-render-mode': 'debug:text-summary-test',
+          'x-text-id': id,
+        },
+      });
+    } finally {
+      htmlByToken.delete(token);
+    }
+  } catch (err) {
+    return mapError(err, c);
+  }
+});
+
+app.get('/debug/smart-pill-test/all', async (c) => {
+  try {
+    const size = Number(c.req.query('size') ?? 30);
+    const lh = Number(c.req.query('lh') ?? 1.35);
+    const pad = c.req.query('pad') !== '0';
+    const showAll = c.req.query('all') === '1';
+    const margin = Number(c.req.query('margin') ?? 0);
+    if (!Number.isFinite(size) || size <= 0) throw new Error("'size' must be a positive number");
+    if (!Number.isFinite(lh) || lh <= 0) throw new Error("'lh' must be a positive number");
+
+    const texts = await listSmartPillTexts();
+    const rows = texts.map((t) => {
+      const fit = predictSmartPillFit(t.body, { size, lineHeight: lh, pad });
+      return { t, ...fit };
+    });
+    const filtered = showAll
+      ? rows
+      : rows.filter((r) => r.over > -margin);
+    filtered.sort((a, b) => b.over - a.over);
+
+    const padQ = pad ? '1' : '0';
+    const cards = filtered.map((r) => {
+      const previewUrl = `/debug/smart-pill-test/preview?id=${encodeURIComponent(r.t.id)}&size=${size}&lh=${lh}&pad=${padQ}`;
+      const verdict = r.overflow
+        ? `<span class="bad">+${r.over} chars over (${r.chars}/${r.capacity})</span>`
+        : `<span class="ok">${-r.over} chars to spare (${r.chars}/${r.capacity})</span>`;
+      return `
+<section class="card">
+  <header>
+    <h2>${r.t.id}</h2>
+    <div class="meta">
+      <span>chars: ${r.chars}</span>
+      <span>cap: ${r.charsPerLine}/line × ${r.rows} rows = ${r.capacity}</span>
+      ${verdict}
+      <span><a href="${previewUrl}" target="_blank">open</a></span>
+    </div>
+  </header>
+  <iframe loading="lazy" src="${previewUrl}" width="1200" height="825"></iframe>
+</section>`;
+    }).join('\n');
+
+    const summaryLine = `Sizes: size=${size}u · lh=${lh} · pad=${padQ}. ` +
+      `Showing ${filtered.length} of ${rows.length} texts with smart_pill.body` +
+      (showAll ? ' (all).' : margin > 0 ? ` (overflow + within ${margin} chars of capacity).` : ' (overflow only).');
+
+    const page = `<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Smart-pill overflow grid · size=${size} lh=${lh} pad=${padQ}</title>
+<style>
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f4f4f4; color: #222; }
+  .summary { position: sticky; top: 0; background: #fff; border-bottom: 1px solid #ddd; padding: 12px 24px; z-index: 10; }
+  .summary form { display: inline-flex; gap: 12px; align-items: center; margin-left: 24px; font-size: 13px; }
+  .summary input[type=number], .summary input[type=text] { width: 70px; }
+  .card { margin: 24px auto; width: 1200px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+  .card header { padding: 12px 16px; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 4px; }
+  .card h2 { margin: 0; font-size: 16px; font-family: ui-monospace, SFMono-Regular, monospace; }
+  .card .meta { display: flex; gap: 16px; font-size: 12px; color: #666; flex-wrap: wrap; }
+  .card .meta .bad { color: #b00; font-weight: 600; }
+  .card .meta .ok { color: #060; }
+  .card iframe { display: block; border: 0; }
+</style>
+</head><body>
+<div class="summary">
+  <strong>Smart-pill overflow grid</strong>
+  <span style="margin-left:12px;color:#666">${summaryLine}</span>
+  <form method="get" action="/debug/smart-pill-test/all">
+    size <input name="size" type="number" value="${size}" min="16" max="48">
+    lh <input name="lh" type="text" value="${lh}">
+    pad <select name="pad"><option value="1" ${pad ? 'selected' : ''}>1</option><option value="0" ${!pad ? 'selected' : ''}>0</option></select>
+    margin <input name="margin" type="number" value="${margin}" min="0" max="2000">
+    <label><input name="all" type="checkbox" value="1" ${showAll ? 'checked' : ''}> all</label>
+    <button type="submit">apply</button>
+  </form>
+</div>
+${cards || '<p style="padding:48px;text-align:center;color:#666">No texts in the requested set.</p>'}
+</body></html>`;
+    return new Response(page, { status: 200, headers: { 'content-type': 'text/html; charset=utf-8' } });
+  } catch (err) {
+    return mapError(err, c);
+  }
+});
+
+// --- Debug: unified face test (per-triplet, all params, dominance grid) -----
+//
+//   GET /debug/face-test/preview?triplet=<id>&...params       → HTML
+//   GET /debug/face-test.png?triplet=<id>&...params           → PNG
+//   GET /debug/face-test/all?...params [&margin=N] [&all=1]   → grid
+//
+// Each card on the grid is one corpus triplet, rendered with that triplet's
+// real summary-slot text:
+//   - delight cell  = summary-slot text body (visual-day only)
+//   - pill cell     = summary-slot text's smart_pill.body (every triplet)
+//
+// Default grid filters to the dominance frontier of the overflow set (per
+// zone shape: pill / bilingual delight / monolingual delight). If those
+// dominators all fit at current params, every other triplet fits too.
+
+function parseFaceParams(c: { req: { query: (k: string) => string | undefined } }): FaceTestParams {
+  const num = (k: string, fallback: number, allowFloat = false) => {
+    const v = c.req.query(k);
+    if (v == null || v === '') return fallback;
+    const n = Number(v);
+    if (!Number.isFinite(n)) throw new Error(`'${k}' must be a number`);
+    if (!allowFloat && !Number.isInteger(n)) throw new Error(`'${k}' must be an integer`);
+    return n;
+  };
+  const out: FaceTestParams = {
+    jaSize: num('ja', 32),
+    enSize: num('en', 30),
+    pillSize: num('pill_size', 30),
+    pillLineHeight: num('pill_lh', 1.35, true),
+    pillPad: c.req.query('pill_pad') !== '0',
+    pillGrowU: num('pill_grow_u', 0),
+  };
+  const ds = c.req.query('delight_size');
+  if (ds != null && ds !== '') {
+    const n = Number(ds);
+    if (!Number.isFinite(n) || n <= 0) throw new Error("'delight_size' must be a positive number");
+    out.delightSize = n;
+  }
+  if (out.jaSize <= 0 || out.enSize <= 0 || out.pillSize <= 0 || out.pillLineHeight <= 0) {
+    throw new Error('font-size / line-height params must be positive');
+  }
+  return out;
+}
+
+app.get('/debug/face-test/preview', async (c) => {
+  try {
+    const id = c.req.query('triplet');
+    if (!id) throw new Error("missing required query param 'triplet'");
+    const params = parseFaceParams(c);
+    const prepared = await prepareFaceTest(id, params);
+    return new Response(prepared.html, {
+      status: 200,
+      headers: { 'content-type': 'text/html; charset=utf-8' },
+    });
+  } catch (err) {
+    return mapError(err, c);
+  }
+});
+
+app.get('/debug/face-test.png', async (c) => {
+  try {
+    const id = c.req.query('triplet');
+    if (!id) throw new Error("missing required query param 'triplet'");
+    const params = parseFaceParams(c);
+    const prepared = await prepareFaceTest(id, params);
+    const token = randomUUID();
+    htmlByToken.set(token, prepared.html);
+    try {
+      const origin = new URL(c.req.url).origin.replace(/^http:\/\/0\.0\.0\.0/, 'http://127.0.0.1');
+      const url = `${origin}/internal/html/${token}`;
+      const result = await renderToPng({ url, dither: prepared.dither });
+      return new Response(result.png as unknown as BodyInit, {
+        status: 200,
+        headers: {
+          'content-type': 'image/png',
+          'content-length': String(result.png.length),
+          'cache-control': 'no-store',
+          'x-render-mode': 'debug:face-test',
+          'x-triplet': id,
+        },
+      });
+    } finally {
+      htmlByToken.delete(token);
+    }
+  } catch (err) {
+    return mapError(err, c);
+  }
+});
+
+app.get('/debug/face-test/all', async (c) => {
+  try {
+    const params = parseFaceParams(c);
+    const margin = Number(c.req.query('margin') ?? 0);
+    const showAll = c.req.query('all') === '1';
+    if (!Number.isFinite(margin) || margin < 0) throw new Error("'margin' must be ≥ 0");
+
+    const all = await predictAllTriplets(params);
+    const universe = all.length;
+    const overflowing = all.filter((r) => r.anyOverflow);
+    const filtered = showAll ? all : dominanceFilter(all, margin);
+
+    // Sort: delight overflows first, then pill overflows; within each, worst over budget.
+    filtered.sort((a, b) => {
+      const aw = (a.delight?.overflow ? 1 : 0) + (a.pill?.overflow ? 1 : 0);
+      const bw = (b.delight?.overflow ? 1 : 0) + (b.pill?.overflow ? 1 : 0);
+      if (aw !== bw) return bw - aw;
+      const aOver =
+        (a.delight && 'width' in a.delight ? a.delight.width - a.delight.budget : 0) +
+        (a.pill ? Math.max(0, a.pill.chars - a.pill.capacity) : 0);
+      const bOver =
+        (b.delight && 'width' in b.delight ? b.delight.width - b.delight.budget : 0) +
+        (b.pill ? Math.max(0, b.pill.chars - b.pill.capacity) : 0);
+      return bOver - aOver;
+    });
+
+    const qs = new URLSearchParams();
+    qs.set('ja', String(params.jaSize));
+    qs.set('en', String(params.enSize));
+    qs.set('pill_size', String(params.pillSize));
+    qs.set('pill_lh', String(params.pillLineHeight));
+    qs.set('pill_pad', params.pillPad ? '1' : '0');
+    qs.set('pill_grow_u', String(params.pillGrowU));
+    if (params.delightSize) qs.set('delight_size', String(params.delightSize));
+    const paramQs = qs.toString();
+
+    const cards = filtered.map((r) => {
+      const previewUrl = `/debug/face-test/preview?triplet=${encodeURIComponent(r.triplet.id)}&${paramQs}`;
+      const flavor = r.triplet.flavor;
+      const delightLabel = !r.delight
+        ? `<span class="muted">delight: ${flavor === 'text-day' ? 'image (text-day, n/a)' : 'no body'}</span>`
+        : r.delight.kind === 'bilingual'
+          ? r.delight.overflow
+            ? `<span class="bad">delight bilingual: +${r.delight.width - r.delight.budget}u over (ja=${r.delight.ja_max} en=${r.delight.en_max}; ${r.delight.width}/${r.delight.budget}u${r.delight.lineMismatch ? '; line-mismatch' : ''})</span>`
+            : `<span class="ok">delight bilingual: ${r.delight.budget - r.delight.width}u to spare</span>`
+          : r.delight.overflow
+            ? `<span class="bad">delight mono: ${r.delight.visual_rows}/${r.delight.cap_rows} rows${r.delight.wrapped ? ' (wrap)' : ''} (lines=${r.delight.lines}, max=${r.delight.max_chars}, size=${r.delight.size}u)</span>`
+            : `<span class="ok">delight mono: ${r.delight.visual_rows}/${r.delight.cap_rows} rows</span>`;
+      const pillLabel = !r.pill
+        ? `<span class="muted">pill: no body</span>`
+        : r.pill.overflow
+          ? `<span class="bad">pill: +${r.pill.chars - r.pill.capacity} chars over (${r.pill.chars}/${r.pill.capacity}; ${r.pill.charsPerLine}cpl × ${r.pill.rows}r)</span>`
+          : `<span class="ok">pill: ${r.pill.capacity - r.pill.chars} chars to spare</span>`;
+      return `
+<section class="card">
+  <header>
+    <h2>${r.triplet.id}</h2>
+    <div class="meta">
+      <span>flavor: ${flavor}</span>
+      <span>summary slot: <code>${r.triplet.summarySlot}</code></span>
+      <span><a href="${previewUrl}" target="_blank">open</a></span>
+    </div>
+    <div class="meta">${delightLabel}</div>
+    <div class="meta">${pillLabel}</div>
+  </header>
+  <iframe loading="lazy" src="${previewUrl}" width="1200" height="825"></iframe>
+</section>`;
+    }).join('\n');
+
+    const summaryLine =
+      `Sizes: delight=${params.delightSize ?? 'per-form'} · ja=${params.jaSize} · en=${params.enSize} · ` +
+      `pill=${params.pillSize}u/lh=${params.pillLineHeight}/pad=${params.pillPad ? 1 : 0} · ` +
+      `pill_grow=${params.pillGrowU}u (delight body=${BOTTOM_TOTAL_DEBUG_HINT(params.pillGrowU)}u, pill body=${439 + params.pillGrowU}u). ` +
+      `Universe: ${universe} triplets; ${overflowing.length} overflow; showing ${filtered.length} ` +
+      (showAll ? '(all=1).' : `(dominance frontier${margin > 0 ? ` ±${margin}` : ''}).`);
+
+    const page = `<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Summary face overflow grid</title>
+<style>
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f4f4f4; color: #222; }
+  .summary { position: sticky; top: 0; background: #fff; border-bottom: 1px solid #ddd; padding: 12px 24px; z-index: 10; }
+  .summary form { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 8px; font-size: 13px; }
+  .summary label { display: inline-flex; align-items: center; gap: 4px; }
+  .summary input[type=number], .summary input[type=text] { width: 64px; }
+  .card { margin: 24px auto; width: 1200px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+  .card header { padding: 12px 16px; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 4px; }
+  .card h2 { margin: 0; font-size: 16px; font-family: ui-monospace, SFMono-Regular, monospace; word-break: break-all; }
+  .card .meta { display: flex; gap: 16px; font-size: 12px; color: #666; flex-wrap: wrap; }
+  .card .meta code { font-family: ui-monospace, SFMono-Regular, monospace; }
+  .card .meta .bad { color: #b00; font-weight: 600; }
+  .card .meta .ok { color: #060; }
+  .card .meta .muted { color: #999; }
+  .card iframe { display: block; border: 0; }
+</style>
+</head><body>
+<div class="summary">
+  <strong>Summary face overflow grid</strong>
+  <span style="margin-left:12px;color:#666">${summaryLine}</span>
+  <form method="get" action="/debug/face-test/all">
+    <label>delight_size <input name="delight_size" type="text" value="${params.delightSize ?? ''}" placeholder="per-form"></label>
+    <label>ja <input name="ja" type="number" value="${params.jaSize}" min="20" max="60"></label>
+    <label>en <input name="en" type="number" value="${params.enSize}" min="20" max="60"></label>
+    <label>pill_size <input name="pill_size" type="number" value="${params.pillSize}" min="16" max="48"></label>
+    <label>pill_lh <input name="pill_lh" type="text" value="${params.pillLineHeight}"></label>
+    <label>pill_pad <select name="pill_pad"><option value="1" ${params.pillPad ? 'selected' : ''}>1</option><option value="0" ${!params.pillPad ? 'selected' : ''}>0</option></select></label>
+    <label>pill_grow_u <input name="pill_grow_u" type="number" value="${params.pillGrowU}" step="30"></label>
+    <label>margin <input name="margin" type="number" value="${margin}" min="0"></label>
+    <label><input name="all" type="checkbox" value="1" ${showAll ? 'checked' : ''}> show all</label>
+    <button type="submit">apply</button>
+  </form>
+</div>
+${cards || '<p style="padding:48px;text-align:center;color:#666">No overflow at current params — every triplet fits.</p>'}
+</body></html>`;
+    return new Response(page, { status: 200, headers: { 'content-type': 'text/html; charset=utf-8' } });
+  } catch (err) {
+    return mapError(err, c);
+  }
+});
+
+// Helper just for the summary line above (avoids importing the constant
+// twice while keeping the math close to the tooltip text).
+function BOTTOM_TOTAL_DEBUG_HINT(growU: number): number {
+  return 1076 - 439 - growU;
+}
 
 // --- Clock-zone metadata endpoint --------------------------------------------
 //

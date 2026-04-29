@@ -89,11 +89,23 @@ Summary SHALL use a three-band composition:
 
 - **Top band (40% height)**: clock on the left (Fraunces opsz 144, size 230u, HH:MM), current-weather block on the right (large temperature, condition, H/L/rain%), separated by a 1u vertical rule
 - **Middle band (3-day forecast, ~18% height)**: three equal-width cells separated by dashed rules, each cell showing day-of-week, condition icon, condition label, high/low
-- **Bottom band (remaining, with 2u solid rule above)**: two columns — left (1.45fr) holds the delight zone (the pairing's companion content: small image OR short text), right (1fr) holds the Smart pill — a two-item curated capsule (word-of-the-day extracted from the day's companion text + on-this-day historical event), header label "Smart pill"
+- **Bottom band (remaining, with 2u solid rule above)**: two columns separated by a 28u gap. The face content area is 1104u (1200u panel − 2 × 48u face padding), leaving 1076u to allocate. Cell widths SHALL be **577u (delight, left)** and **499u (Smart pill, right)** — the previous 1.45fr / 1fr ratio is replaced by explicit `u` values so the predictor in `debugDelight.ts` and the predictor's audit results stay in lockstep with the rendered face. The split was widened toward the pill by 60u (from a notional 637/439) to give the smart-pill body enough horizontal headroom that 28u Plex Sans accommodates the corpus's authored pill-body lengths without dropping below the readability floor.
 
 The delight zone SHALL follow the pairing's flavor:
 - Visual-day flavor → companion is text → delight zone renders short text (haiku, aphorism, fragment) with attribution
 - Text-day flavor → companion is visual → delight zone renders a small image with caption
+
+The Smart pill SHALL render a single deep-dive entry (the day's `smart_pill.body` from the triplet's summary slot) at a fixed 28u IBM Plex Sans body with line-height 1.1, text-align justify, hyphens auto. The header label is intentionally absent — the cell reads as primary content beside the delight, not as a chrome-labelled side panel. The earlier dynamic step-down ladder (36u → 21u) is removed; bodies authored above the cell capacity (≈ 455 chars at the post-shift geometry) overflow visibly so the operator catches them at ingestion.
+
+Bilingual haiku/tanka in the delight cell SHALL render in an anthology layout: Japanese original on the left in Noto Serif JP at 30u, translation on the right in Fraunces at 24u, both at a shared 56u line-height so JA[i] and EN[i] sit on a common baseline row. The 24u EN size is one notch below the project-wide 25u readability floor — a documented exception, validated against every bilingual entry in the corpus, made because keeping the parallel layout aligned is the higher priority for this small element.
+
+Monolingual delight bodies SHALL be sized by a content-fit tier rather than by `form`. The renderer (`renderer/src/modes/summary.ts:pickFitTier`) computes the tier from author-line metrics (line count plus the longest line's character count) and emits `data-fit-tier="N"` on the body div; CSS in `summary.css` maps each tier to a (font-size, line-height) pair. The selection algorithm runs three phases:
+
+1. **Phase 1 (preferred)** — find the LARGEST tier ≥28u where every author line fits one visual line at that tier's calibrated cpl AND total line count fits the cell height. This keeps the poet's chosen line breaks intact at the largest possible font.
+2. **Phase 2 (wrap-with-turnover)** — if no ≥28u tier admits unwrapped fit, render at 28u with hanging indent on each author line. Tier 4 (28u/34lh) is preferred; tier 5 (28u/30lh) used when tier 4 lacks vertical room. The renderer adds a `.wrap-turnover` class to the section, switching alignment to left and applying `text-indent: -2em; padding-left: 2em` per `.line` div so wrap continuations indent by 2em (Faber/Norton/FSG poetry-typesetting convention).
+3. **Phase 3 (sub-pill escape)** — only when neither ≥28u unwrapped nor 28u-with-wrap fits the cell, drop to tier 6 (24u) or tier 7 (22u) for the unwrapped fit. Rare for `summary_eligible: true` items because >5-line work is excluded from the summary pool by convention.
+
+The 28u floor exists for hierarchy: the smart pill on the right is a fixed 28u Plex Sans, and the delight (the day's centerpiece text) MUST NOT read smaller than the pill commentary that flanks it. The Phase 3 escape is a relief valve, not a default.
 
 #### Scenario: Summary with haiku companion
 

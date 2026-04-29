@@ -90,10 +90,42 @@ def wrapped_visual_lines(body: str, width: int = SUMMARY_WRAP_COLS) -> int:
 
 DARK_THRESHOLD = 128
 DARK_AREA_MIN = 0.50
-PER_ITEM_CAP = 5
-TEXT_DAY_SHARE = 0.35
+# Per-slot caps for TEXT items. Anchor is the triplet's invisible spine
+# (used for thematic matching and daily-rotation identity, but never rendered
+# to any face), so its reuse doesn't read as duplication to the viewer.
+# Summary and gallery are user-visible (delight cell, smart pill, gallery
+# hero) — repeat use there IS duplication. Nocturne renders on the Night
+# face.
+SLOT_CAP = {
+    "anchor":   999,   # effectively uncapped (invisible)
+    "summary":    3,
+    "gallery":    3,
+    "nocturne":   3,
+}
+# Images never repeat at the gallery slot — that's the visible hero, and
+# the corpus has 1100+ gallery-eligible images, so duplication there reads
+# as "we already saw this." Nocturne is the least-visible face (Night-only,
+# narrow daily window) and its dark/portrait pool is smaller (~420), so
+# allowing a single repeat there keeps the night face populated without
+# bottoming out coverage.
+IMAGE_CAP = {"gallery": 1, "nocturne": 2}
+# Generic constant for backward-compat references and stat reporting.
+PER_ITEM_CAP = 3
+
+
+def cap_for(item, slot):
+    """Effective per-(item, slot) cap. Images cap by slot (gallery=1,
+    nocturne=2). Texts use the per-slot cap from SLOT_CAP."""
+    if item.get("kind") == "image":
+        return IMAGE_CAP.get(slot, 1)
+    return SLOT_CAP.get(slot, PER_ITEM_CAP)
+TEXT_DAY_SHARE = 0.40
 ALIGNED_NOCTURNE_SHARE = 0.50
 RECENCY_WINDOW = 100
+# Cap on per-pass random-draw failures before that pass gives up. Tuned to
+# admit reasonable thrashing without burning a million attempts on a search
+# that's converged on "no valid pairing exists for the remaining state".
+MAX_CONSECUTIVE_FAILURES = 50_000
 
 NOTE_TEMPLATES_VISUAL = [
     "The poem listens; the image watches.",
@@ -143,7 +175,11 @@ def find_binary(yaml_path: Path) -> Path | None:
 
 def load_items():
     items = {}
-    for folder in ("texts", "personal_library"):
+    # `images` (PD print canon — Dürer/Rembrandt/Piranesi/etc.) was missing
+    # from v2's folder list; restored 2026-04-28 (picker-coverage-fix). The
+    # 119 sidecars there were ingested by add-bw-graphic-arts-canon as the
+    # non-photograph spine and dropping them was a regression vs v1.
+    for folder in ("texts", "personal_library", "images"):
         d = CORPUS / folder
         if not d.is_dir():
             continue
@@ -168,6 +204,10 @@ def load_items():
                 "folder": folder,
                 "themes": list(doc.get("themes") or []),
                 "fid": doc.get("panel_fidelity"),
+                # `summary_eligible: false` opts a sidecar out of the
+                # delight-cell pool (item still gallery/anchor-eligible).
+                # Default-true semantics: absence = eligible.
+                "summary_eligible": doc.get("summary_eligible", True),
                 "binary": str(binary) if binary else None,
                 "pw": doc.get("pixel_width") or 0,
                 "ph": doc.get("pixel_height") or 0,
@@ -240,6 +280,7 @@ def derive_pools(items: dict):
         it for it in vals
         if it["kind"] == "text"
         and it["themes"]
+        and it.get("summary_eligible", True)
         and 0 < it["n_visual_lines"] <= SUMMARY_MAX_VISUAL_LINES
     ]
     gallery_texts = [
@@ -289,7 +330,23 @@ def triplet_themes(anchor, summary, gallery):
 
 # ---------- Generator ----------
 
-def generate(items, pools, seed=42, max_attempts=1_000_000):
+def generate(items, pools, seed=42):
+    """Two-pass generation with min-use coverage bias.
+
+    Pass 1 (coverage): every eligible item used at most once. The picker
+    walks anchors / summaries / galleries with `use[id] == 0` filters and
+    the same theme constraint. Caps out when no new unique-item triplet
+    is possible (no anchor / summary / matching gallery with use==0).
+
+    Pass 2 (fill): continue to `triplet_target` with PER_ITEM_CAP=3 reuse.
+    `avail()` returns only items at `min(use[id])` within the eligible
+    pool, so use=0 items are picked before use=1 before use=2 — a strict
+    coverage bias rather than uniform-random over the eligible set.
+
+    Target = min(anchor_pool, summary_pool) * PER_ITEM_CAP — the math
+    upper bound of the system. Both passes give up after
+    MAX_CONSECUTIVE_FAILURES rejected attempts.
+    """
     rng = random.Random(seed)
     anchors = pools["anchors"]
     summary_texts = pools["summary_texts"]
@@ -297,15 +354,14 @@ def generate(items, pools, seed=42, max_attempts=1_000_000):
     gallery_image_pool = pools["gallery_image_pool"]
     nocturne_pool = pools["nocturne_pool"]
 
-    use = Counter()
-    window = deque()        # each elt = frozenset(ids) of one triplet
-    recent_block = set()    # union of the ids in window
-
-    def avail(pool, exclude=()):
-        return [it for it in pool
-                if use[it["id"]] < PER_ITEM_CAP
-                and it["id"] not in recent_block
-                and it["id"] not in exclude]
+    # Per-slot use counter: an item playing different roles across triplets
+    # is fresh content (anchor / summary delight / gallery hero are three
+    # different visual treatments). Cap applies per (id, slot) pair, not
+    # per id globally. Recency window stays per-item (don't show the same
+    # TEXT three days running, even in different roles).
+    use = Counter()                # key: (item_id, slot)
+    window = deque()
+    recent_block = set()
 
     def refresh_block():
         nonlocal recent_block
@@ -314,56 +370,105 @@ def generate(items, pools, seed=42, max_attempts=1_000_000):
     triplets = []
     seen_keys = set()
     flavor_c = Counter()
-    aligned_c = 0
-    attempts = 0
-    while attempts < max_attempts:
-        attempts += 1
+
+    def pick_eligible(pool, slot: str, exclude=(), post_filter=None,
+                      strict_unique: bool = False):
+        """Return (candidates, weights) for the random-weighted choice at
+        the call site. Min-use bias is applied via weights, NOT a hard
+        tier filter — items at higher use levels stay available so a
+        theme-rare summary at use=0 can't deadlock the picker.
+
+        Anchor (cap≥100): no bias, uniform pick.
+        Capped slots: weight = (cap - use), so use=0 → weight 3,
+        use=1 → weight 2, use=2 → weight 1.
+        strict_unique=True (pass 1): hard-filter to use=0 only.
+        post_filter runs after the use/recency/exclude filter."""
+        candidates = [it for it in pool
+                      if use[(it["id"], slot)] < cap_for(it, slot)
+                      and it["id"] not in recent_block
+                      and it["id"] not in exclude]
+        if strict_unique:
+            candidates = [it for it in candidates if use[(it["id"], slot)] == 0]
+        if post_filter:
+            candidates = post_filter(candidates)
+        if not candidates:
+            return [], []
+        # Anchor pool is uncapped — uniform pick. For everything else, weight
+        # = (cap - use) so use=0 is preferred over use=1 over use=2. Images
+        # are always cap=1 (weight 1 when eligible, 0 once used).
+        slot_cap = SLOT_CAP.get(slot, PER_ITEM_CAP)
+        if slot_cap >= 100:
+            weights = [1.0] * len(candidates)
+        else:
+            weights = [cap_for(it, slot) - use[(it["id"], slot)]
+                       for it in candidates]
+        return candidates, weights
+
+    def attempt(summary_strict: bool) -> bool:
+        """Try to make one triplet.
+
+        Pass 1 (summary_strict=True): every summary must be at use=0.
+        Forces every summary text to appear once before any reuse. Anchor
+        and gallery use min-use weighted bias (not strict). After pass 1
+        every summary that CAN pair has paired.
+
+        Pass 2 (summary_strict=False): summary uses weighted bias too,
+        with falls-through naturally to higher use levels when theme-
+        rare summaries deadlock at use=0."""
+        nonlocal recent_block
+
         flavor = rng.choices(
             ["visual-day", "text-day"],
             weights=[1 - TEXT_DAY_SHARE, TEXT_DAY_SHARE],
         )[0]
 
-        a_pool = avail(anchors)
+        a_pool, a_w = pick_eligible(anchors, slot="anchor")
         if not a_pool:
-            # early exit once no anchor has capacity outside the window
-            if all(use[a["id"]] >= PER_ITEM_CAP for a in anchors):
-                break
-            continue
-        anchor = rng.choice(a_pool)
+            return False
+        anchor = rng.choices(a_pool, weights=a_w, k=1)[0]
 
-        s_pool = avail(summary_texts, exclude=(anchor["id"],))
+        s_pool, s_w = pick_eligible(summary_texts, slot="summary",
+                                    exclude=(anchor["id"],),
+                                    strict_unique=summary_strict)
         if not s_pool:
-            continue
-        summary = rng.choice(s_pool)
+            return False
+        summary = rng.choices(s_pool, weights=s_w, k=1)[0]
 
         g_src = gallery_image_pool if flavor == "visual-day" else gallery_texts
-        g_pool = avail(g_src, exclude=(anchor["id"], summary["id"]))
-        # Thematic coherence: summary's dominant subject themes (first
-        # 2 after stripping generic buckets and visual-quality tags)
-        # must intersect gallery's dominant subject themes. Symmetric
-        # for text-day and visual-day — because the exclusion set
-        # already strips the photo-biased tags that were pushing
-        # images' real subjects out of their top-2.
         s_dominant = set(dominant_themes(summary.get("themes")))
         if not s_dominant:
-            continue
-        g_pool = [
-            g for g in g_pool
-            if set(dominant_themes(g.get("themes"))) & s_dominant
-        ]
+            return False
+        # Theme constraint: summary's dominant subjects must intersect
+        # gallery's dominant subjects. Stripped of generic / visual-only
+        # tags so the match is on real subjects.
+        def themed(pool):
+            return [g for g in pool
+                    if set(dominant_themes(g.get("themes"))) & s_dominant]
+        g_pool, g_w = pick_eligible(g_src, slot="gallery",
+                                    exclude=(anchor["id"], summary["id"]),
+                                    post_filter=themed)
+        # Soft theme preference: when no theme-matched candidate is
+        # available (image-cap-1 + dwindling pool exhausts the themed
+        # subset fast), fall back to any unused gallery item rather than
+        # dropping the attempt. Keeps visual-day from collapsing into
+        # text-day when the image pool is theme-mismatched but otherwise
+        # plentiful.
         if not g_pool:
-            continue
-        gallery = rng.choice(g_pool)
+            g_pool, g_w = pick_eligible(g_src, slot="gallery",
+                                        exclude=(anchor["id"], summary["id"]))
+        if not g_pool:
+            return False
+        gallery = rng.choices(g_pool, weights=g_w, k=1)[0]
 
         key = (anchor["id"], summary["id"], gallery["id"])
         if len(set(key)) != 3 or key in seen_keys:
-            continue
+            return False
 
         aligned_id = None
         if rng.random() < ALIGNED_NOCTURNE_SHARE:
-            n_pool = avail(nocturne_pool, exclude=key)
+            n_pool, n_w = pick_eligible(nocturne_pool, slot="nocturne", exclude=key)
             if n_pool:
-                aligned_id = rng.choice(n_pool)["id"]
+                aligned_id = rng.choices(n_pool, weights=n_w, k=1)[0]["id"]
 
         trip_ids = set(key)
         if aligned_id:
@@ -371,7 +476,7 @@ def generate(items, pools, seed=42, max_attempts=1_000_000):
 
         themes = triplet_themes(anchor, summary, gallery)
         if not themes:
-            continue
+            return False
 
         note_pool = NOTE_TEMPLATES_VISUAL if flavor == "visual-day" else NOTE_TEMPLATES_TEXT
         trip_id = f"{anchor['id'][:18]}-{summary['id'][:18]}-{gallery['id'][:18]}"
@@ -392,21 +497,70 @@ def generate(items, pools, seed=42, max_attempts=1_000_000):
         triplets.append(triplet)
         seen_keys.add(key)
         flavor_c[flavor] += 1
-        for i in trip_ids:
-            use[i] += 1
+        # Per-slot use counters — same item playing different roles is
+        # fresh content, not duplication.
+        use[(anchor["id"], "anchor")] += 1
+        use[(summary["id"], "summary")] += 1
+        use[(gallery["id"], "gallery")] += 1
+        if aligned_id:
+            use[(aligned_id, "nocturne")] += 1
         window.append(frozenset(trip_ids))
         recent_block |= trip_ids
         if len(window) > RECENCY_WINDOW:
             window.popleft()
             refresh_block()
+        return True
+
+    # Target: math upper bound of the bottleneck pool * cap.
+    triplet_target = min(len(anchors), len(summary_texts)) * PER_ITEM_CAP
+
+    pass1_attempts = pass1_failures = 0
+    pass2_attempts = pass2_failures = 0
+
+    # Pass 1 — summary coverage. Force every summary text to use=0 first,
+    # while anchor and gallery use weighted bias. Guarantees 100% summary
+    # coverage (the bottleneck) before pass 2 starts allowing reuse.
+    while len(triplets) < triplet_target:
+        pass1_attempts += 1
+        if attempt(summary_strict=True):
+            pass1_failures = 0
+        else:
+            pass1_failures += 1
+            if pass1_failures >= MAX_CONSECUTIVE_FAILURES:
+                break
+
+    pass1_count = len(triplets)
+
+    # Pass 2 — fill the rest with weighted-bias picks across all slots.
+    # Theme-rare summaries that couldn't pair in pass 1 get retried with
+    # less weight; the bulk of fill comes from re-using items at low use.
+    while len(triplets) < triplet_target:
+        pass2_attempts += 1
+        if attempt(summary_strict=False):
+            pass2_failures = 0
+        else:
+            pass2_failures += 1
+            if pass2_failures >= MAX_CONSECUTIVE_FAILURES:
+                break
 
     stats = {
         "triplets": len(triplets),
-        "attempts": attempts,
+        "target": triplet_target,
+        "pass1_count": pass1_count,
+        "pass2_count": len(triplets) - pass1_count,
+        "pass1_attempts": pass1_attempts,
+        "pass2_attempts": pass2_attempts,
         "visual_day": flavor_c["visual-day"],
         "text_day": flavor_c["text-day"],
         "aligned_nocturne": sum(1 for t in triplets if "aligned_nocturne" in t),
-        "items_at_cap": sum(1 for c in use.values() if c >= PER_ITEM_CAP),
+        # Per-slot stats: one (id, slot) pair = one slot occupancy. An item
+        # playing 3 different roles contributes 3 entries to `use`, not 1.
+        "slot_at_cap":     sum(1 for c in use.values() if c >= PER_ITEM_CAP),
+        "slot_used_once":  sum(1 for c in use.values() if c == 1),
+        "slot_used_2x":    sum(1 for c in use.values() if c == 2),
+        "slot_used_3x":    sum(1 for c in use.values() if c == 3),
+        # Distinct items touched (across any slot) — true coverage figure.
+        "distinct_items_used": len({k[0] for k in use}),
     }
     return triplets, stats
 
@@ -479,12 +633,15 @@ def main():
           f"nocturne={len(pools['nocturne_pool'])}")
 
     triplets, stats = generate(items, pools, seed=args.seed)
-    print(f"\nGenerated: {stats['triplets']} triplets")
-    print(f"  visual-day:  {stats['visual_day']}")
-    print(f"  text-day:    {stats['text_day']}")
-    print(f"  w/ nocturne: {stats['aligned_nocturne']}")
-    print(f"  items at cap: {stats['items_at_cap']}")
-    print(f"  attempts:    {stats['attempts']}")
+    print(f"\nGenerated: {stats['triplets']} of target {stats['target']} triplets")
+    print(f"  pass1 (coverage):  {stats['pass1_count']}  (attempts {stats['pass1_attempts']})")
+    print(f"  pass2 (fill):      {stats['pass2_count']}  (attempts {stats['pass2_attempts']})")
+    print(f"  visual-day:        {stats['visual_day']}")
+    print(f"  text-day:          {stats['text_day']}")
+    print(f"  w/ nocturne:       {stats['aligned_nocturne']}")
+    print(f"  slot-uses 1/2/3:   {stats['slot_used_once']} / {stats['slot_used_2x']} / {stats['slot_used_3x']}")
+    print(f"  slots at cap:      {stats['slot_at_cap']}  (per (id,slot) pair)")
+    print(f"  distinct items:    {stats['distinct_items_used']}  (touched across any slot)")
     print(f"  years of daily content: {stats['triplets']/365:.1f}")
 
     if args.apply:

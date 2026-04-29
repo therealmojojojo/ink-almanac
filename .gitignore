@@ -76,3 +76,4 @@ corpus/_manifest.json
 
 # Per-deployment runtime state for the daily rotation.
 pairing/_state/triplet_epoch.json
+corpus/_sources/
