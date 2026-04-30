@@ -18,9 +18,12 @@
 # Rules:
 #   - Gestures are SUPPRESSED during quiet hours.
 #   - Tap during the schedule (Summary/Gallery/Weather slot) → flip the
-#     alternation offset. The currently-shown face swaps to its counterpart
-#     and the flipped phase persists across subsequent ticks until tapped
-#     again.
+#     currently-displayed face (read from the commanded-face mirror
+#     sensor) to its counterpart. The next /15 schedule tick republishes
+#     the schedule's a priori target, overwriting whatever the tap
+#     produced — so a tap is a transient peek/toggle lasting up to one
+#     Full interval (15 min Morning/Evening, 30 min Midday). Repeat-tap
+#     toggles back and forth.
 #   - Tap during Night → no-op (no main face to swap to).
 #   - Tap during now_playing → peek to the tier's main face (Summary or
 #     Gallery) for ~60 s, then revert to now_playing.
@@ -28,9 +31,15 @@
 #     re-arm path above (kept defensively — nothing creates weather_peek
 #     under the current design but a stale retained MQTT state could).
 #
+# Why the schedule-tap is now a transient peek rather than a phase flip:
+# under the 3:1 alternation (`% 4`), an offset toggle 0↔1 only crosses the
+# main↔weather boundary on 2 of 4 slots — half the taps would leave the
+# face unchanged. Publishing the opposite face directly guarantees every
+# tap produces a visible change.
+#
 # Compared to the previous design: the dedicated single-tap → weather_peek
 # automation is removed because the new alternation engine cycles Weather
-# in naturally (every 15-30 min depending on tier), making the explicit
+# in naturally (every 60-150 min depending on tier), making the explicit
 # 5-min peek redundant. The `weather_peek` state value still lives in the
 # helpers and the expiry / HA-start cleanup automations are kept as a safety
 # net for any operator-initiated peek (e.g. via a dashboard button) and to
@@ -84,40 +93,58 @@
         {% set m = now().hour * 60 + now().minute %}
         {{ not (m >= 22*60 or m < 6*60 + 30) }}
   action:
-    # Compute the new offset (0↔1) and the resulting alternated face. Same
-    # formula as schedule.yaml's alternation tick — kept inline because Jinja
-    # macros aren't shared across HA's flat automation list.
+    # Flip the currently-DISPLAYED face (read from the commanded-face mirror
+    # sensor) to its counterpart and publish. We do NOT touch
+    # `inkplate_alternation_offset` or `inkplate_scheduled_face` — the next
+    # /15 schedule tick republishes the schedule's a priori target,
+    # overwriting whatever the tap produced. So a tap shows the opposite
+    # face for at most one Full interval (15 min Morning/Evening, 30 min
+    # Midday) before the schedule's natural rhythm resumes.
+    #
+    # Why read from the mirror sensor instead of recomputing the schedule's
+    # parity: after a prior tap in the same slot, the displayed face and
+    # the schedule's view disagree. Flipping relative to the schedule
+    # would re-publish the same opposite face (no visible change). Flipping
+    # relative to the displayed face guarantees every tap toggles. If the
+    # sensor is unavailable (broker hiccup at startup), fall back to the
+    # schedule's parity so the tap still does *something* sensible.
     - variables:
         minute_of_day: "{{ now().hour * 60 + now().minute }}"
-        new_offset: "{{ 1 - (states('input_number.inkplate_alternation_offset') | int(0)) }}"
-        target: >-
+        offset: "{{ states('input_number.inkplate_alternation_offset') | int(0) }}"
+        tier_main: >-
           {% set m = minute_of_day | int %}
-          {% if m < 10*60 %}
-            {% set tier_start = 6*60 + 30 %}
-            {% set tier_full = 15 %}
-            {% set tier_main = 'summary' %}
-          {% elif m < 17*60 %}
-            {% set tier_start = 10*60 %}
-            {% set tier_full = 30 %}
-            {% set tier_main = 'gallery' %}
+          {% if m < 10*60 %}summary
+          {% elif m < 17*60 %}gallery
+          {% else %}gallery{% endif %}
+        commanded: "{{ states('sensor.inkplate_commanded_face') }}"
+        # Resolve current face. Prefer the mirror sensor; fall back to the
+        # schedule's natural target if the sensor isn't reporting a face value.
+        current_face: >-
+          {% set c = commanded %}
+          {% if c in ('weather', 'summary', 'gallery') %}
+            {{ c }}
           {% else %}
-            {% set tier_start = 17*60 %}
-            {% set tier_full = 15 %}
-            {% set tier_main = 'gallery' %}
+            {% set m = minute_of_day | int %}
+            {% if m < 10*60 %}
+              {% set tier_start = 6*60 + 30 %}
+              {% set tier_full = 15 %}
+            {% elif m < 17*60 %}
+              {% set tier_start = 10*60 %}
+              {% set tier_full = 30 %}
+            {% else %}
+              {% set tier_start = 17*60 %}
+              {% set tier_full = 15 %}
+            {% endif %}
+            {% set parity = (((m - tier_start) // tier_full) + offset) % 4 %}
+            {% if parity == 0 %}weather{% else %}{{ tier_main | trim }}{% endif %}
           {% endif %}
-          {% set parity = (((m - tier_start) // tier_full) + (new_offset | int)) % 2 %}
-          {% if parity == 0 %}{{ tier_main }}{% else %}weather{% endif %}
-        target_face: "{{ target | trim }}"
-    - service: input_number.set_value
-      target: { entity_id: input_number.inkplate_alternation_offset }
-      data: { value: "{{ new_offset }}" }
-    - service: input_text.set_value
-      target: { entity_id: input_text.inkplate_scheduled_face }
-      data: { value: "{{ target_face }}" }
+        flip_face: >-
+          {% if (current_face | trim) == 'weather' %}{{ tier_main | trim }}
+          {% else %}weather{% endif %}
     - service: mqtt.publish
       data:
         topic: inkplate/command/active_mode
-        payload: "{{ target_face }}"
+        payload: "{{ flip_face | trim }}"
         retain: true
     - service: mqtt.publish
       data:

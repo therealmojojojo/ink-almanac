@@ -48,9 +48,15 @@ When `active_override == schedule`, the alternation tick publishes the
 current target face every 15 min:
 
 ```
-parity = (((minute_of_day - tier_start) // tier_full) + alternation_offset) % 2
-target = parity == 0 ? tier_main : 'weather'
+parity = (((minute_of_day - tier_start) // tier_full) + alternation_offset) % 4
+target = parity == 0 ? 'weather' : tier_main
 ```
+
+3:1 main:weather cycle — weather lands on slot 0 of each tier (the slot
+aligned to `tier_start`), main fills the other three. Concretely: weather
+appears at 06:30 / 07:30 / 08:30 / 09:30 in Morning, at 10:00 / 12:00 /
+14:00 / 16:00 in Midday, and at 17:00 / 18:00 / 19:00 / 20:00 / 21:00 in
+Evening.
 
 | Tier | Hours | tier_full | tier_main |
 |---|---|---|---|
@@ -70,9 +76,16 @@ treats `single` and `double` as the same intent (the wire-tied frame
 mount can latch either depending on tap force; distinguishing them
 forces the operator to calibrate tap force). Two automations:
 
-- **Tap during schedule** → flip `input_number.inkplate_alternation_offset`,
-  recompute `scheduled_face`, publish `active_mode = <new face>`. The
-  flipped phase persists across subsequent ticks until tapped again.
+- **Tap during schedule** → flip the currently-displayed face to its
+  counterpart and publish. Reads the displayed face from
+  `sensor.inkplate_commanded_face` (an MQTT-mirror of
+  `inkplate/command/active_mode`) so repeat-taps in the same slot
+  toggle back and forth visibly. Does NOT touch
+  `inkplate_alternation_offset` or `inkplate_scheduled_face` — the next
+  /15 tick recomputes from the untouched offset and restores the
+  schedule's a priori target, regardless of what the tap produced.
+  Effectively a transient toggle lasting up to one Full interval
+  (15 min Morning/Evening, 30 min Midday) before the schedule resumes.
 - **Tap during now_playing** → publish `active_mode = <tier main>`,
   delay 60 s, then publish `active_mode = now-playing` again (peek
   semantics). `mode: restart` so a repeated tap during the peek extends

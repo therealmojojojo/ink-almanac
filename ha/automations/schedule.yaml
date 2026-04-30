@@ -1,12 +1,16 @@
 # Per-tier face alternation engine.
 #
-# Each Full-refresh boundary toggles the displayed face between the tier's
-# main and Weather:
+# Each tier runs a 3:1 main:weather cycle, with weather landing on slot 0
+# (the slot that aligns with the tier-start boundary) and main filling the
+# other three slots:
 #
-#   Morning  (06:30–10:00, Full=15m): Summary ↔ Weather
-#   Midday   (10:00–17:00, Full=30m): Gallery ↔ Weather
-#   Evening  (17:00–22:00, Full=15m): Gallery ↔ Weather
-#   Night    (22:00–06:30):           Night (no alternation)
+#   Morning  (06:30–10:00, Full=15m): Wx, Summary, Summary, Summary, Wx, …
+#                                      → weather at 06:30, 07:30, 08:30, 09:30
+#   Midday   (10:00–17:00, Full=30m): Wx, Gallery, Gallery, Gallery, Wx, …
+#                                      → weather at 10:00, 12:00, 14:00, 16:00
+#   Evening  (17:00–22:00, Full=15m): Wx, Gallery, Gallery, Gallery, Wx, …
+#                                      → weather at 17:00, 18:00, 19:00, 20:00, 21:00
+#   Night    (22:00–06:30):            Night (no alternation)
 #
 # Trigger fires every 15 min (the LCM of the active tiers' Full intervals).
 # Midday's 30-min cadence self-debounces: floor((m - 10*60) / 30) doesn't
@@ -60,8 +64,8 @@
           {% set tier_full = 15 %}
           {% set tier_main = 'gallery' %}
         {% endif %}
-        {% set parity = (((m - tier_start) // tier_full) + offset) % 2 %}
-        {% if parity == 0 %}{{ tier_main }}{% else %}weather{% endif %}
+        {% set parity = (((m - tier_start) // tier_full) + offset) % 4 %}
+        {% if parity == 0 %}weather{% else %}{{ tier_main }}{% endif %}
       {% endif %}
     target_face: "{{ target | trim }}"
   action:

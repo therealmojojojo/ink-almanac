@@ -34,3 +34,13 @@ mqtt:
       unique_id: inkplate_device_build
       state_topic: "inkplate/state/device"
       value_template: "{{ value_json.build }}"
+
+    # Mirror of the most-recent `active_mode` HA has published. The schedule
+    # tick, gesture handler, now-playing override, and any other publisher
+    # all push to this same retained topic, so this sensor is the canonical
+    # "what face was last commanded" — used by the schedule-tap handler to
+    # flip relative to the currently-displayed face (rather than the
+    # schedule's view of it, which can disagree mid-slot after a prior tap).
+    - name: "Inkplate commanded face"
+      unique_id: inkplate_commanded_face
+      state_topic: "inkplate/command/active_mode"
