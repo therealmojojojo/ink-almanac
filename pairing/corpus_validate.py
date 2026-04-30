@@ -26,6 +26,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -46,11 +47,52 @@ MANIFEST = CORPUS / "_manifest.json"
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".tif", ".tiff", ".webp"}
 IMAGE_TIERS = {"public_domain", "cc0", "personal_library"}
 PANEL_FIDELITY_OK = {"native", "robust"}
-# Summary face's delight_text zone budget (mirror renderer/src/zones.ts).
-# If this file drifts from the renderer, the authoring and runtime contracts
-# split silently. Keep the two in sync when the zone is retuned.
-SUMMARY_DELIGHT_MAX_LINES = 4
-SUMMARY_DELIGHT_MAX_CHARS = 24
+# Summary face's delight_text zone admits any body the renderer can fit at
+# its 7-tier ladder (mirror renderer/src/modes/summary.ts:DELIGHT_TIERS, also
+# duplicated in pairing/corpus_build_triplets_v2.py and
+# pairing/corpus_mark_summary_eligibility.py — keep these four sites in sync
+# when the ladder is retuned).
+DELIGHT_TIERS: dict[int, tuple[int, int, int, int]] = {
+    # tier: (font_u, line_height_u, soft_cpl, max_visual_lines)
+    1: (36, 48, 34,  7),
+    2: (32, 44, 38,  8),
+    3: (30, 40, 41,  9),
+    4: (28, 34, 44, 11),
+    5: (28, 30, 44, 12),
+    6: (24, 32, 52, 11),
+    7: (22, 28, 57, 13),
+}
+PILL_FLOOR_TIERS = (1, 2, 3, 4, 5)
+WRAP_TIERS_AT_FLOOR = (4, 5)
+SUB_FLOOR_TIERS = (6, 7)
+
+
+def _delight_visual_lines_at(lines: list[str], cpl: int) -> int:
+    return sum(max(1, math.ceil(len(ln) / cpl)) for ln in lines)
+
+
+def delight_fit_tier(body: str) -> int | None:
+    """Largest tier that fits the body without last-resort sub-floor wrap,
+    or None when no tier in phases 1–3 fits. Mirrors
+    renderer/src/modes/summary.ts:pickFitTier."""
+    lines = [ln.rstrip() for ln in body.splitlines() if ln.strip()]
+    if not lines:
+        return None
+    longest = max(len(ln) for ln in lines)
+    n = len(lines)
+    for t in PILL_FLOOR_TIERS:
+        _, _, cpl, mvl = DELIGHT_TIERS[t]
+        if longest <= cpl and n <= mvl:
+            return t
+    for t in WRAP_TIERS_AT_FLOOR:
+        _, _, cpl, mvl = DELIGHT_TIERS[t]
+        if _delight_visual_lines_at(lines, cpl) <= mvl:
+            return t
+    for t in SUB_FLOOR_TIERS:
+        _, _, cpl, mvl = DELIGHT_TIERS[t]
+        if longest <= cpl and n <= mvl:
+            return t
+    return None
 # Gallery-text form → (maxChars, maxLines). Mirrors renderer/src/zones.ts
 # plus the form→zone mapping in renderer/src/modes/gallery.ts.
 GALLERY_TEXT_BUDGET = {
@@ -430,13 +472,14 @@ def validate_triplets(tax: dict[str, set[str]], items_by_id: dict[str, dict], re
             elif item.get("text"):
                 body = item["text"]
             if body:
-                lines = str(body).strip().split("\n")
-                max_line_chars = max((len(l) for l in lines), default=0)
-                if len(lines) > SUMMARY_DELIGHT_MAX_LINES or max_line_chars > SUMMARY_DELIGHT_MAX_CHARS:
+                tier = delight_fit_tier(str(body))
+                if tier is None:
+                    lines = str(body).strip().split("\n")
+                    max_line_chars = max((len(l) for l in lines), default=0)
                     report.err(
-                        f"{path}: summary slot -> {summary!r} text overflows delight_text budget "
-                        f"({len(lines)} lines, max line {max_line_chars} chars; "
-                        f"budget {SUMMARY_DELIGHT_MAX_LINES} lines / {SUMMARY_DELIGHT_MAX_CHARS} chars per line)"
+                        f"{path}: summary slot -> {summary!r} body does not fit any DELIGHT_TIERS "
+                        f"phase (1–3) — would require last-resort tier-7 wrap "
+                        f"({len(lines)} author lines, max line {max_line_chars} chars)"
                     )
 
         # Slot duplication

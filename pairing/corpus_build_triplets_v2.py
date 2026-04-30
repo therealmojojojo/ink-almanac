@@ -25,7 +25,7 @@ Usage:
   python corpus_build_triplets_v2.py --apply  # wipe + regenerate _triplets/
 """
 from __future__ import annotations
-import argparse, datetime, json, random, sys, textwrap
+import argparse, datetime, json, math, random, sys
 from collections import Counter, deque
 from pathlib import Path
 
@@ -65,28 +65,55 @@ def dominant_themes(themes, k=2):
     shared theme is a real subject (solitude, mortality, journey, …),
     not taxonomic noise or a formal property."""
     return [t for t in (themes or []) if t not in NON_SUBJECT_THEMES][:k]
-SUMMARY_MAX_VISUAL_LINES = 4   # post-wrap visual line cap (delight zone)
-SUMMARY_WRAP_COLS = 24         # char proxy for the delight column width;
-                               # mirrors what the renderer would soft-wrap at
 GALLERY_MIN_LINES = 4
 GALLERY_SHORT_EXEMPT = {"haiku", "tanka"}
 
+# Mirror renderer/src/modes/summary.ts:DELIGHT_TIERS verbatim.
+# (font_u, line_height_u, soft_cpl, max_visual_lines)
+DELIGHT_TIERS: dict[int, tuple[int, int, int, int]] = {
+    1: (36, 48, 34,  7),
+    2: (32, 44, 38,  8),
+    3: (30, 40, 41,  9),
+    4: (28, 34, 44, 11),
+    5: (28, 30, 44, 12),
+    6: (24, 32, 52, 11),
+    7: (22, 28, 57, 13),
+}
+PILL_FLOOR_TIERS = (1, 2, 3, 4, 5)   # ≥28u — picker's admissible band
+WRAP_TIERS_AT_FLOOR = (4, 5)         # 28u with wrap (Phase 2)
+SUB_FLOOR_TIERS = (6, 7)             # below 28u — escape only, picker excludes
 
-def wrapped_visual_lines(body: str, width: int = SUMMARY_WRAP_COLS) -> int:
-    """Greedy word-wrap each author-line at `width` cols; sum the wrapped
-    line counts. Approximates what the renderer's `white-space: pre-line`
-    will produce in the delight column. `break_long_words=False` preserves
-    the (rare) word that exceeds the column rather than mid-splitting it
-    silently — such items will still over-fit and the picker should reject
-    via the same line cap."""
-    n = 0
-    for line in body.splitlines():
-        s = line.strip()
-        if not s:
-            continue
-        wrapped = textwrap.wrap(s, width=width, break_long_words=False, break_on_hyphens=True) or [s]
-        n += len(wrapped)
-    return n
+
+def _visual_lines_at(lines: list[str], cpl: int) -> int:
+    return sum(max(1, math.ceil(len(ln) / cpl)) for ln in lines)
+
+
+def pick_fit_tier(body: str) -> int | None:
+    """Mirror renderer/src/modes/summary.ts:pickFitTier. Returns the largest
+    tier that fits the body without last-resort sub-floor wrap, or None when
+    no tier in phases 1–3 fits (the renderer would still render via tier-7
+    wrap, but the picker will not surface such items)."""
+    lines = [ln.rstrip() for ln in body.splitlines() if ln.strip()]
+    if not lines:
+        return None
+    longest = max(len(ln) for ln in lines)
+    n = len(lines)
+    # Phase 1 — unwrapped at ≥28u
+    for t in PILL_FLOOR_TIERS:
+        _, _, cpl, mvl = DELIGHT_TIERS[t]
+        if longest <= cpl and n <= mvl:
+            return t
+    # Phase 2 — wrap at 28u (tiers 4, 5)
+    for t in WRAP_TIERS_AT_FLOOR:
+        _, _, cpl, mvl = DELIGHT_TIERS[t]
+        if _visual_lines_at(lines, cpl) <= mvl:
+            return t
+    # Phase 3 — sub-floor unwrapped escape (tiers 6, 7)
+    for t in SUB_FLOOR_TIERS:
+        _, _, cpl, mvl = DELIGHT_TIERS[t]
+        if longest <= cpl and n <= mvl:
+            return t
+    return None
 
 DARK_THRESHOLD = 128
 DARK_AREA_MIN = 0.50
@@ -215,7 +242,7 @@ def load_items():
                                   doc.get("pixel_height") or 0),
                 "n_lines": len(lines),
                 "max_chars": max((len(ln) for ln in lines), default=0),
-                "n_visual_lines": wrapped_visual_lines(body) if body else 0,
+                "fit_tier": pick_fit_tier(body) if body else None,
             }
     return items
 
@@ -276,12 +303,17 @@ def derive_pools(items: dict):
         and it["form"] in ANCHOR_FORMS
         and it["themes"]
     ]
+    # Eligibility mirrors the renderer's tier ladder: admit any text that
+    # fits at one of the pill-floor tiers (1–5, ≥28u) or at the sub-floor
+    # unwrapped escape (6–7, 24u/22u). Items where the renderer would have
+    # to fall back to tier-7 wrap are still rejected — the picker should
+    # never surface a delight cell that reads as smaller than the pill.
     summary_texts = [
         it for it in vals
         if it["kind"] == "text"
         and it["themes"]
         and it.get("summary_eligible", True)
-        and 0 < it["n_visual_lines"] <= SUMMARY_MAX_VISUAL_LINES
+        and it.get("fit_tier") is not None
     ]
     gallery_texts = [
         it for it in vals
@@ -511,8 +543,11 @@ def generate(items, pools, seed=42):
             refresh_block()
         return True
 
-    # Target: math upper bound of the bottleneck pool * cap.
-    triplet_target = min(len(anchors), len(summary_texts)) * PER_ITEM_CAP
+    # Target: bounded by the *visible* slots' cap. Summary is the gating
+    # visible slot (anchors are the invisible thematic spine and may reuse
+    # freely). Setting target = summary_pool * PER_ITEM_CAP lets the picker
+    # ride the full summary capacity even when the anchor pool is smaller.
+    triplet_target = len(summary_texts) * PER_ITEM_CAP
 
     pass1_attempts = pass1_failures = 0
     pass2_attempts = pass2_failures = 0
