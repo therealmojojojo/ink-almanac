@@ -40,6 +40,11 @@ class MockDisplay : public hal::IDisplay {
                     int16_t w, int16_t h,
                     uint8_t value) override;
   uint32_t partialUpdate1Bit() override;
+  bool ensurePanelPower() override { return ensure_panel_power_return_; }
+
+  // Lets a scenario simulate a TPS65186 fault-latch (einkOn returning 0).
+  // Defaults to true so existing scenarios are unaffected.
+  void setEnsurePanelPowerReturn(bool ok) { ensure_panel_power_return_ = ok; }
 
   struct BitmapBlit {
     int16_t x, y, w, h;
@@ -83,6 +88,7 @@ class MockDisplay : public hal::IDisplay {
   std::vector<BitmapBlit> bitmap_blits_;
   int partial_update_1bit_count_ = 0;
   uint32_t partial_update_1bit_return_ = 1;  // default: pretend the call drove the panel
+  bool ensure_panel_power_return_ = true;     // default: PMIC healthy
 };
 
 }  // namespace sim

@@ -14,8 +14,13 @@ namespace fw::wake {
 // timer wake the resolved `active_mode` matches the stored one, no full
 // refresh is scheduled, and the partial-refresh counter continues toward the
 // ghost-clear threshold.
-RTC_DATA_ATTR Persisted g_persisted{};
-Persisted& persisted() { return g_persisted; }
+//
+// `volatile` qualifier: documented ESP32 footgun where compiler optimization
+// can elide reads/writes against RTC_DATA_ATTR storage despite the bootloader
+// restoring values across deep-sleep wake. See ESP32 forum thread 9407 and
+// flashgamer.com's "RTC memory on ESP32 and DeepSleep gotcha". Cheap insurance.
+RTC_DATA_ATTR volatile Persisted g_persisted{};
+Persisted& persisted() { return const_cast<Persisted&>(g_persisted); }
 #else
 Persisted& persisted() {
   // Host sim: plain static. Scenarios reset state via `wake::reset()`.

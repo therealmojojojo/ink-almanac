@@ -35,6 +35,19 @@ mqtt:
       state_topic: "inkplate/state/device"
       value_template: "{{ value_json.build }}"
 
+    # Diag ring — last ~32 wakes' compact summary (reason/path/mode/flags/cycles).
+    # Populated by firmware ≥0.4.0-diag-ring. Exposed as a sensor so the
+    # operator can read it from Developer Tools → States during a freeze
+    # without needing mosquitto_sub. The string can run >255 chars; HA
+    # truncates the displayed state but the full string is retained as
+    # the `diag_full` attribute.
+    - name: "Inkplate device diag"
+      unique_id: inkplate_device_diag
+      state_topic: "inkplate/state/device"
+      value_template: "{{ value_json.diag | default('', true) | truncate(250, True) }}"
+      json_attributes_topic: "inkplate/state/device"
+      json_attributes_template: "{{ {'diag_full': value_json.diag | default('')} | tojson }}"
+
     # Mirror of the most-recent `active_mode` HA has published. The schedule
     # tick, gesture handler, now-playing override, and any other publisher
     # all push to this same retained topic, so this sensor is the canonical
@@ -44,3 +57,17 @@ mqtt:
     - name: "Inkplate commanded face"
       unique_id: inkplate_commanded_face
       state_topic: "inkplate/command/active_mode"
+
+  binary_sensor:
+    # EPD power-good — exposed by the firmware after probing the TPS65186
+    # PMIC at the start of every Full. False means the chip fault-latched
+    # (the panel will show stale pixels until the operator removes the LiPo;
+    # no software recovery exists on this hardware). See
+    # openspec/changes/add-epd-power-good-diagnostic for the alert path.
+    - name: "Inkplate device EPD power good"
+      unique_id: inkplate_device_epd_pwrgood
+      state_topic: "inkplate/state/device"
+      device_class: problem
+      value_template: "{{ value_json.epd_pwrgood }}"
+      payload_on: "False"
+      payload_off: "True"

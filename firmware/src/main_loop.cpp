@@ -17,6 +17,7 @@
 #include "battery.h"
 #include "clock_render.h"
 #include "config.h"
+#include "diag.h"
 #include "gestures.h"
 #include "modes.h"
 #include "wake.h"
@@ -320,7 +321,7 @@ bool backoffFetch(hal::ITransport& t,
 // skipped — first partial after a Full smudges, but only that first one;
 // the Full path also runs a one-shot seed (see doFull) so even that case
 // is clean as long as the renderer published a zone.
-bool doPartial(hal::HAL& h, hal::Epoch local_now) {
+bool doPartial(hal::HAL& h, hal::Epoch local_now, fw::diag::Entry* diag = nullptr) {
   const auto& p = wake::persisted();
   if (p.clock_zone_font_size == 0) {
     FW_LOG("partial skipped (no zone cached for mode=%s)",
@@ -351,7 +352,7 @@ bool doPartial(hal::HAL& h, hal::Epoch local_now) {
   // Step 2 — draw new digits; partialUpdate diff cleans old + draws new.
   fw::clock::draw(h.display, *preset, p.clock_zone_x, p.clock_zone_y,
                   gm->tm_hour, gm->tm_min);
-  [[maybe_unused]] const uint32_t cycles = h.display.partialUpdate1Bit();
+  const uint32_t cycles = h.display.partialUpdate1Bit();
   h.display.setDisplayMode(hal::IDisplay::DisplayMode::ThreeBit);
 
   wake::persisted().last_drawn_hh = static_cast<uint8_t>(gm->tm_hour);
@@ -362,6 +363,11 @@ bool doPartial(hal::HAL& h, hal::Epoch local_now) {
          p.clock_zone_x, p.clock_zone_y,
          static_cast<unsigned>(p.clock_zone_font_size),
          static_cast<unsigned>(cycles));
+
+  if (diag) {
+    diag->cycles = static_cast<uint16_t>(cycles > 0xFFFF ? 0xFFFF : cycles);
+    if (cycles > 0) diag->flags |= 0x10;  // partial_succeeded
+  }
   return true;
 }
 
@@ -376,7 +382,8 @@ void doFull(hal::HAL& h,
             bool mqtt,
             // If the caller (Poll/PollPartial) already decoded a mode payload
             // and decided to escalate, pass it here so we don't re-fetch.
-            std::optional<fw::modes::Mode> already_resolved) {
+            std::optional<fw::modes::Mode> already_resolved,
+            fw::diag::Entry* diag = nullptr) {
   bool gesture_published = false;
   fw::modes::Mode active = wake::persisted().current_mode;
 
@@ -407,9 +414,25 @@ void doFull(hal::HAL& h,
   [[maybe_unused]] const bool mode_changed = active != wake::persisted().current_mode;
   FW_LOG("mode=%s changed=%d", fw::modes::toString(active), mode_changed ? 1 : 0);
 
+  // EPD power-good probe (see add-epd-power-good-diagnostic). Soldered's
+  // library silently bails any draw call when `einkOn()` returns 0
+  // (TPS65186 fault-latched, VCOM stuck, brownout). The void-returning
+  // public API hides that, leaving the panel showing whatever it had
+  // last drawn while the firmware reports MQTT state cheerfully. We probe
+  // here so the failure becomes a `false` boolean in `state/device`.
+  const bool epd_pwrgood = h.display.ensurePanelPower();
+  FW_LOG("epd_pwrgood=%d", epd_pwrgood ? 1 : 0);
+  if (diag) {
+    if (wifi)         diag->flags |= 0x01;
+    if (mqtt)         diag->flags |= 0x02;
+    if (epd_pwrgood)  diag->flags |= 0x04;
+  }
+
   // Draw the active face. URL path on device; buffer-fallback in sim.
+  // Skip entirely when the PMIC failed to power up — the library would
+  // silently no-op anyway, and we save the network round-trip.
   bool draw_succeeded = false;
-  if (wifi) {
+  if (wifi && epd_pwrgood) {
     const auto url = rendererUrl(active);
     const bool full = true;  // 3-bit Inkplate 10 — partial in 3-bit is a no-op.
     const hal::Rect full_rect{0, 0, 1200, 825};
@@ -485,11 +508,19 @@ void doFull(hal::HAL& h,
     }
   }
 
+  if (diag && draw_succeeded) diag->flags |= 0x08;
+
   if (mqtt) {
     auto reading = fw::battery::read(h.battery);
+    // Diag-ring snapshot: rendered into a stack buffer so the JSON builder
+    // can splice it inline without owning storage. The size is sized to
+    // hold the ring header + 32 entries at ~25 chars each.
+    char diag_buf[1024];
+    if (diag) fw::diag::record(*diag);
+    fw::diag::format(diag_buf, sizeof(diag_buf));
     auto json = fw::battery::toDeviceStateJson(
         reading, wake::toString(reason), fw::modes::toString(active),
-        fw::kBuildVersion);
+        fw::kBuildVersion, epd_pwrgood, diag_buf);
     h.transport.mqttPublish(fw::config::kTopicDeviceState, json, /*retained=*/true);
 
     if (reason == wake::Reason::IMU && tap != fw::gestures::TapKind::None &&
@@ -514,6 +545,18 @@ void tick(hal::HAL h, wake::Reason reason) {
   const int local_hour = hourOfDay(local_now);
   const int local_min_of_day = minuteOfDay(local_now);
 
+  // Per-wake diagnostic entry. Populated as we go; recorded into the RTC
+  // ring on every return path so the next Full's MQTT publish carries the
+  // ring back to HA. The doFull path records itself (right before the JSON
+  // build); other paths record explicitly via `record_diag`.
+  fw::diag::Entry e{};
+  e.epoch = static_cast<uint32_t>(now);
+  e.path = 0xff;  // "not planned yet"; doFull/doPartial paths overwrite below
+  bool diag_recorded = false;
+  auto record_diag = [&]() {
+    if (!diag_recorded) { fw::diag::record(e); diag_recorded = true; }
+  };
+
   // Latched-tap polling — Timer wake might mask a pending IMU event because
   // INT1 isn't ext1-wired but TAP_SRC is latched across deep sleep.
   fw::gestures::TapKind polled_tap = fw::gestures::TapKind::None;
@@ -524,6 +567,7 @@ void tick(hal::HAL h, wake::Reason reason) {
       reason = wake::Reason::IMU;
     }
   }
+  e.reason = static_cast<uint8_t>(reason);
 
   fw::gestures::TapKind tap = fw::gestures::TapKind::None;
   if (reason == wake::Reason::IMU) {
@@ -532,16 +576,12 @@ void tick(hal::HAL h, wake::Reason reason) {
     if (tap == fw::gestures::TapKind::None) {
       // Spurious ext0 — skip the whole tick and re-sleep on the same mask.
       FW_LOG("spurious ext0 wake (TAP_SRC empty); re-sleeping%s", "");
+      e.mode = static_cast<uint8_t>(wake::persisted().current_mode);
+      record_diag();
       h.clock.scheduleWake(
           wake::armMask(wake::persisted().current_mode, local_hour));
       return;
     }
-    // Visual ack: paint 1 (single) or 2 (double) dots adjacent to the
-    // battery indicator and clear them ~700 ms later. Runs BEFORE WiFi
-    // connect / path planning so the user sees confirmation within
-    // ~450 ms of the tap, well ahead of the 6-9 s pipeline to a face
-    // change. ~1.5 s extra wake latency, ~0.18 mAh battery cost (three
-    // partial pulses).
     showTapAck(h.display, tap);
   }
 
@@ -555,12 +595,15 @@ void tick(hal::HAL h, wake::Reason reason) {
   } else {
     path = wake::Path::Full;
   }
+  e.path = static_cast<uint8_t>(path);
+  e.mode = static_cast<uint8_t>(wake::persisted().current_mode);
   FW_LOG("path=%s reason=%s mode=%s min=%d",
          wake::pathName(path), wake::toString(reason),
          fw::modes::toString(wake::persisted().current_mode), local_min_of_day);
 
   // Skip — schedule says nothing happens this minute. Re-arm and sleep.
   if (path == wake::Path::Skip) {
+    record_diag();
     h.clock.scheduleWake(wake::armMask(wake::persisted().current_mode, local_hour));
     return;
   }
@@ -568,11 +611,13 @@ void tick(hal::HAL h, wake::Reason reason) {
   // Partial — offline clock-only refresh. Promote to Full if mode lacks a
   // baked partial zone (Night, NowPlaying, Unknown).
   if (path == wake::Path::Partial) {
-    if (doPartial(h, local_now)) {
+    if (doPartial(h, local_now, &e)) {
+      record_diag();
       h.clock.scheduleWake(wake::armMask(wake::persisted().current_mode, local_hour));
       return;
     }
     path = wake::Path::Full;
+    e.path = static_cast<uint8_t>(path);
   }
 
   // Network bring-up for Poll, PollPartial, Full.
@@ -580,6 +625,8 @@ void tick(hal::HAL h, wake::Reason reason) {
   FW_LOG("wifi=%d", wifi ? 1 : 0);
   const bool mqtt = wifi ? h.transport.mqttConnect() : false;
   FW_LOG("mqtt=%d", mqtt ? 1 : 0);
+  if (wifi) e.flags |= 0x01;
+  if (mqtt) e.flags |= 0x02;
 
   // Poll — read the retained active_mode. If it changed, fall through to
   // Full (so the new face is drawn this wake instead of waiting another
@@ -592,7 +639,10 @@ void tick(hal::HAL h, wake::Reason reason) {
       FW_LOG("poll detected mode change %s -> %s",
              fw::modes::toString(wake::persisted().current_mode),
              fw::modes::toString(resolved));
-      doFull(h, reason, tap, local_hour, local_now, wifi, mqtt, resolved);
+      doFull(h, reason, tap, local_hour, local_now, wifi, mqtt, resolved, &e);
+      diag_recorded = true;  // doFull's MQTT publish path records the entry
+    } else {
+      record_diag();
     }
     h.clock.scheduleWake(wake::armMask(wake::persisted().current_mode, local_hour));
     return;
@@ -617,18 +667,24 @@ void tick(hal::HAL h, wake::Reason reason) {
       FW_LOG("poll-partial detected mode change %s -> %s",
              fw::modes::toString(wake::persisted().current_mode),
              fw::modes::toString(resolved));
-      doFull(h, reason, tap, local_hour, local_now, wifi, mqtt, resolved);
-    } else if (!doPartial(h, local_now)) {
+      doFull(h, reason, tap, local_hour, local_now, wifi, mqtt, resolved, &e);
+      diag_recorded = true;
+    } else if (!doPartial(h, local_now, &e)) {
       // No zone for this mode — promote to Full so the clock keeps moving.
-      doFull(h, reason, tap, local_hour, local_now, wifi, mqtt, std::nullopt);
+      doFull(h, reason, tap, local_hour, local_now, wifi, mqtt, std::nullopt, &e);
+      diag_recorded = true;
+    } else {
+      record_diag();
     }
     h.clock.scheduleWake(wake::armMask(wake::persisted().current_mode, local_hour));
     return;
   }
 
   // Full — the original unrefactored path.
-  doFull(h, reason, tap, local_hour, local_now, wifi, mqtt, std::nullopt);
+  doFull(h, reason, tap, local_hour, local_now, wifi, mqtt, std::nullopt, &e);
+  diag_recorded = true;
   h.clock.scheduleWake(wake::armMask(wake::persisted().current_mode, local_hour));
+  if (!diag_recorded) record_diag();
 }
 
 }  // namespace fw

@@ -1,0 +1,40 @@
+# Notify the operator when the device's EPD PMIC fault-latches.
+#
+# Background: on Inkplate 10 the TPS65186 EPD PMIC can latch into a fault
+# state (over-current, VCOM stuck, brownout) that no software sequence
+# clears — only fully removing the LiPo battery resets it. The Soldered
+# library silently bails any draw call when `einkOn()` returns 0, so
+# without this signal the panel can sit on a stale image for hours
+# while the firmware happily reports MQTT state.
+#
+# The firmware probes power-good at the start of every Full and publishes
+# `epd_pwrgood` in `inkplate/state/device` (mirrored as
+# `binary_sensor.inkplate_device_epd_power_good`, device_class: problem).
+# This automation alerts after one full-cycle window of sustained
+# failure (debounces single-publish flaps) and throttles re-notifies to
+# every 4 hours so a multi-hour outage doesn't spam.
+#
+# See openspec/changes/add-epd-power-good-diagnostic.
+
+- id: inkplate_epd_pwrgood_alert
+  alias: "Inkplate: EPD PMIC wedged — battery removal required"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.inkplate_device_epd_power_good
+      to: "on"               # device_class: problem → "on" means wedged
+      for: "00:31:00"        # one Midday full-cycle window
+  condition:
+    - condition: template
+      value_template: >-
+        {% set last = state_attr('automation.inkplate_epd_pwrgood_alert','last_triggered') %}
+        {{ last is none or (now() - last).total_seconds() > 4*3600 }}
+  action:
+    - service: notify.inkplate_operator
+      data:
+        title: "Inkplate panel wedged"
+        message: >-
+          EPD PMIC fault-latched.
+          Battery {{ states('sensor.inkplate_device_battery') }}%,
+          last wake_reason {{ states('sensor.inkplate_device_wake_reason') }}.
+          Recovery: remove the LiPo battery (the slider switch alone is
+          insufficient — bulk caps hold VIN up). Re-insert after ~30 s.

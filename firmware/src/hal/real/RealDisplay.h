@@ -94,6 +94,14 @@ class RealDisplay : public hal::IDisplay {
     return panel_.partialUpdate(/*_forced=*/true);
   }
 
+  bool ensurePanelPower() override {
+    // panel_.einkOn() returns 1 on success, 0 if PWR_GOOD didn't latch
+    // within the library's 250 ms timeout (TPS65186 fault-latched, VCOM
+    // stuck, brownout, etc.). Idempotent — if the chip is already up, the
+    // library returns 1 immediately without re-running the I2C config.
+    return panel_.einkOn() == 1;
+  }
+
  private:
   Inkplate& panel_;
 };

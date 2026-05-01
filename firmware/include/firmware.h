@@ -17,7 +17,9 @@ namespace fw {
 // `setup()` calls it and then invokes `IClock::sleepFor`.
 void tick(hal::HAL hal, wake::Reason reason);
 
-// Build version string baked into device-state publishes.
-constexpr const char* kBuildVersion = "0.3.0-minute-tick";
+// Build version string baked into device-state publishes. Bump on every
+// shipped firmware change so HA's `inkplate_device_build` sensor and the
+// post-wedge diagnostic correlate to a real commit.
+constexpr const char* kBuildVersion = "0.4.0-diag-ring";
 
 }  // namespace fw

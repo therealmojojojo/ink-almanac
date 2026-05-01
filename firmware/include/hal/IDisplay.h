@@ -76,6 +76,21 @@ class IDisplay {
   // driven; 0 means the call was a no-op (hardware refused, e.g. wrong mode).
   // Tests assert the > 0 case to prove the partial actually fired.
   virtual uint32_t partialUpdate1Bit() { return 0; }
+
+  // -------------------- EPD PMIC power-good probe --------------------------
+  //
+  // The Soldered library's draw paths open with `if (!einkOn()) return;`
+  // and `einkOn()` itself returns 0 when the TPS65186 fails to reach
+  // `PWR_GOOD_OK` within 250 ms. The void-returning public draw API hides
+  // that failure: `display.draw3bit()` and `partialUpdate*()` return
+  // nothing, so the firmware can't tell a no-op apart from a successful
+  // refresh. We probe `einkOn()` directly here so the Full path can record
+  // power-good in `inkplate/state/device` and HA can alert.
+  //
+  // Default impl returns true (host sim and any non-Inkplate target).
+  // RealDisplay delegates to `panel_.einkOn()`. Idempotent: if the panel
+  // is already powered, the library returns 1 immediately.
+  virtual bool ensurePanelPower() { return true; }
 };
 
 }  // namespace hal
