@@ -100,7 +100,15 @@ trap "rm -rf '$WORK' '$SSH_WRAPPER'" EXIT
 find "$WORK" -type f \( -name '*.yaml' -o -name '*.yml' -o -name '*.sh' -o -name '*.md' -o -name '*.json' \) -print0 \
   | while IFS= read -r -d '' f; do
       tmp="$f.subst.$$"
-      envsubst "$SUBST_VARS" < "$f" > "$tmp" && mv "$tmp" "$f"
+      # Preserve the original mode across the envsubst rewrite. The `>`
+      # creates $tmp with the default umask; `mv` then clobbers the
+      # original's mode. Without this, all *.sh deployed to HA lose
+      # their exec bit and `./script.sh` invocations from shell_commands
+      # fail with return-code 126 — silently in HA's logs, except as a
+      # one-line ERROR. Hit us across publish_today_pairing,
+      # generate_poetic_weather_line, fetch_sonos_art, etc. for days.
+      mode="$(stat -f %A "$f" 2>/dev/null || stat -c %a "$f")"
+      envsubst "$SUBST_VARS" < "$f" > "$tmp" && mv "$tmp" "$f" && chmod "$mode" "$f"
     done
 
 echo "→ Streaming rendered ha/ fragments → $REMOTE_BASE"
