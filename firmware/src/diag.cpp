@@ -108,6 +108,15 @@ std::size_t format(char* buf, std::size_t n) {
                                 static_cast<unsigned>(e.cycles));
       if (extra > 0) off += static_cast<std::size_t>(extra);
     }
+    if (e.reset_reason && off + 6 < n) {
+      // Only set on cold-boot entries — distinguishes brown-out (9),
+      // task-WDT (6), int-WDT (5), panic (4), POR (1), external reset
+      // (e.g., RTS pin → 2). Inspecting the trail of `cFU?/r9` over a
+      // night tells us why the cold boots are happening.
+      int extra = std::snprintf(buf + off, n - off, "/r%u",
+                                static_cast<unsigned>(e.reset_reason));
+      if (extra > 0) off += static_cast<std::size_t>(extra);
+    }
     if (off >= n) break;
   }
 

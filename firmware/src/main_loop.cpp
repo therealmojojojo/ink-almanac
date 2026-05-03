@@ -24,6 +24,7 @@
 
 #ifdef ARDUINO
 #include <Arduino.h>
+#include <esp_system.h>  // esp_reset_reason() — distinguishes cold_boot causes
 #include "secrets.h"  // INKPLATE_RENDERER_BASE on device; host sim injects via Scenario.
 #define FW_LOG(fmt, ...) Serial.printf("[tick] " fmt "\n", ##__VA_ARGS__)
 #else
@@ -568,6 +569,17 @@ void tick(hal::HAL h, wake::Reason reason) {
     }
   }
   e.reason = static_cast<uint8_t>(reason);
+#ifdef ARDUINO
+  // Capture the underlying reset cause for ColdBoot wakes. Our `reason`
+  // collapses POR / brown-out / watchdog / panic / external-reset into a
+  // single ColdBoot bucket because esp_sleep_get_wakeup_cause() returns the
+  // default for all of them. esp_reset_reason() distinguishes them — vital
+  // for diagnosing whether tap-correlated cold_boots are brown-outs (9) or
+  // watchdog timeouts (5/6) or something else.
+  if (reason == wake::Reason::ColdBoot) {
+    e.reset_reason = static_cast<uint8_t>(esp_reset_reason());
+  }
+#endif
 
   fw::gestures::TapKind tap = fw::gestures::TapKind::None;
   if (reason == wake::Reason::IMU) {

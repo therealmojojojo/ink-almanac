@@ -25,7 +25,13 @@ class RealTransport : public hal::ITransport {
     g_rt_instance = this;
     mqtt_.setClient(client_);
     mqtt_.setServer(INKPLATE_MQTT_HOST, INKPLATE_MQTT_PORT);
-    mqtt_.setBufferSize(512);
+    // 512 was the original; raised to 2048 because state/device JSON now
+    // carries the diag ring (up to ~700 bytes payload + ~30 bytes overhead).
+    // PubSubClient::publish() guards against bufferSize <
+    // MQTT_MAX_HEADER_SIZE + 2 + topic_len + payload_len and returns false
+    // silently — exactly what masked the device for hours after each cold
+    // boot until this fix.
+    mqtt_.setBufferSize(2048);
     mqtt_.setCallback(&RealTransport::trampoline);
   }
 
@@ -121,9 +127,18 @@ class RealTransport : public hal::ITransport {
   void mqttPublish(const std::string& topic,
                    const std::string& payload,
                    bool retained) override {
-    mqtt_.publish(topic.c_str(),
-                  reinterpret_cast<const uint8_t*>(payload.data()),
-                  payload.size(), retained);
+    const bool ok = mqtt_.publish(topic.c_str(),
+                                  reinterpret_cast<const uint8_t*>(payload.data()),
+                                  payload.size(), retained);
+    if (!ok) {
+      // Two known causes: payload+topic exceeded mqtt_'s buffer (the
+      // 512-byte limit was the original silent-failure mode), or the TCP
+      // write itself returned short. Either way the publish never went
+      // out — log it so the failure is observable, not silent.
+      Serial.printf("[mqtt] publish FAILED topic=%s payload_len=%u\n",
+                    topic.c_str(),
+                    static_cast<unsigned>(payload.size()));
+    }
     // Flush in-flight PUBLISH packets before the caller proceeds or sleeps.
     mqtt_.loop();
   }

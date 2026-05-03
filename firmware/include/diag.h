@@ -23,13 +23,17 @@
 namespace fw::diag {
 
 struct Entry {
-  uint32_t epoch;     // unix epoch when the wake started
-  uint8_t reason;     // fw::wake::Reason as uint8
-  uint8_t path;       // fw::wake::Path as uint8 (0xff = not planned, e.g. cold-boot Full)
-  uint8_t mode;       // fw::modes::Mode as uint8
-  uint8_t flags;      // bit0=wifi, bit1=mqtt, bit2=epd_pwrgood, bit3=draw_succeeded, bit4=partial_succeeded
-  uint16_t cycles;    // partialUpdate1Bit() cycles (>0 means panel was driven)
-  uint16_t pad;
+  uint32_t epoch;        // unix epoch when the wake started
+  uint8_t reason;        // fw::wake::Reason as uint8
+  uint8_t path;          // fw::wake::Path as uint8 (0xff = not planned, e.g. cold-boot Full)
+  uint8_t mode;          // fw::modes::Mode as uint8
+  uint8_t flags;         // bit0=wifi, bit1=mqtt, bit2=epd_pwrgood, bit3=draw_succeeded, bit4=partial_succeeded
+  uint16_t cycles;       // partialUpdate1Bit() cycles (>0 means panel was driven)
+  uint8_t reset_reason;  // ESP-IDF esp_reset_reason_t enum int. Populated
+                         // only on ColdBoot wakes (1=POWERON, 2=EXT,
+                         // 4=PANIC, 5=INT_WDT, 6=TASK_WDT, 9=BROWNOUT, …).
+                         // 0 = not a cold boot or not on ARDUINO.
+  uint8_t pad;
 };
 static_assert(sizeof(Entry) == 12, "DiagEntry must be 12 bytes");
 
