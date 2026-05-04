@@ -20,6 +20,6 @@ void tick(hal::HAL hal, wake::Reason reason);
 // Build version string baked into device-state publishes. Bump on every
 // shipped firmware change so HA's `inkplate_device_build` sensor and the
 // post-wedge diagnostic correlate to a real commit.
-constexpr const char* kBuildVersion = "0.4.0-diag-ring";
+constexpr const char* kBuildVersion = "0.4.1-wifi-rssi";
 
 }  // namespace fw

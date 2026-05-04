@@ -46,6 +46,12 @@ class ITransport {
 
   virtual ~ITransport() = default;
   virtual bool wifiConnect() = 0;
+  // Most-recent received-signal-strength of the device's WiFi association,
+  // in dBm. Typical range is -30 (excellent) to -90 (unusable). Returns 0
+  // when not connected or when the implementation can't read RSSI (host
+  // sim default). Reported in `state/device` as `wifi_rssi` so the
+  // operator can see link quality alongside battery / wake_reason.
+  virtual int wifiRssi() { return 0; }
   virtual HttpResponse httpGet(const std::string& url) = 0;
   virtual bool mqttConnect() = 0;
   virtual void mqttSubscribe(const std::string& topic, MqttCallback cb) = 0;

@@ -35,6 +35,18 @@ mqtt:
       state_topic: "inkplate/state/device"
       value_template: "{{ value_json.build }}"
 
+    # WiFi RSSI in dBm — the device's view of its association quality at the
+    # moment of the most recent Full publish. Healthy: -30 to -65. Marginal:
+    # -65 to -75. Unreliable: -75 and below. 0 means not connected (the
+    # firmware default when WL_CONNECTED is false). Useful for deciding
+    # whether to reposition the device or add a coverage AP.
+    - name: "Inkplate device WiFi RSSI"
+      unique_id: inkplate_device_wifi_rssi
+      state_topic: "inkplate/state/device"
+      value_template: "{{ value_json.wifi_rssi | default(0) | int }}"
+      unit_of_measurement: "dBm"
+      device_class: signal_strength
+
     # Diag ring — last ~32 wakes' compact summary (reason/path/mode/flags/cycles).
     # Populated by firmware ≥0.4.0-diag-ring. Exposed as a sensor so the
     # operator can read it from Developer Tools → States during a freeze

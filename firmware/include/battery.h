@@ -21,11 +21,16 @@ Reading read(hal::IBattery& b);
 // `device_class: problem` and alerts when the panel is wedged.
 //
 // `diag` is the rendered fw::diag ring (compact text, ~900 chars max). nullable.
+//
+// `wifi_rssi` is the device's just-measured WiFi signal in dBm (0 means
+// not connected). Surfaced in HA so the operator can see link quality
+// alongside battery / wake_reason without external tools.
 std::string toDeviceStateJson(Reading r,
                               const char* wake_reason,
                               const char* active_mode,
                               const char* build_version,
                               bool epd_pwrgood,
+                              int wifi_rssi,
                               const char* diag = nullptr);
 
 }  // namespace fw::battery

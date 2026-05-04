@@ -14,6 +14,7 @@ std::string toDeviceStateJson(Reading r,
                               const char* active_mode,
                               const char* build_version,
                               bool epd_pwrgood,
+                              int wifi_rssi,
                               const char* diag) {
   // 1.5 KB is enough for all fixed fields plus the ring (~900 chars max).
   char buf[1536];
@@ -22,23 +23,26 @@ std::string toDeviceStateJson(Reading r,
         buf, sizeof(buf),
         "{\"voltage\":%.2f,\"percentage\":%d,\"wake_reason\":\"%s\","
         "\"active_mode\":\"%s\",\"build\":\"%s\",\"epd_pwrgood\":%s,"
-        "\"diag\":\"%s\"}",
+        "\"wifi_rssi\":%d,\"diag\":\"%s\"}",
         static_cast<double>(r.voltage), r.percentage,
         wake_reason ? wake_reason : "",
         active_mode ? active_mode : "",
         build_version ? build_version : "",
         epd_pwrgood ? "true" : "false",
+        wifi_rssi,
         diag);
   } else {
     std::snprintf(
         buf, sizeof(buf),
         "{\"voltage\":%.2f,\"percentage\":%d,\"wake_reason\":\"%s\","
-        "\"active_mode\":\"%s\",\"build\":\"%s\",\"epd_pwrgood\":%s}",
+        "\"active_mode\":\"%s\",\"build\":\"%s\",\"epd_pwrgood\":%s,"
+        "\"wifi_rssi\":%d}",
         static_cast<double>(r.voltage), r.percentage,
         wake_reason ? wake_reason : "",
         active_mode ? active_mode : "",
         build_version ? build_version : "",
-        epd_pwrgood ? "true" : "false");
+        epd_pwrgood ? "true" : "false",
+        wifi_rssi);
   }
   return std::string(buf);
 }

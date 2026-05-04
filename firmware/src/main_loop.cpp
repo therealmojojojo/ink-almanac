@@ -513,6 +513,7 @@ void doFull(hal::HAL& h,
 
   if (mqtt) {
     auto reading = fw::battery::read(h.battery);
+    const int wifi_rssi = h.transport.wifiRssi();
     // Diag-ring snapshot: rendered into a stack buffer so the JSON builder
     // can splice it inline without owning storage. The size is sized to
     // hold the ring header + 32 entries at ~25 chars each.
@@ -521,7 +522,7 @@ void doFull(hal::HAL& h,
     fw::diag::format(diag_buf, sizeof(diag_buf));
     auto json = fw::battery::toDeviceStateJson(
         reading, wake::toString(reason), fw::modes::toString(active),
-        fw::kBuildVersion, epd_pwrgood, diag_buf);
+        fw::kBuildVersion, epd_pwrgood, wifi_rssi, diag_buf);
     h.transport.mqttPublish(fw::config::kTopicDeviceState, json, /*retained=*/true);
 
     if (reason == wake::Reason::IMU && tap != fw::gestures::TapKind::None &&

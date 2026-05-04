@@ -50,6 +50,12 @@ class RealTransport : public hal::ITransport {
     return WiFi.status() == WL_CONNECTED;
   }
 
+  int wifiRssi() override {
+    // Returns 0 when not connected (matches the ITransport default for
+    // sim builds). On a healthy connection, ESP32 returns -30..-90 dBm.
+    return WiFi.status() == WL_CONNECTED ? static_cast<int>(WiFi.RSSI()) : 0;
+  }
+
   // NTP sync. The schedule planner keys off minute-of-day, so an accurate
   // wall clock matters — RTC alone boots to 1970 on every cold start. The
   // ESP32 RTC keeps running across deep sleep once set, but it drifts at
