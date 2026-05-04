@@ -66,6 +66,7 @@ corpus/texts/*.yaml
 corpus/images/*.yaml
 corpus/_triplets/*.yaml
 corpus/_audits/*.md
+corpus/_audits/*.json
 corpus/_caches/*
 corpus/_manifest.json
 !corpus/personal_library/EXAMPLE.yaml.template
@@ -90,3 +91,13 @@ ha/data/
 
 # Claude Code session lock — tooling-internal.
 .claude/scheduled_tasks.lock
+
+# OpenSpec change review artifacts. The HTML pages and `*-renders/`
+# directories are produced by `corpus build-review-page` for operator
+# eyeballing during a change; they're regenerable from the corpus + the
+# script, and the rendered PNGs alone can run to tens of megabytes per
+# change. The change folder's source-of-truth (proposal.md, design.md,
+# tasks.md, specs/) stays tracked.
+openspec/changes/**/*-review.html
+openspec/changes/**/*-review-over*.html
+openspec/changes/**/*-renders/
