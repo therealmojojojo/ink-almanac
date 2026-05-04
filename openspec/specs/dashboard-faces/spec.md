@@ -51,8 +51,8 @@ Every dynamic text field is assigned to a named zone with a fixed character budg
 | delight_attrib  | summary      | 40       | 1        | prose |                                                      |
 | location_name   | weather      | 16       | 1        | prose |                                                      |
 | weather_cond_w  | weather      | 18       | 1        | prose |                                                      |
-| astro_event     | weather      | 22       | 1        | prose |                                                      |
-| astro_detail    | weather      | 26       | 2        | prose |                                                      |
+| astro_event     | weather      | 90       | 4        | prose | single statement; rendered at a tiered font size (30u → 20u) chosen by `weather.ts:pickStarsTier`; zone trim is a last-resort backstop |
+| astro_detail    | weather      | 26       | 2        | prose | DEPRECATED — vestigial, no longer consumed by the renderer; HA may still publish, will be dropped on cutover |
 | gallery_title   | gallery      | 20       | 1        | prose |                                                      |
 | gallery_attrib  | gallery      | 32       | 1        | prose |                                                      |
 | poem_body       | gallery      | 64       | 32       | verse |                                                      |
@@ -142,19 +142,63 @@ Weather SHALL present two locations with equal treatment, and an astro footer.
 
 - **Header (auto-height)**: mode-headline ("WEATHER"), date inline, time — separated by a 2u solid rule
 - **Location rows (1fr, two rows)**: each row has a name + coordinates, a current-conditions block (icon + large temperature + feels-like + H/L/rain), and a 5-day mini-forecast strip. Rows are separated by a 1u dashed rule.
-- **Astro footer (auto-height, above a 2u solid rule)**: three equal cells — sunrise/sunset + daylight duration, moon phase (SVG-rendered) + next full-moon date, tonight's astronomical event
+- **Astro footer (auto-height, above a 2u solid rule)**: three equal cells — sunrise/sunset + daylight duration, moon phase (SVG-rendered) + next full-moon date, tonight's Stars-cell statement
 
 Both locations are visually equivalent; neither is privileged.
+
+The astro footer's third cell (Stars) MUST render a single statement
+sourced from the publisher, sized by tiered font-fit:
+
+- The Stars cell SHALL contain exactly one text element ("the
+  statement") below the cell's `STARS` label. No secondary detail line.
+- The statement SHALL be rendered at a font size chosen from a seven-rung
+  tier table (30u, 28u, 27u, 26u, 25u, 22u, 20u; sans, weight 500).
+- The picker SHALL pick the largest tier ≥ 25u where the statement fits
+  on a single line (Phase 1). When no tier ≥ 25u accommodates the
+  statement unwrapped, the picker SHALL pick the largest tier where
+  wrapped lines fit the tier's max-visual-lines (Phase 2). 25u is the
+  floor matching the Moon cell; sub-floor tiers (22u, 20u) are reached
+  only on chatty statements.
+- The Stars cell footprint SHALL NOT exceed the cell's existing fixed
+  envelope at any tier choice.
+- The Moon cell remains unchanged. The Stars statement SHALL NOT
+  mention the moon (the Moon cell already conveys phase + glyph).
 
 #### Scenario: Weather with two locations
 
 - **WHEN** Weather renders for "${PLACE_A_NAME}" and "${PLACE_B_NAME}"
 - **THEN** both location rows are present, neither is styled as primary, the astro row is visible at the bottom
 
+#### Scenario: Stars cell renders Jupiter visibility
+
+- **WHEN** the Stars publisher emits "Jupiter high in SW until 01:00"
+- **THEN** the cell renders the statement on one line at 30u (T1) sans
+  weight 500, and no detail line is emitted
+
+#### Scenario: Stars cell renders an Artemis-launch headline
+
+- **WHEN** the Stars publisher emits "Artemis IV launches tomorrow — first crewed lunar landing since 1972"
+- **THEN** the cell renders the statement at 25u (T5) sans weight 500 with the text wrapped to three lines, fitting inside the cell's existing footprint
+
+### Requirement: Astro event freshness guard
+
+The Stars publisher (HA-side) MUST refuse to surface stale text. When
+the upstream state file backing `sensor.astro_event_tonight` has an
+mtime older than 30 hours, the sensor SHALL return an empty string
+and the cell SHALL render the literal "no event tonight" treatment.
+
+#### Scenario: Stale astro_event.txt suppressed
+
+- **WHEN** `astro_event.txt` was last written 36 hours ago and the
+  cron has not since written a fresh value
+- **THEN** `sensor.astro_event_tonight` reports an empty string and
+  the Stars cell renders "no event tonight" instead of the stale text
+
 #### Scenario: No astronomical event tonight
 
-- **WHEN** the astro event feed returns no event for tonight
-- **THEN** the astro cell for events shows a short em-dash and a label "no event tonight"
+- **WHEN** the Stars publisher returns the empty string (no event found,
+  or the freshness guard suppressed stale text)
+- **THEN** the Stars cell shows a short em-dash and a label "no event tonight"
 
 ### Requirement: Gallery visual-day layout
 

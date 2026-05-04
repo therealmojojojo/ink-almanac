@@ -101,3 +101,4 @@ ha/data/
 openspec/changes/**/*-review.html
 openspec/changes/**/*-review-over*.html
 openspec/changes/**/*-renders/
+openspec/changes/**/renders/
