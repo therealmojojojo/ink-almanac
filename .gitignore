@@ -77,3 +77,16 @@ corpus/_manifest.json
 # Per-deployment runtime state for the daily rotation.
 pairing/_state/triplet_epoch.json
 corpus/_sources/
+
+# Firmware build artifacts and clangd indices — regenerated locally,
+# never committed.
+firmware/.cache/
+firmware/build_host/
+firmware/.pio/
+
+# Operator-fetched ephemerides for ha/scripts/generate_astro_event.py.
+# DE421 is ~17 MB and freely re-downloadable from JPL; not tracked.
+ha/data/
+
+# Claude Code session lock — tooling-internal.
+.claude/scheduled_tasks.lock
