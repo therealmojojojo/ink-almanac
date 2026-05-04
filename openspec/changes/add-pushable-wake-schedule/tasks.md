@@ -52,6 +52,26 @@
 - [ ] 8.3 `ha/integrations/mqtt.yaml`: add `sensor.inkplate_device_schedule_hash` reading the `schedule_hash` field of `inkplate/state/device`. State value is the truncated hash; full hash exposed as `hash_full` attribute. Lets the operator confirm the device picked up a published schedule.
 - [ ] 8.4 `ha/integrations/mqtt.yaml` (optional): also expose the published schedule's expected hash as a `template` sensor, so the operator can directly compare device-side vs HA-side without arithmetic.
 
+> **Pre-existing infrastructure to preserve when implementing 8.3/8.4** —
+> `ha/integrations/mqtt.yaml` already carries:
+>
+>   - `sensor.inkplate_device_diag` — the per-wake diag ring (added in
+>     commit `3bc6a98` and extended in `03c4471`). Reads
+>     `value_json.diag` from `inkplate/state/device`.
+>   - `sensor.inkplate_device_wifi_rssi` — the device's WiFi link
+>     quality in dBm, reported on every Full publish (added in commit
+>     `7ad23ee`, status: **implemented**, `kBuildVersion`
+>     `0.4.1-wifi-rssi`). Reads `value_json.wifi_rssi`.
+>   - `binary_sensor.inkplate_device_epd_power_good` — TPS65186 PMIC
+>     fault indicator (added under `add-epd-power-good-diagnostic`).
+>
+> When this change adds the schedule-hash sensor (and optionally the
+> template-sensor for HA-side comparison), it MUST extend the existing
+> `sensor:`/`binary_sensor:` blocks rather than replace them. The
+> review checklist for the schedule change's HA-side deploy:
+> `ha deploy && verify all four mqtt-derived sensors above are still
+> populated alongside the new schedule_hash sensor`.
+
 ## 9. Spec deltas
 
 - [x] 9.1 `openspec/changes/add-pushable-wake-schedule/specs/device-firmware/spec.md` — ADDED requirement: dynamic-schedule resolution + parse + RTC/NVS caching.
