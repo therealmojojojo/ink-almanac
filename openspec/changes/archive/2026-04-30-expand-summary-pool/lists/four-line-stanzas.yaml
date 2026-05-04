@@ -1,0 +1,2417 @@
+- id: khayyam-rubaiyat-26-whinfield
+  title: 'Rubaiyat #26 (Whinfield translation)'
+  author: Omar Khayyám
+  translator: E.H. Whinfield
+  year: 1882
+  rights_tier: public_domain
+  source: archive.org
+  source_url: https://archive.org/details/quatrainsofomark00umar
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - mortality
+  - decay-and-memory
+  fits_summary: true
+  notes: Whinfield's literal English keeps lines tight.
+- id: khayyam-moving-finger
+  title: The Moving Finger (Rubaiyat LXXI, spare translation)
+  author: Omar Khayyám
+  year: 1100
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - mortality
+  - decay-and-memory
+  - attention-and-listening
+  fits_summary: false
+  for_zone: gallery
+  notes: ' — long lines fail summary at 24-col wrap; reroute to gallery (n_lines ≥ 4)'
+- id: hafez-bly-spring-flower
+  title: Spring flower (Bly translation)
+  author: Hafez
+  translator: Robert Bly
+  year: 1390
+  rights_tier: personal_library
+  source: web
+  source_url: https://www.poetryfoundation.org/poets/hafiz
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - garden-and-grove
+  - attention-and-listening
+  fits_summary: true
+  notes: ' (downgraded verify→yes; translator known spare)'
+- id: hafez-divan-25-clarke
+  title: Divan, ode 25 (Clarke translation, opening quatrain)
+  author: Hafez
+  translator: H. Wilberforce Clarke
+  year: 1891
+  rights_tier: public_domain
+  source: wikisource
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - solitude
+  - attention-and-listening
+  fits_summary: verify
+- id: rumi-guesthouse-opening
+  title: The Guest House (opening 4 lines, Barks translation)
+  author: Rumi
+  translator: Coleman Barks
+  year: 1273
+  rights_tier: personal_library
+  source: web
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - solitude
+  - ritual-and-gathering
+  - interior-and-domestic
+  fits_summary: false
+  for_zone: gallery
+  notes: ' — long lines fail summary at 24-col wrap; reroute to gallery (n_lines ≥ 4)'
+- id: rumi-look-at-love-bly
+  title: Look at love (Bly translation)
+  author: Rumi
+  translator: Robert Bly
+  year: 1273
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - tender-companionship
+  - attention-and-listening
+  fits_summary: true
+  notes: ' (downgraded verify→yes; translator known spare)'
+- id: khayyam-77-heron-allen
+  title: 'Rubaiyat #77 (Heron-Allen literal)'
+  author: Omar Khayyám
+  translator: Edward Heron-Allen
+  year: 1898
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - mortality
+  - journey
+  fits_summary: true
+  notes: ' (downgraded verify→yes; translator known spare)'
+- id: khayyam-pot-and-potter
+  title: Pot and potter (Rubaiyat, Heron-Allen 110)
+  author: Omar Khayyám
+  translator: Edward Heron-Allen
+  year: 1898
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - craft-and-play
+  - mortality
+  fits_summary: true
+  notes: ' (downgraded verify→yes; translator known spare)'
+- id: rumi-reed-flute-opening
+  title: Reed Flute Song (opening 4 lines)
+  author: Rumi
+  translator: Reynold Nicholson
+  year: 1273
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - solitude
+  - attention-and-listening
+  - decay-and-memory
+  fits_summary: false
+  for_zone: gallery
+  notes: ' — long lines fail summary at 24-col wrap; reroute to gallery (n_lines ≥ 4)'
+- id: hafez-ghazal-1-arberry
+  title: Ghazal 1 (Arberry, opening quatrain)
+  author: Hafez
+  translator: A.J. Arberry
+  year: 1390
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - tender-companionship
+  - mortality
+  fits_summary: true
+  notes: ' (downgraded verify→yes; translator known spare)'
+- id: dickinson-im-nobody
+  title: I'm Nobody! Who are you?
+  author: Emily Dickinson
+  year: 1861
+  rights_tier: public_domain
+  source: wikisource
+  source_url: https://en.wikisource.org/wiki/I'm_Nobody!_Who_are_you%3F
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - solitude
+  - tender-companionship
+  fits_summary: true
+- id: dickinson-soul-selects
+  title: The Soul selects her own Society (first stanza)
+  author: Emily Dickinson
+  year: 1862
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - solitude
+  - ritual-and-gathering
+  fits_summary: true
+- id: dickinson-success-counted-sweetest
+  title: Success is counted sweetest (first stanza)
+  author: Emily Dickinson
+  year: 1859
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - attention-and-listening
+  fits_summary: true
+- id: dickinson-i-died-for-beauty
+  title: I died for Beauty (first stanza)
+  author: Emily Dickinson
+  year: 1862
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - mortality
+  - attention-and-listening
+  fits_summary: true
+- id: dickinson-much-madness
+  title: Much Madness is divinest Sense (first 4 lines)
+  author: Emily Dickinson
+  year: 1862
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - solitude
+  - attention-and-listening
+  fits_summary: true
+- id: dickinson-this-is-my-letter
+  title: This is my letter to the World
+  author: Emily Dickinson
+  year: 1862
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - solitude
+  - reading-and-study
+  fits_summary: true
+- id: dickinson-a-narrow-fellow
+  title: A narrow Fellow in the Grass (opening quatrain)
+  author: Emily Dickinson
+  year: 1865
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - animals
+  - attention-and-listening
+  fits_summary: true
+- id: dickinson-heart-asks-pleasure
+  title: The Heart asks Pleasure first
+  author: Emily Dickinson
+  year: 1862
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - mortality
+  - tender-companionship
+  fits_summary: true
+- id: housman-loveliest-of-trees-opening
+  title: Loveliest of trees (opening quatrain)
+  author: A.E. Housman
+  year: 1896
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - seasons-and-time
+  - attention-and-listening
+  - garden-and-grove
+  fits_summary: true
+- id: housman-when-i-was-one-and-twenty
+  title: When I was one-and-twenty (first quatrain)
+  author: A.E. Housman
+  year: 1896
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - tender-companionship
+  - decay-and-memory
+  fits_summary: true
+- id: housman-from-far-from-eve
+  title: From far, from eve and morning
+  author: A.E. Housman
+  year: 1896
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - journey
+  - mortality
+  - solitude
+  fits_summary: true
+- id: rossetti-up-hill-opening
+  title: Up-Hill (opening quatrain)
+  author: Christina Rossetti
+  year: 1858
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - journey
+  - mortality
+  fits_summary: true
+- id: rossetti-remember
+  title: Remember (opening quatrain)
+  author: Christina Rossetti
+  year: 1862
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - mortality
+  - tender-companionship
+  fits_summary: false
+  for_zone: gallery
+  notes: ' — long lines fail summary at 24-col wrap; reroute to gallery (n_lines ≥ 4)'
+- id: rossetti-song-when-i-am-dead
+  title: Song (When I am dead, my dearest) — first quatrain
+  author: Christina Rossetti
+  year: 1862
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - mortality
+  - decay-and-memory
+  fits_summary: true
+- id: dickinson-i-heard-a-fly-buzz
+  title: I heard a Fly buzz — when I died (first stanza)
+  author: Emily Dickinson
+  year: 1863
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - mortality
+  - attention-and-listening
+  - interior-and-domestic
+  fits_summary: true
+- id: blake-eternity
+  title: Eternity
+  author: William Blake
+  year: 1793
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - attention-and-listening
+  - tender-companionship
+  - mortality
+  fits_summary: true
+- id: blake-ah-sun-flower
+  title: Ah! Sun-flower (first stanza)
+  author: William Blake
+  year: 1794
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - garden-and-grove
+  - mortality
+  - seasons-and-time
+  fits_summary: true
+- id: blake-tyger-opening
+  title: The Tyger (first stanza)
+  author: William Blake
+  year: 1794
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - animals
+  - ritual-and-gathering
+  fits_summary: true
+- id: blake-sick-rose
+  title: The Sick Rose
+  author: William Blake
+  year: 1794
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - garden-and-grove
+  fits_summary: true
+- id: yeats-stolen-child-refrain
+  title: The Stolen Child (refrain)
+  author: W.B. Yeats
+  year: 1889
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - childhood-and-play
+  - mountain-and-forest
+  - ritual-and-gathering
+  fits_summary: true
+- id: yeats-lake-isle-closing
+  title: The Lake Isle of Innisfree (closing quatrain)
+  author: W.B. Yeats
+  year: 1890
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - solitude
+  - water-and-reflection
+  - mountain-and-forest
+  fits_summary: false
+  for_zone: gallery
+  notes: ' — long lines fail summary at 24-col wrap; reroute to gallery (n_lines ≥ 4)'
+- id: yeats-down-by-salley-opening
+  title: Down by the Salley Gardens (opening 4 lines)
+  author: W.B. Yeats
+  year: 1889
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - tender-companionship
+  - garden-and-grove
+  - decay-and-memory
+  fits_summary: false
+  for_zone: gallery
+  notes: ' — long lines fail summary at 24-col wrap; reroute to gallery (n_lines ≥ 4)'
+- id: wordsworth-she-dwelt
+  title: She dwelt among the untrodden ways (first stanza)
+  author: William Wordsworth
+  year: 1800
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - solitude
+  - decay-and-memory
+  - rural-pastoral
+  fits_summary: true
+- id: wordsworth-strange-fits
+  title: Strange fits of passion (opening quatrain)
+  author: William Wordsworth
+  year: 1800
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - tender-companionship
+  - journey
+  fits_summary: true
+- id: burns-red-red-rose-opening
+  title: A Red, Red Rose (opening quatrain)
+  author: Robert Burns
+  year: 1794
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - tender-companionship
+  - garden-and-grove
+  fits_summary: true
+- id: burns-auld-lang-syne-opening
+  title: Auld Lang Syne (opening quatrain)
+  author: Robert Burns
+  year: 1788
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - ritual-and-gathering
+  - tender-companionship
+  fits_summary: true
+- id: blake-piping-down
+  title: Introduction to Songs of Innocence (Piping down) — opening quatrain
+  author: William Blake
+  year: 1789
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - childhood-and-play
+  - attention-and-listening
+  fits_summary: true
+- id: eliot-hollow-men-ii-opening
+  title: The Hollow Men II (opening 4 lines)
+  author: T.S. Eliot
+  year: 1925
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - solitude
+  - decay-and-memory
+  fits_summary: true
+- id: eliot-hollow-men-iii-opening
+  title: 'The Hollow Men III (opening 4 lines: This is the dead land)'
+  author: T.S. Eliot
+  year: 1925
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - mortality
+  - ritual-and-gathering
+  fits_summary: true
+- id: eliot-hollow-men-iv-opening
+  title: 'The Hollow Men IV (opening: The eyes are not here)'
+  author: T.S. Eliot
+  year: 1925
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - solitude
+  - attention-and-listening
+  - mortality
+  fits_summary: true
+- id: eliot-hollow-men-v-closing
+  title: The Hollow Men V closing (This is the way the world ends)
+  author: T.S. Eliot
+  year: 1925
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - mortality
+  - ritual-and-gathering
+  fits_summary: true
+- id: eliot-prufrock-coffee-spoons-quatrain
+  title: Prufrock (I have measured out my life — 4-line excerpt)
+  author: T.S. Eliot
+  year: 1915
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - ritual-and-gathering
+  fits_summary: false
+  for_zone: gallery
+  notes: ' — long lines fail summary at 24-col wrap; reroute to gallery (n_lines ≥ 4)'
+- id: auden-yeats-elegy-quatrain
+  title: In Memory of W.B. Yeats (Earth, receive an honoured guest)
+  author: W.H. Auden
+  year: 1939
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - mortality
+  - ritual-and-gathering
+  - decay-and-memory
+  fits_summary: false
+  for_zone: gallery
+  notes: ' — long lines fail summary at 24-col wrap; reroute to gallery (n_lines ≥ 4)'
+- id: auden-as-i-walked-out-tea-cup-stanza
+  title: As I Walked Out One Evening (And the crack in the tea-cup opens)
+  author: W.H. Auden
+  year: 1937
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - mortality
+  - interior-and-domestic
+  fits_summary: true
+  notes: ' (downgraded verify→yes; translator known spare)'
+- id: auden-more-loving-one-opening
+  title: The More Loving One (opening quatrain)
+  author: W.H. Auden
+  year: 1957
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - tender-companionship
+  - attention-and-listening
+  fits_summary: false
+  for_zone: gallery
+  notes: ' — long lines fail summary at 24-col wrap; reroute to gallery (n_lines ≥ 4)'
+- id: frost-dust-of-snow
+  title: Dust of Snow
+  author: Robert Frost
+  year: 1923
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - winter-and-ice
+  - attention-and-listening
+  - mountain-and-forest
+  fits_summary: true
+- id: frost-stopping-by-woods-closing
+  title: Stopping by Woods on a Snowy Evening (closing quatrain)
+  author: Robert Frost
+  year: 1923
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - winter-and-ice
+  - mountain-and-forest
+  - journey
+  fits_summary: true
+- id: stevens-snow-man-opening
+  title: The Snow Man (opening 5 lines)
+  author: Wallace Stevens
+  year: 1921
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - winter-and-ice
+  - attention-and-listening
+  - mountain-and-forest
+  fits_summary: false
+  for_zone: gallery
+  notes: ' — long lines fail summary at 24-col wrap; reroute to gallery (n_lines ≥ 4)'
+- id: williams-this-is-just-to-say-opening
+  title: This Is Just To Say (first stanza)
+  author: William Carlos Williams
+  year: 1934
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - interior-and-domestic
+  - food-and-gathering
+  - tender-companionship
+  fits_summary: true
+- id: goethe-selige-sehnsucht-opening
+  title: Selige Sehnsucht (opening 4 lines)
+  author: Johann Wolfgang von Goethe
+  year: 1814
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - de
+  - en
+  themes_proposed:
+  - attention-and-listening
+  - ritual-and-gathering
+  fits_summary: false
+  for_zone: gallery
+  notes: ' — long lines fail summary at 24-col wrap; reroute to gallery (n_lines ≥ 4)'
+- id: goethe-divan-hatem-quatrain
+  title: West-östlicher Divan, Hatem quatrain
+  author: Johann Wolfgang von Goethe
+  year: 1819
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - de
+  - en
+  themes_proposed:
+  - tender-companionship
+  - attention-and-listening
+  fits_summary: true
+  notes: ' (downgraded verify→yes; translator known spare)'
+- id: goethe-spruch-quatrain
+  title: Spruch (single quatrain epigram)
+  author: Johann Wolfgang von Goethe
+  year: 1815
+  rights_tier: public_domain
+  form: aphorism
+  language:
+  - de
+  - en
+  themes_proposed:
+  - attention-and-listening
+  - decay-and-memory
+  fits_summary: true
+- id: rilke-stunden-buch-du-nachbar-gott
+  title: Du, Nachbar Gott (Stunden-Buch opening)
+  author: Rainer Maria Rilke
+  year: 1899
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - de
+  - en
+  themes_proposed:
+  - solitude
+  - ritual-and-gathering
+  - interior-and-domestic
+  fits_summary: false
+  for_zone: gallery
+  notes: ' — long lines fail summary at 24-col wrap; reroute to gallery (n_lines ≥ 4)'
+- id: rilke-stunden-buch-werkleute
+  title: Werkleute sind wir (Stunden-Buch quatrain)
+  author: Rainer Maria Rilke
+  year: 1899
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - de
+  - en
+  themes_proposed:
+  - work-making
+  - ritual-and-gathering
+  - craft-and-play
+  fits_summary: false
+  for_zone: gallery
+  notes: ' — long lines fail summary at 24-col wrap; reroute to gallery (n_lines ≥ 4)'
+- id: rilke-orpheus-i-3-opening
+  title: Sonnets to Orpheus I.3 (opening quatrain)
+  author: Rainer Maria Rilke
+  year: 1922
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - de
+  - en
+  themes_proposed:
+  - attention-and-listening
+  - ritual-and-gathering
+  fits_summary: false
+  for_zone: gallery
+  notes: ' — long lines fail summary at 24-col wrap; reroute to gallery (n_lines ≥ 4)'
+- id: rilke-orpheus-i-5-opening
+  title: Sonnets to Orpheus I.5 (opening quatrain)
+  author: Rainer Maria Rilke
+  year: 1922
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - de
+  - en
+  themes_proposed:
+  - attention-and-listening
+  - mortality
+  fits_summary: false
+  for_zone: gallery
+  notes: ' — long lines fail summary at 24-col wrap; reroute to gallery (n_lines ≥ 4)'
+- id: rilke-buch-bilder-eingang
+  title: Eingang (Buch der Bilder, opening 4 lines)
+  author: Rainer Maria Rilke
+  year: 1902
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - de
+  - en
+  themes_proposed:
+  - solitude
+  - attention-and-listening
+  fits_summary: true
+- id: brecht-1940-opening
+  title: 1940 (Nicht ungelegen kommt euer Brief)
+  author: Bertolt Brecht
+  year: 1940
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - de
+  - en
+  themes_proposed:
+  - solitude
+  - decay-and-memory
+  - interior-and-domestic
+  fits_summary: true
+- id: brecht-buckow-elegie-changes
+  title: Buckow Elegies — Der Radwechsel
+  author: Bertolt Brecht
+  year: 1953
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - de
+  - en
+  themes_proposed:
+  - journey
+  - attention-and-listening
+  - machines-and-mechanisms
+  fits_summary: true
+- id: brecht-loesung-closing
+  title: Die Lösung (closing question — would it not be easier)
+  author: Bertolt Brecht
+  year: 1953
+  rights_tier: personal_library
+  form: aphorism
+  language:
+  - de
+  - en
+  themes_proposed:
+  - ritual-and-gathering
+  - attention-and-listening
+  fits_summary: true
+- id: brecht-motto-finsteren-zeiten
+  title: Motto (In den finsteren Zeiten)
+  author: Bertolt Brecht
+  year: 1939
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - de
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - attention-and-listening
+  fits_summary: true
+- id: heine-im-wunderschoenen-mai-opening
+  title: Im wunderschönen Monat Mai (opening quatrain)
+  author: Heinrich Heine
+  year: 1827
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - de
+  - en
+  themes_proposed:
+  - seasons-and-time
+  - tender-companionship
+  - garden-and-grove
+  fits_summary: true
+- id: hoelderlin-haelfte-des-lebens-opening
+  title: Hälfte des Lebens (opening 4 lines)
+  author: Friedrich Hölderlin
+  year: 1804
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - de
+  - en
+  themes_proposed:
+  - seasons-and-time
+  - water-and-reflection
+  - decay-and-memory
+  fits_summary: true
+  notes: ' (downgraded verify→yes; translator known spare)'
+- id: verlaine-chanson-automne-opening
+  title: Chanson d'automne (opening 4 lines)
+  author: Paul Verlaine
+  year: 1866
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - fr
+  - en
+  themes_proposed:
+  - seasons-and-time
+  - decay-and-memory
+  - attention-and-listening
+  fits_summary: true
+- id: verlaine-il-pleure-opening
+  title: Il pleure dans mon cœur (opening quatrain)
+  author: Paul Verlaine
+  year: 1874
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - fr
+  - en
+  themes_proposed:
+  - solitude
+  - water-and-reflection
+  fits_summary: true
+- id: verlaine-clair-de-lune-opening
+  title: Clair de lune (opening quatrain)
+  author: Paul Verlaine
+  year: 1869
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - fr
+  - en
+  themes_proposed:
+  - night-and-lamplight
+  - ritual-and-gathering
+  fits_summary: false
+  for_zone: gallery
+  notes: ' — long lines fail summary at 24-col wrap; reroute to gallery (n_lines ≥ 4)'
+- id: apollinaire-le-pont-mirabeau-refrain
+  title: Le Pont Mirabeau (refrain)
+  author: Guillaume Apollinaire
+  year: 1912
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - fr
+  - en
+  themes_proposed:
+  - water-and-reflection
+  - decay-and-memory
+  - seasons-and-time
+  fits_summary: true
+- id: apollinaire-adieu-fragment
+  title: L'Adieu (fragment, J'ai cueilli ce brin de bruyère)
+  author: Guillaume Apollinaire
+  year: 1903
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - fr
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - garden-and-grove
+  - seasons-and-time
+  fits_summary: true
+- id: rimbaud-sensation-opening
+  title: Sensation (opening quatrain)
+  author: Arthur Rimbaud
+  year: 1870
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - fr
+  - en
+  themes_proposed:
+  - seasons-and-time
+  - attention-and-listening
+  - journey
+  fits_summary: true
+- id: rimbaud-eternite
+  title: L'Éternité (opening 4 lines)
+  author: Arthur Rimbaud
+  year: 1872
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - fr
+  - en
+  themes_proposed:
+  - water-and-reflection
+  - mountain-and-forest
+  - attention-and-listening
+  fits_summary: true
+- id: char-fureur-mystere-fragment
+  title: Fureur et mystère (single fragment)
+  author: René Char
+  year: 1948
+  rights_tier: personal_library
+  form: aphorism
+  language:
+  - fr
+  - en
+  themes_proposed:
+  - attention-and-listening
+  - mountain-and-forest
+  fits_summary: true
+  notes: ' (downgraded verify→yes; translator known spare)'
+- id: bonnefoy-pierre-ecrite-fragment
+  title: Pierre écrite (single fragment)
+  author: Yves Bonnefoy
+  year: 1965
+  rights_tier: personal_library
+  form: aphorism
+  language:
+  - fr
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - attention-and-listening
+  - mountain-and-forest
+  fits_summary: true
+  notes: ' (downgraded verify→yes; translator known spare)'
+- id: blaga-lumina
+  title: Lumina (opening 4 lines)
+  author: Lucian Blaga
+  year: 1919
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - ro
+  - en
+  themes_proposed:
+  - attention-and-listening
+  - ritual-and-gathering
+  fits_summary: verify
+- id: blaga-veacuri
+  title: Veacuri (Poemele luminii fragment)
+  author: Lucian Blaga
+  year: 1919
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - ro
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - mortality
+  fits_summary: verify
+- id: arghezi-flori-de-mucigai-opening
+  title: Flori de mucigai (opening quatrain)
+  author: Tudor Arghezi
+  year: 1931
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - ro
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - ritual-and-gathering
+  fits_summary: verify
+- id: arghezi-cuvinte-potrivite-fragment
+  title: Cuvinte potrivite (single quatrain)
+  author: Tudor Arghezi
+  year: 1927
+  rights_tier: personal_library
+  form: aphorism
+  language:
+  - ro
+  - en
+  themes_proposed:
+  - craft-and-play
+  - reading-and-study
+  fits_summary: verify
+- id: stanescu-cantec-fragment
+  title: Cântec (single short piece)
+  author: Nichita Stănescu
+  year: 1965
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - ro
+  - en
+  themes_proposed:
+  - tender-companionship
+  - attention-and-listening
+  fits_summary: verify
+- id: stanescu-foamea-cuvinte
+  title: Foamea de cuvinte (single fragment)
+  author: Nichita Stănescu
+  year: 1969
+  rights_tier: personal_library
+  form: aphorism
+  language:
+  - ro
+  - en
+  themes_proposed:
+  - attention-and-listening
+  - reading-and-study
+  fits_summary: verify
+- id: stanescu-noduri-semne
+  title: Noduri și semne (single fragment)
+  author: Nichita Stănescu
+  year: 1982
+  rights_tier: personal_library
+  form: aphorism
+  language:
+  - ro
+  - en
+  themes_proposed:
+  - attention-and-listening
+  - reading-and-study
+  fits_summary: verify
+- id: blandiana-orasul-topit
+  title: Orașul topit (single fragment)
+  author: Ana Blandiana
+  year: 1969
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - ro
+  - en
+  themes_proposed:
+  - urban
+  - decay-and-memory
+  - solitude
+  fits_summary: verify
+- id: blandiana-clopote-de-iarba
+  title: Clopote de iarbă (short fragment)
+  author: Ana Blandiana
+  year: 1968
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - ro
+  - en
+  themes_proposed:
+  - garden-and-grove
+  - attention-and-listening
+  fits_summary: verify
+- id: cartarescu-totul-fragment
+  title: Totul (4-line fragment)
+  author: Mircea Cărtărescu
+  year: 1985
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - ro
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - urban
+  fits_summary: verify
+- id: dinescu-aphorism
+  title: Mircea Dinescu — short epigram
+  author: Mircea Dinescu
+  year: 1979
+  rights_tier: personal_library
+  form: aphorism
+  language:
+  - ro
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - attention-and-listening
+  fits_summary: verify
+- id: brumaru-cintec-naiv-fragment
+  title: Emil Brumaru — Cântec naiv fragment
+  author: Emil Brumaru
+  year: 1970
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - ro
+  - en
+  themes_proposed:
+  - tender-companionship
+  - garden-and-grove
+  fits_summary: verify
+- id: wang-wei-deer-park
+  title: Deer Park
+  author: Wang Wei
+  translator: Burton Watson
+  year: 750
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - zh
+  - en
+  themes_proposed:
+  - solitude
+  - mountain-and-forest
+  - attention-and-listening
+  fits_summary: true
+- id: wang-wei-birdsong-brook
+  title: Bird-call Valley
+  author: Wang Wei
+  translator: Burton Watson
+  year: 750
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - zh
+  - en
+  themes_proposed:
+  - mountain-and-forest
+  - attention-and-listening
+  - animals
+  fits_summary: true
+- id: wang-wei-bamboo-grove
+  title: Bamboo Grove (Sitting alone in the dark bamboo)
+  author: Wang Wei
+  translator: Burton Watson
+  year: 750
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - zh
+  - en
+  themes_proposed:
+  - solitude
+  - mountain-and-forest
+  - night-and-lamplight
+  fits_summary: true
+- id: li-bai-quiet-night-thought
+  title: Quiet Night Thought
+  author: Li Bai
+  translator: David Hinton
+  year: 740
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - zh
+  - en
+  themes_proposed:
+  - solitude
+  - night-and-lamplight
+  - decay-and-memory
+  fits_summary: true
+- id: li-bai-zhuangzi-butterfly-fragment
+  title: Drinking alone with the moon (4-line excerpt)
+  author: Li Bai
+  translator: David Hinton
+  year: 740
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - zh
+  - en
+  themes_proposed:
+  - solitude
+  - night-and-lamplight
+  - ritual-and-gathering
+  fits_summary: true
+- id: du-fu-spring-prospect-opening
+  title: Spring Prospect (opening 4 lines)
+  author: Du Fu
+  translator: Burton Watson
+  year: 757
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - zh
+  - en
+  themes_proposed:
+  - seasons-and-time
+  - decay-and-memory
+  - urban
+  fits_summary: true
+- id: meng-haoran-spring-dawn
+  title: Spring Dawn
+  author: Meng Haoran
+  translator: Sam Hamill
+  year: 720
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - zh
+  - en
+  themes_proposed:
+  - seasons-and-time
+  - attention-and-listening
+  - garden-and-grove
+  fits_summary: true
+- id: bai-juyi-night-rain
+  title: Night Rain (4-line excerpt)
+  author: Bai Juyi
+  translator: Arthur Waley
+  year: 815
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - zh
+  - en
+  themes_proposed:
+  - night-and-lamplight
+  - water-and-reflection
+  - attention-and-listening
+  fits_summary: true
+- id: sappho-fragment-31-anne-carson
+  title: Sappho fragment 31 (4-line excerpt, Carson)
+  author: Sappho
+  translator: Anne Carson
+  year: -600
+  rights_tier: personal_library
+  form: fragment
+  language:
+  - grc
+  - en
+  themes_proposed:
+  - tender-companionship
+  - body-and-figure
+  - attention-and-listening
+  fits_summary: true
+  notes: ' (downgraded verify→yes; translator known spare)'
+- id: sappho-fragment-94-carson
+  title: Sappho fragment 94 (4-line excerpt)
+  author: Sappho
+  translator: Anne Carson
+  year: -600
+  rights_tier: personal_library
+  form: fragment
+  language:
+  - grc
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - tender-companionship
+  fits_summary: true
+  notes: ' (downgraded verify→yes; translator known spare)'
+- id: sappho-fragment-104a
+  title: Sappho fragment 104a (Hesperus, all-bringer)
+  author: Sappho
+  translator: Anne Carson
+  year: -600
+  rights_tier: personal_library
+  form: fragment
+  language:
+  - grc
+  - en
+  themes_proposed:
+  - night-and-lamplight
+  - ritual-and-gathering
+  fits_summary: true
+- id: sappho-fragment-168b
+  title: Sappho fragment 168B (the moon is set)
+  author: Sappho
+  translator: Anne Carson
+  year: -600
+  rights_tier: personal_library
+  form: fragment
+  language:
+  - grc
+  - en
+  themes_proposed:
+  - solitude
+  - night-and-lamplight
+  - attention-and-listening
+  fits_summary: true
+- id: catullus-5-vivamus-opening
+  title: Catullus 5 (Vivamus, mea Lesbia — opening 4 lines)
+  author: Catullus
+  translator: Charles Martin
+  year: -55
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - la
+  - en
+  themes_proposed:
+  - tender-companionship
+  - mortality
+  - ritual-and-gathering
+  fits_summary: true
+  notes: ' (downgraded verify→yes; translator known spare)'
+- id: catullus-101-fragment
+  title: Catullus 101 (atque in perpetuum frater — closing 2 lines)
+  author: Catullus
+  translator: Anne Carson
+  year: -55
+  rights_tier: personal_library
+  form: fragment
+  language:
+  - la
+  - en
+  themes_proposed:
+  - mortality
+  - decay-and-memory
+  - ritual-and-gathering
+  fits_summary: true
+- id: marcus-aurelius-meditations-2-17
+  title: Meditations 2.17 (the time of human life — 4-line excerpt)
+  author: Marcus Aurelius
+  translator: Gregory Hays
+  year: 170
+  rights_tier: personal_library
+  form: aphorism
+  language:
+  - grc
+  - en
+  themes_proposed:
+  - mortality
+  - decay-and-memory
+  - attention-and-listening
+  fits_summary: true
+  notes: ' (downgraded verify→yes; translator known spare)'
+- id: heraclitus-fragment-rivers
+  title: Heraclitus fragment (You cannot step twice — 4-line composite)
+  author: Heraclitus
+  translator: Brooks Haxton
+  year: -500
+  rights_tier: personal_library
+  form: fragment
+  language:
+  - grc
+  - en
+  themes_proposed:
+  - water-and-reflection
+  - decay-and-memory
+  - attention-and-listening
+  fits_summary: true
+- id: stevens-thirteen-ways-i
+  title: Thirteen Ways of Looking at a Blackbird, I
+  author: Wallace Stevens
+  year: 1917
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - winter-and-ice
+  - mountain-and-forest
+  - attention-and-listening
+  - animals
+  fits_summary: true
+- id: stevens-thirteen-ways-iv
+  title: Thirteen Ways of Looking at a Blackbird, IV (A man and a woman)
+  author: Wallace Stevens
+  year: 1917
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - tender-companionship
+  - ritual-and-gathering
+  - animals
+  fits_summary: true
+- id: stevens-thirteen-ways-vi
+  title: Thirteen Ways of Looking at a Blackbird, VI (Icicles filled the long window)
+  author: Wallace Stevens
+  year: 1917
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - winter-and-ice
+  - interior-and-domestic
+  - attention-and-listening
+  fits_summary: true
+- id: stevens-thirteen-ways-x
+  title: Thirteen Ways of Looking at a Blackbird, X (At the sight of blackbirds)
+  author: Wallace Stevens
+  year: 1917
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - attention-and-listening
+  - ritual-and-gathering
+  fits_summary: true
+- id: bashō-old-pond-companion-fragment
+  title: Bashō travel-essay quatrain (Oku no Hosomichi, road-side stop)
+  author: Matsuo Bashō
+  translator: Sam Hamill
+  year: 1689
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - ja
+  - en
+  themes_proposed:
+  - journey
+  - rural-pastoral
+  - ritual-and-gathering
+  fits_summary: true
+- id: longfellow-rainy-day-opening
+  title: The Rainy Day (opening quatrain)
+  author: Henry Wadsworth Longfellow
+  year: 1842
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - interior-and-domestic
+  - water-and-reflection
+  - decay-and-memory
+  fits_summary: true
+- id: hopkins-pied-beauty-opening
+  title: Pied Beauty (opening 4 lines)
+  author: Gerard Manley Hopkins
+  year: 1877
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - rural-pastoral
+  - ritual-and-gathering
+  - attention-and-listening
+  fits_summary: false
+  for_zone: gallery
+  notes: ' — long lines fail summary at 24-col wrap; reroute to gallery (n_lines ≥ 4)'
+- id: stevenson-bed-in-summer
+  title: Bed in Summer (opening quatrain)
+  author: Robert Louis Stevenson
+  year: 1885
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - childhood-and-play
+  - interior-and-domestic
+  - seasons-and-time
+  fits_summary: true
+- id: stevenson-where-go-the-boats
+  title: Where Go the Boats? (opening quatrain)
+  author: Robert Louis Stevenson
+  year: 1885
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - childhood-and-play
+  - water-and-reflection
+  - journey
+  fits_summary: true
+- id: thomas-do-not-go-gentle-opening
+  title: Do not go gentle (opening tercet)
+  author: Dylan Thomas
+  year: 1947
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - mortality
+  - ritual-and-gathering
+  fits_summary: false
+  for_zone: gallery
+  notes: ' — long lines fail summary at 24-col wrap; reroute to gallery (n_lines ≥ 4)'
+- id: bishop-one-art-opening
+  title: One Art (opening tercet)
+  author: Elizabeth Bishop
+  year: 1976
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - attention-and-listening
+  fits_summary: true
+- id: oliver-uses-of-sorrow
+  title: The Uses of Sorrow
+  author: Mary Oliver
+  year: 2006
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - attention-and-listening
+  - tender-companionship
+  fits_summary: true
+- id: khayyam-rubaiyat-le-gallienne-12
+  title: 'Rubaiyat #12 (Le Gallienne, paraphrase)'
+  author: Omar Khayyám
+  translator: Richard Le Gallienne
+  year: 1897
+  rights_tier: public_domain
+  source: archive.org
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - mortality
+  - attention-and-listening
+  - ritual-and-gathering
+  fits_summary: false
+  notes: 'Le Gallienne is shorter-line than FitzGerald; alternative for moving-finger reroute [VERIFIED
+    FAIL: 8 visual lines, > 4 cap]'
+  wrapped_visual_lines: 8
+  for_zone: gallery
+- id: rumi-i-am-not-from-bly
+  title: '"Not Christian or Jew" (Bly translation, 4-line excerpt)'
+  author: Rumi
+  translator: Robert Bly
+  year: 1273
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - solitude
+  - attention-and-listening
+  fits_summary: false
+  notes: 'replacement for rumi-guesthouse-opening (which goes to gallery) [VERIFIED FAIL: 7 visual lines,
+    > 4 cap]'
+  wrapped_visual_lines: 7
+  for_zone: gallery
+- id: rumi-pull-the-thread
+  title: '"Don''t go back to sleep" (Bly, 4-line excerpt)'
+  author: Rumi
+  translator: Robert Bly
+  year: 1273
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - attention-and-listening
+  - morning
+  fits_summary: true
+  notes: 'short Bly excerpt; replacement for rumi-reed-flute-opening [verified: 3 visual lines]'
+  wrapped_visual_lines: 3
+- id: rossetti-echo-opening
+  title: Echo (opening 4 lines)
+  author: Christina Rossetti
+  year: 1854
+  rights_tier: public_domain
+  source: wikisource
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - solitude
+  - tender-companionship
+  fits_summary: true
+  notes: 'shorter-line alternative to rossetti-remember (which becomes gallery) [verified: 4 visual lines]'
+  wrapped_visual_lines: 4
+- id: yeats-cloths-of-heaven-closing
+  title: He Wishes for the Cloths of Heaven (closing 2 lines)
+  author: W.B. Yeats
+  year: 1899
+  rights_tier: public_domain
+  form: aphorism
+  language:
+  - en
+  themes_proposed:
+  - tender-companionship
+  - attention-and-listening
+  fits_summary: 'yes'
+  notes: '"Tread softly because you tread on my dreams." — 2-line short fit'
+- id: yeats-when-you-are-old-closing
+  title: When You Are Old (closing tercet)
+  author: W.B. Yeats
+  year: 1893
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - tender-companionship
+  - mortality
+  fits_summary: false
+  notes: 'closing stanza is borderline; check at ingestion [VERIFIED FAIL: 8 visual lines, > 4 cap]'
+  wrapped_visual_lines: 8
+  for_zone: gallery
+- id: eliot-rhapsody-windy-night-fragment
+  title: 'Rhapsody on a Windy Night (4-line excerpt: The street-lamp said)'
+  author: T.S. Eliot
+  year: 1915
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - night-and-lamplight
+  - urban
+  - solitude
+  fits_summary: verify
+  notes: Eliot pre-1923 PD; excerpt should fit if street-lamp couplet picked
+- id: auden-epitaph-on-tyrant-closing
+  title: Epitaph on a Tyrant (closing couplet)
+  author: W.H. Auden
+  year: 1939
+  rights_tier: personal_library
+  form: aphorism
+  language:
+  - en
+  themes_proposed:
+  - ritual-and-gathering
+  - mortality
+  fits_summary: false
+  notes: 'closing 2 lines; ~36-40 chars each → 4 visual; replaces yeats-elegy reroute [VERIFIED FAIL:
+    6 visual lines, > 4 cap]'
+  wrapped_visual_lines: 6
+  for_zone: gallery
+- id: auden-twelve-songs-iii-refrain
+  title: Twelve Songs III refrain (Stop all the clocks alternative — short refrain stanza)
+  author: W.H. Auden
+  year: 1936
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - tender-companionship
+  fits_summary: verify
+  notes: replaces auden-more-loving-one-opening
+- id: goethe-natur-und-kunst-couplet
+  title: Natur und Kunst (closing couplet)
+  author: Johann Wolfgang von Goethe
+  year: 1800
+  rights_tier: public_domain
+  form: aphorism
+  language:
+  - de
+  - en
+  themes_proposed:
+  - craft-and-play
+  - attention-and-listening
+  fits_summary: false
+  notes: 'replaces selige-sehnsucht reroute [VERIFIED FAIL: 5 visual lines, > 4 cap]'
+  wrapped_visual_lines: 5
+  for_zone: gallery
+- id: rilke-pieta-opening
+  title: Pieta (opening 4 lines)
+  author: Rainer Maria Rilke
+  year: 1907
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - de
+  - en
+  themes_proposed:
+  - mortality
+  - tender-companionship
+  - ritual-and-gathering
+  fits_summary: true
+  notes: 'spare-line piece from Neue Gedichte; replaces stunden-buch reroutes [verified: 4 visual lines]'
+  wrapped_visual_lines: 4
+- id: rilke-orpheus-ii-13-opening
+  title: 'Sonnets to Orpheus II.13 (opening: Be ahead of all parting)'
+  author: Rainer Maria Rilke
+  year: 1922
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - de
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - attention-and-listening
+  fits_summary: false
+  notes: 'shorter-line sonnet opening; replaces I.3/I.5 reroute [VERIFIED FAIL: 5 visual lines, > 4 cap]'
+  wrapped_visual_lines: 5
+  for_zone: gallery
+- id: verlaine-le-ciel-est-quatrain
+  title: Le ciel est, par-dessus le toit (opening quatrain)
+  author: Paul Verlaine
+  year: 1881
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - fr
+  - en
+  themes_proposed:
+  - solitude
+  - interior-and-domestic
+  - attention-and-listening
+  fits_summary: 'yes'
+  notes: short trimeter quatrain; replaces clair-de-lune reroute
+- id: hopkins-spring-and-fall-opening
+  title: 'Spring and Fall: to a young child (opening 4 lines)'
+  author: Gerard Manley Hopkins
+  year: 1880
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - childhood-and-play
+  - seasons-and-time
+  - decay-and-memory
+  fits_summary: 'yes'
+  notes: tetrameter, ~24-char lines; replaces pied-beauty reroute
+- id: thomas-twenty-four-years-fragment
+  title: Twenty-four years (4-line excerpt)
+  author: Dylan Thomas
+  year: 1934
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - mortality
+  - decay-and-memory
+  fits_summary: false
+  notes: 'replaces do-not-go-gentle reroute [VERIFIED FAIL: 5 visual lines, > 4 cap]'
+  wrapped_visual_lines: 5
+  for_zone: gallery
+- id: stevens-thirteen-ways-xi
+  title: Thirteen Ways of Looking at a Blackbird, XI (He rode over Connecticut)
+  author: Wallace Stevens
+  year: 1917
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - journey
+  - attention-and-listening
+  fits_summary: 'yes'
+  notes: replaces snow-man reroute
+- id: sappho-tonight-i-watched
+  title: Sappho fragment 168B (the moon is set / variant translation)
+  author: Sappho
+  translator: Mary Barnard
+  year: -600
+  rights_tier: personal_library
+  form: fragment
+  language:
+  - grc
+  - en
+  themes_proposed:
+  - solitude
+  - night-and-lamplight
+  fits_summary: 'yes'
+  notes: second translation of moon-fragment for variety
+- id: whitman-noiseless-patient-spider-opening
+  title: A Noiseless Patient Spider (opening 5 lines)
+  author: Walt Whitman
+  year: 1868
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - solitude
+  - animals
+  - attention-and-listening
+  fits_summary: false
+  notes: 'Whitman lines short here; spider section opens with 5 short lines [VERIFIED FAIL: 5 visual lines,
+    > 4 cap]'
+  wrapped_visual_lines: 5
+  for_zone: gallery
+- id: kobayashi-issa-this-world-of-dew
+  title: This World of Dew (4-line variant)
+  author: Kobayashi Issa
+  translator: Robert Hass
+  year: 1819
+  rights_tier: personal_library
+  form: haiku
+  language:
+  - ja
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - mortality
+  - water-and-reflection
+  fits_summary: 'yes'
+  notes: Issa with explanatory 4th line; covers haiku-adjacent territory
+- id: gibran-prophet-on-children-fragment
+  title: 'On Children (4-line excerpt: Your children are not your children)'
+  author: Khalil Gibran
+  year: 1923
+  rights_tier: public_domain
+  form: aphorism
+  language:
+  - en
+  themes_proposed:
+  - childhood-and-play
+  - tender-companionship
+  - ritual-and-gathering
+  fits_summary: false
+  notes: '1923 PD; childhood-and-play theme add [VERIFIED FAIL: 5 visual lines, > 4 cap]'
+  wrapped_visual_lines: 5
+  for_zone: gallery
+- id: tagore-stray-birds-fragment
+  title: Stray Birds (single short aphorism, 2-3 lines)
+  author: Rabindranath Tagore
+  year: 1916
+  rights_tier: public_domain
+  form: aphorism
+  language:
+  - bn
+  - en
+  themes_proposed:
+  - attention-and-listening
+  - garden-and-grove
+  fits_summary: 'yes'
+  notes: 288-aphorism collection; pick one with rural-pastoral or garden theme
+- id: merwin-for-the-anniversary-fragment
+  title: For the Anniversary of My Death (opening tercet)
+  author: W.S. Merwin
+  year: 1967
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - mortality
+  - seasons-and-time
+  - attention-and-listening
+  fits_summary: false
+  notes: 'spare-line modern American [VERIFIED FAIL: 5 visual lines, > 4 cap]'
+  wrapped_visual_lines: 5
+  for_zone: gallery
+- id: levertov-stepping-westward-opening
+  title: Stepping Westward (opening 4 lines)
+  author: Denise Levertov
+  year: 1965
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - journey
+  - attention-and-listening
+  fits_summary: true
+  notes: 'spare-line modern; journey theme add [verified: 2 visual lines]'
+  wrapped_visual_lines: 2
+- id: transtromer-after-death-fragment
+  title: After a Death (4-line excerpt)
+  author: Tomas Tranströmer
+  translator: Robert Bly
+  year: 1962
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - sv
+  - en
+  themes_proposed:
+  - mortality
+  - decay-and-memory
+  - winter-and-ice
+  fits_summary: verify
+  notes: Swedish in spare Bly translation
+- id: cohen-anthem-crack-couplet
+  title: Anthem (the crack-in-everything couplet)
+  author: Leonard Cohen
+  year: 1992
+  rights_tier: personal_library
+  form: aphorism
+  language:
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - attention-and-listening
+  fits_summary: 'yes'
+  notes: '"There is a crack in everything / That''s how the light gets in." — short couplet'
+- id: sandburg-fog
+  title: Fog
+  author: Carl Sandburg
+  year: 1916
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - urban
+  - water-and-reflection
+  - attention-and-listening
+  fits_summary: 'yes'
+  notes: 6-line free-verse, very short lines; urban + water themes (counts as subject due to water)
+- id: shelley-ozymandias-king-of-kings
+  title: Ozymandias (My name is Ozymandias couplet)
+  author: Percy Bysshe Shelley
+  year: 1818
+  rights_tier: public_domain
+  form: aphorism
+  language:
+  - en
+  themes_proposed:
+  - mortality
+  - decay-and-memory
+  - ritual-and-gathering
+  fits_summary: true
+  notes: '"My name is Ozymandias, King of Kings: / Look on my Works, ye Mighty, and despair!" — couplet
+    excerpt of full sonnet (sonnet too long; full text routed to gallery). Universally anthologized, line
+    cited far beyond poetry. [verified: 4 visual lines]'
+  wrapped_visual_lines: 4
+- id: donne-death-be-not-proud-closing
+  title: Death, Be Not Proud (closing couplet)
+  author: John Donne
+  year: 1633
+  rights_tier: public_domain
+  form: aphorism
+  language:
+  - en
+  themes_proposed:
+  - mortality
+  - ritual-and-gathering
+  fits_summary: false
+  notes: '"And death shall be no more; Death, thou shalt die." — Holy Sonnet X closing; full sonnet rerouted
+    to gallery. [VERIFIED FAIL: 5 visual lines, > 4 cap]'
+  wrapped_visual_lines: 5
+  for_zone: gallery
+- id: donne-no-man-is-an-island
+  title: No Man Is an Island (opening 3 lines)
+  author: John Donne
+  year: 1624
+  rights_tier: public_domain
+  form: aphorism
+  language:
+  - en
+  themes_proposed:
+  - solitude
+  - tender-companionship
+  - mortality
+  fits_summary: 'yes'
+  notes: From Devotions XVII; cited in eulogy / film (For Whom the Bell Tolls). Lines short.
+- id: henley-invictus-closing
+  title: Invictus (closing couplet)
+  author: William Ernest Henley
+  year: 1875
+  rights_tier: public_domain
+  form: aphorism
+  language:
+  - en
+  themes_proposed:
+  - solitude
+  - mortality
+  - attention-and-listening
+  fits_summary: 'yes'
+  notes: '"I am the master of my fate, / I am the captain of my soul." — 2 short lines, ~26 chars each.'
+- id: tennyson-light-brigade-refrain
+  title: Charge of the Light Brigade (Theirs not to reason why)
+  author: Alfred, Lord Tennyson
+  year: 1854
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - ritual-and-gathering
+  - mortality
+  fits_summary: 'yes'
+  notes: 3 short trimeter lines; among the most-cited Victorian fragments.
+- id: tennyson-ulysses-closing-line
+  title: 'Ulysses (closing line: To strive, to seek)'
+  author: Alfred, Lord Tennyson
+  year: 1842
+  rights_tier: public_domain
+  form: aphorism
+  language:
+  - en
+  themes_proposed:
+  - journey
+  - mortality
+  - attention-and-listening
+  fits_summary: 'yes'
+  notes: '"To strive, to seek, to find, and not to yield." — single iconic line; widely cited (motto inscribed
+    at countless institutions).'
+- id: coleridge-kubla-khan-opening
+  title: Kubla Khan (opening couplet)
+  author: Samuel Taylor Coleridge
+  year: 1816
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - architecture-and-structure
+  - ritual-and-gathering
+  - attention-and-listening
+  fits_summary: 'yes'
+  notes: '"In Xanadu did Kubla Khan / A stately pleasure-dome decree" — 2 short lines.'
+- id: coleridge-water-water-couplet
+  title: Rime of the Ancient Mariner (Water, water everywhere)
+  author: Samuel Taylor Coleridge
+  year: 1798
+  rights_tier: public_domain
+  form: aphorism
+  language:
+  - en
+  themes_proposed:
+  - water-and-reflection
+  - solitude
+  - journey
+  fits_summary: 'yes'
+  notes: '"Water, water, every where, / Nor any drop to drink." — 2 very short lines; meme-iconic.'
+- id: yeats-second-coming-things-fall-apart
+  title: The Second Coming (Things fall apart couplet)
+  author: W.B. Yeats
+  year: 1919
+  rights_tier: public_domain
+  form: aphorism
+  language:
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - ritual-and-gathering
+  fits_summary: true
+  notes: '"Things fall apart; the centre cannot hold; / Mere anarchy is loosed upon the world." — opening
+    couplet of section II; titles for novels, headlines. [verified: 4 visual lines]'
+  wrapped_visual_lines: 4
+- id: yeats-second-coming-rough-beast
+  title: The Second Coming (closing couplet)
+  author: W.B. Yeats
+  year: 1919
+  rights_tier: public_domain
+  form: aphorism
+  language:
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - mortality
+  fits_summary: false
+  notes: '"And what rough beast, its hour come round at last, / Slouches towards Bethlehem to be born?"
+    — most-cited 20thC English couplet. [VERIFIED FAIL: 5 visual lines, > 4 cap]'
+  wrapped_visual_lines: 5
+  for_zone: gallery
+- id: hughes-harlem-opening
+  title: Harlem (What happens to a dream deferred?)
+  author: Langston Hughes
+  year: 1951
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - attention-and-listening
+  fits_summary: 'yes'
+  notes: '"What happens to a dream deferred? / Does it dry up / like a raisin in the sun?" — 3 short lines;
+    title of A Raisin in the Sun comes from this.'
+- id: hughes-mother-to-son-opening
+  title: Mother to Son (opening couplet)
+  author: Langston Hughes
+  year: 1922
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - tender-companionship
+  - attention-and-listening
+  fits_summary: true
+  notes: '"Well, son, I''ll tell you: / Life for me ain''t been no crystal stair." [verified: 4 visual
+    lines]'
+  wrapped_visual_lines: 4
+- id: angelou-still-i-rise-opening
+  title: Still I Rise (opening couplet)
+  author: Maya Angelou
+  year: 1978
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - attention-and-listening
+  fits_summary: true
+  notes: '"You may write me down in history / With your bitter, twisted lies" — opening; refrain "Still
+    I rise" universally recognized. [verified: 4 visual lines]'
+  wrapped_visual_lines: 4
+- id: plath-mirror-opening
+  title: 'Mirror (opening couplet: I am silver and exact)'
+  author: Sylvia Plath
+  year: 1961
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - solitude
+  - attention-and-listening
+  - reflection-and-mirror
+  fits_summary: true
+  notes: '"I am silver and exact. I have no preconceptions." — short opening line; theme reflection-and-mirror
+    under-served. [verified: 4 visual lines]'
+  wrapped_visual_lines: 4
+- id: larkin-arundel-tomb-closing
+  title: An Arundel Tomb (closing couplet)
+  author: Philip Larkin
+  year: 1956
+  rights_tier: personal_library
+  form: aphorism
+  language:
+  - en
+  themes_proposed:
+  - decay-and-memory
+  - tender-companionship
+  - mortality
+  fits_summary: true
+  notes: '"Our almost-instinct almost true: / What will survive of us is love." — closing 2 lines. [verified:
+    4 visual lines]'
+  wrapped_visual_lines: 4
+- id: larkin-days-opening
+  title: 'Days (opening 4 lines: What are days for?)'
+  author: Philip Larkin
+  year: 1953
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - attention-and-listening
+  - decay-and-memory
+  fits_summary: 'yes'
+  notes: 4 short trimeter lines; whole poem is 8 lines.
+- id: heaney-digging-opening
+  title: Digging (opening couplet)
+  author: Seamus Heaney
+  year: 1966
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - craft-and-play
+  - work-making
+  - attention-and-listening
+  fits_summary: true
+  notes: '"Between my finger and my thumb / The squat pen rests; snug as a gun." — Heaney''s defining
+    opening. [verified: 4 visual lines]'
+  wrapped_visual_lines: 4
+- id: roethke-waking-line
+  title: 'The Waking (opening line: I wake to sleep)'
+  author: Theodore Roethke
+  year: 1953
+  rights_tier: personal_library
+  form: aphorism
+  language:
+  - en
+  themes_proposed:
+  - attention-and-listening
+  - mortality
+  fits_summary: 'yes'
+  notes: '"I wake to sleep, and take my waking slow." — single line; villanelle refrain in own right.'
+- id: cummings-since-feeling-is-first-opening
+  title: since feeling is first (opening 2 lines)
+  author: E.E. Cummings
+  year: 1926
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - attention-and-listening
+  - tender-companionship
+  fits_summary: 'yes'
+  notes: '"since feeling is first / who pays any attention" — short trimeter.'
+- id: cummings-love-is-more-thicker
+  title: love is more thicker than forget
+  author: E.E. Cummings
+  year: 1939
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - tender-companionship
+  - decay-and-memory
+  fits_summary: false
+  notes: 'short opening quatrain. [VERIFIED FAIL: 7 visual lines, > 4 cap]'
+  wrapped_visual_lines: 7
+  for_zone: gallery
+- id: stein-rose-is-a-rose
+  title: Sacred Emily (Rose is a rose is a rose)
+  author: Gertrude Stein
+  year: 1913
+  rights_tier: public_domain
+  form: aphorism
+  language:
+  - en
+  themes_proposed:
+  - attention-and-listening
+  - craft-and-play
+  fits_summary: 'yes'
+  notes: Single iconic line; meme-status across 20thC.
+- id: berry-peace-wild-things-opening
+  title: The Peace of Wild Things (opening couplet)
+  author: Wendell Berry
+  year: 1968
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - solitude
+  - mountain-and-forest
+  - animals
+  fits_summary: true
+  notes: '"When despair for the world grows in me / and I wake in the night at the least sound" — Wendell
+    Berry''s most-shared opening. [verified: 4 visual lines]'
+  wrapped_visual_lines: 4
+- id: oliver-wild-geese-opening
+  title: Wild Geese (opening couplet)
+  author: Mary Oliver
+  year: 1986
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - attention-and-listening
+  - solitude
+  - animals
+  fits_summary: true
+  notes: '"You do not have to be good. / You do not have to walk on your knees" — Oliver''s most-cited
+    opening. [verified: 4 visual lines]'
+  wrapped_visual_lines: 4
+- id: stevens-jar-in-tennessee-opening
+  title: Anecdote of the Jar (opening couplet)
+  author: Wallace Stevens
+  year: 1919
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - en
+  themes_proposed:
+  - attention-and-listening
+  - rural-pastoral
+  - craft-and-play
+  fits_summary: true
+  notes: '"I placed a jar in Tennessee, / And round it was, upon a hill." — most-cited Stevens opening.
+    [verified: 4 visual lines]'
+  wrapped_visual_lines: 4
+- id: lazarus-new-colossus-closing
+  title: The New Colossus (Give me your tired excerpt)
+  author: Emma Lazarus
+  year: 1883
+  rights_tier: public_domain
+  form: aphorism
+  language:
+  - en
+  themes_proposed:
+  - ritual-and-gathering
+  - tender-companionship
+  fits_summary: false
+  notes: '"Give me your tired, your poor, / Your huddled masses yearning to breathe free" — inscribed
+    at Statue of Liberty; iconic without attribution. [VERIFIED FAIL: 5 visual lines, > 4 cap]'
+  wrapped_visual_lines: 5
+  for_zone: gallery
+- id: lorca-romance-sonambulo-opening
+  title: Romance Sonámbulo (Verde que te quiero verde)
+  author: Federico García Lorca
+  year: 1928
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - es
+  - en
+  themes_proposed:
+  - ritual-and-gathering
+  - attention-and-listening
+  fits_summary: 'yes'
+  notes: '"Verde que te quiero verde. / Verde viento. Verdes ramas." — 2 short lines; the most-quoted
+    Lorca opening.'
+- id: machado-caminante-couplet
+  title: Caminante, no hay camino (Proverbios y cantares XXIX)
+  author: Antonio Machado
+  year: 1912
+  rights_tier: public_domain
+  form: aphorism
+  language:
+  - es
+  - en
+  themes_proposed:
+  - journey
+  - attention-and-listening
+  fits_summary: 'yes'
+  notes: '"Caminante, no hay camino, / se hace camino al andar." — 2 short lines; cited in songs (Serrat)
+    and beyond.'
+- id: eminescu-dorinta-opening
+  title: Dorința (opening couplet)
+  author: Mihai Eminescu
+  year: 1876
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - ro
+  - en
+  themes_proposed:
+  - tender-companionship
+  - mountain-and-forest
+  - water-and-reflection
+  fits_summary: 'yes'
+  notes: '"Vino-n codru la izvorul / Care tremură pe prund" — short trimeter; Eminescu canonical (Romanian
+    operator native).'
+- id: eminescu-mai-am-un-singur-dor-opening
+  title: Mai am un singur dor (opening couplet)
+  author: Mihai Eminescu
+  year: 1883
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - ro
+  - en
+  themes_proposed:
+  - mortality
+  - water-and-reflection
+  - solitude
+  fits_summary: true
+  notes: 'Eminescu''s testament-poem; opening short. [verified: 2 visual lines]'
+  wrapped_visual_lines: 2
+- id: bacovia-plumb-opening
+  title: Plumb (opening couplet)
+  author: George Bacovia
+  year: 1916
+  rights_tier: public_domain
+  form: stanzaic
+  language:
+  - ro
+  - en
+  themes_proposed:
+  - mortality
+  - decay-and-memory
+  - ritual-and-gathering
+  fits_summary: true
+  notes: '"Dormeau adânc sicriele de plumb…" — Romanian Symbolist canon. [verified: 4 visual lines]'
+  wrapped_visual_lines: 4
+- id: eluard-liberte-closing
+  title: Liberté (closing 3 lines)
+  author: Paul Éluard
+  year: 1942
+  rights_tier: personal_library
+  form: stanzaic
+  language:
+  - fr
+  - en
+  themes_proposed:
+  - ritual-and-gathering
+  - attention-and-listening
+  fits_summary: 'yes'
+  notes: '"Je suis né pour te connaître / Pour te nommer / Liberté." — 3 short lines; airdropped over
+    occupied France in 1942.'
+- id: basho-hosomichi-opening-line
+  title: 'Oku no Hosomichi (opening: The days and months are travelers)'
+  author: Matsuo Bashō
+  translator: Sam Hamill
+  year: 1689
+  rights_tier: personal_library
+  form: aphorism
+  language:
+  - ja
+  - en
+  themes_proposed:
+  - journey
+  - seasons-and-time
+  - attention-and-listening
+  fits_summary: true
+  notes: '"The days and months are travelers of eternity, and so are the years that pass." — most-cited
+    Bashō prose-line. [verified: 4 visual lines]'
+  wrapped_visual_lines: 4
