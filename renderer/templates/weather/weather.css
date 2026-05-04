@@ -220,14 +220,45 @@
   letter-spacing: 0.12em;
 }
 
+/* Stars cell single statement — sized by tiered font-fit. Floor 25u
+ * matches the Moon phase line; ceiling 30u matches the Sun numerals,
+ * so the footer typography reads as one family. Tiers 6-7 (22u/20u) are
+ * sub-floor escapes used only when a chatty statement (Artemis-class news
+ * + sky context) overflows 25u-with-3-lines. Family is sans (Plex Sans
+ * 500), prose-warm rather than the mono used by Moon's phase tag. */
 .weather-astro .value {
-  font-family: var(--font-serif);
-  font-variation-settings: 'opsz' 36, 'wght' 500;
-  font-size: calc(28 * var(--u));
-}
-.weather-astro .detail {
   font-family: var(--font-sans);
   font-weight: 500;
+  /* tier-1 default (set by data-fit-tier='1' below; here as a fallback). */
+  font-size: calc(30 * var(--u));
+  line-height: calc(36 * var(--u));
+  overflow: hidden;
+}
+.weather-astro .value[data-fit-tier='1'] {
+  font-size: calc(30 * var(--u));
+  line-height: calc(36 * var(--u));
+}
+.weather-astro .value[data-fit-tier='2'] {
+  font-size: calc(28 * var(--u));
+  line-height: calc(34 * var(--u));
+}
+.weather-astro .value[data-fit-tier='3'] {
+  font-size: calc(27 * var(--u));
+  line-height: calc(32 * var(--u));
+}
+.weather-astro .value[data-fit-tier='4'] {
+  font-size: calc(26 * var(--u));
+  line-height: calc(32 * var(--u));
+}
+.weather-astro .value[data-fit-tier='5'] {
   font-size: calc(25 * var(--u));
-  color: var(--mid);
+  line-height: calc(30 * var(--u));
+}
+.weather-astro .value[data-fit-tier='6'] {
+  font-size: calc(22 * var(--u));
+  line-height: calc(28 * var(--u));
+}
+.weather-astro .value[data-fit-tier='7'] {
+  font-size: calc(20 * var(--u));
+  line-height: calc(26 * var(--u));
 }

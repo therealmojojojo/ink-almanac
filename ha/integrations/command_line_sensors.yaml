@@ -24,13 +24,24 @@ command_line:
       scan_interval: 300
       value_template: "{{ value | default('', true) }}"
 
-  # Tonight's astronomical event line — LLM-generated daily by
-  # generate_astro_event.sh, written to state/astro_event.txt. Mirrors the
-  # inkplate_poetic_weather_line pattern. Replaces the earlier in-the-sky.org
-  # scraper, which broke when the source site's DOM changed.
+  # Tonight's Stars-cell statement — produced daily by
+  # generate_astro_event.py (Skyfield + Launch Library 2 + RSS + Haiku
+  # phrasing) and written to state/astro_event.txt.
+  #
+  # Freshness guard: emit the empty string when astro_event.txt is older
+  # than 30 hours. The renderer then falls back to the literal "no event
+  # tonight" treatment instead of surfacing yesterday's line indefinitely
+  # if the morning cron silently fails.
   - sensor:
       name: astro_event_tonight
       unique_id: astro_event_tonight
-      command: "/bin/sh -c 'cat /config/custom/inkplate/state/astro_event.txt 2>/dev/null || true'"
+      command: >-
+        /bin/sh -c '
+        f=/config/custom/inkplate/state/astro_event.txt;
+        [ -f "$f" ] || exit 0;
+        age=$(( $(date +%s) - $(stat -c %Y "$f" 2>/dev/null || stat -f %m "$f") ));
+        [ "$age" -gt 108000 ] && exit 0;
+        cat "$f"
+        '
       scan_interval: 300
       value_template: "{{ value | default('', true) }}"

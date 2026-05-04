@@ -59,16 +59,11 @@ export function buildHtml(input: WeatherModeInput): string {
     </div>
     <div class="cell">
       <div class="label">Stars</div>
-      <div class="value">${escapeHtml(
-        applyZone('astro_event', astro?.event?.title ?? 'no event tonight'),
-      )}</div>
-      ${
-        astro?.event?.detail
-          ? `<div class="detail">${escapeHtml(
-              applyZone('astro_detail', astro.event.detail),
-            )}</div>`
-          : ''
-      }
+      ${(() => {
+        const text = applyZone('astro_event', astro?.event?.title ?? 'no event tonight');
+        const tier = pickStarsTier(text);
+        return `<div class="value" data-fit-tier="${tier}">${escapeHtml(text)}</div>`;
+      })()}
     </div>
   </footer>
 </div>`;
@@ -140,6 +135,46 @@ function renderRow(loc: WeatherModeInput['weather']['locations'][number]): strin
   </div>
   <div class="forecast">${forecast}</div>
 </section>`;
+}
+
+/** Tiered font-fit for the Stars cell single statement. The cell is one
+ *  third of the panel width (≈360u inner) and sits in a fixed-footprint
+ *  footer; the picker keeps total text height under today's max envelope.
+ *
+ *  [tier, font(u), line-height(u), soft-cpl, max-visual-lines]
+ *
+ *  Soft-cpl is calibrated for IBM Plex Sans 500 at ~0.51× font advance per
+ *  char on English mixed-case prose. May need tuning after first renders.
+ *  max-visual-lines is set so each tier's content height stays inside the
+ *  cell budget (≤ ~108u of value text). Larger fonts are capped at 2 lines
+ *  to preserve hierarchy with the Sun and Moon cells; floor tiers (≤25u)
+ *  may run to 3 lines on long statements (Phase 2). */
+const STARS_TIERS = [
+  // [tier, font, line-height, soft-cpl, max-visual-lines]
+  [1, 30, 36, 23, 2],
+  [2, 28, 34, 25, 2],
+  [3, 27, 32, 26, 2],
+  [4, 26, 32, 27, 2],
+  [5, 25, 30, 28, 3],
+  [6, 22, 28, 32, 3],
+  [7, 20, 26, 35, 3],
+] as const;
+
+function pickStarsTier(text: string): number {
+  const len = text.length || 1;
+  // Phase 1 — largest tier ≥ 25u (the Moon-cell floor) where the statement
+  // fits on a single line. Prevents shrinking past the footer floor just
+  // to avoid wrap; on chatty content we prefer 30u wrapped over 20u single.
+  for (const [t, font, , cpl] of STARS_TIERS) {
+    if (font >= 25 && len <= cpl) return t;
+  }
+  // Phase 2 — largest tier where wrapped lines fit the tier's mvl. This
+  // is where 30u-with-2-lines beats 22u-with-1-line for medium statements.
+  for (const [t, , , cpl, mvl] of STARS_TIERS) {
+    if (Math.ceil(len / cpl) <= mvl) return t;
+  }
+  // Last resort — floor; CSS overflow trims if text really runs away.
+  return 7;
 }
 
 export function ditherMask(): boolean {

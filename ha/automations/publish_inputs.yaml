@@ -109,7 +109,6 @@
             "astro": {
               "event": {
                 "title": "{{ states('sensor.astro_event_tonight') if states('sensor.astro_event_tonight') not in ['unknown','unavailable','none'] else '' }}",
-                "detail": "{{ state_attr('sensor.astro_event_tonight','detail') | default('', true) }}",
                 "when": "{{ as_timestamp(states('sensor.sunrise_today'), 0) | timestamp_custom('%H:%M', true) }} / {{ as_timestamp(states('sensor.sunset_today'), 0) | timestamp_custom('%H:%M', true) }}"
               },
               "moon": {

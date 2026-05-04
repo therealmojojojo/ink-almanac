@@ -41,7 +41,14 @@ export const weatherInput = z.object({
     .max(2),
   astro: z
     .object({
-      event: z.object({ title: z.string(), detail: z.string(), when: z.string() }),
+      event: z.object({
+        title: z.string(),
+        // Vestigial — Stars cell now renders title as a single statement
+        // sized by tiered font-fit. HA may still publish detail; renderer
+        // ignores it. Drop after HA-side cutover.
+        detail: z.string().optional(),
+        when: z.string(),
+      }),
       moon: z.object({ phase: z.string(), illumination: z.number().min(0).max(1) }),
       sun: z.object({ rise: z.string(), set: z.string() }).optional(),
     })

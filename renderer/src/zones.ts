@@ -35,7 +35,10 @@ export const ZONES = {
   // ---- Weather ----------------------------------------------------------
   location_name:   { maxChars: 16, maxLines: 1, kind: 'prose' },
   weather_cond_w:  { maxChars: 18, maxLines: 1, kind: 'prose' },
-  astro_event:     { maxChars: 40, maxLines: 2, kind: 'prose' },
+  // Single statement (no separate detail line). Sized by tiered font-fit
+  // in weather.ts:pickStarsTier. Width budget allows up to ~90 chars at
+  // the floor (20u, 3 lines); zone trim is a backstop, not the primary fit.
+  astro_event:     { maxChars: 90, maxLines: 4, kind: 'prose' },
   astro_detail:    { maxChars: 26, maxLines: 2, kind: 'prose' },
 
   // ---- Gallery ----------------------------------------------------------
