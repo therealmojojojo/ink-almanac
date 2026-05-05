@@ -93,12 +93,13 @@ constexpr int kRendererMaxRetries   = 3;
 constexpr int kRendererBackoffSec[] = {2, 8, 30};
 
 // MQTT topics
-inline constexpr const char* kTopicActiveMode      = "inkplate/command/active_mode";
-inline constexpr const char* kTopicSchedule        = "inkplate/command/schedule";
-inline constexpr const char* kTopicWake            = "inkplate/command/wake";
-inline constexpr const char* kTopicGesture         = "inkplate/state/gesture";
-inline constexpr const char* kTopicDeviceState     = "inkplate/state/device";
-inline constexpr const char* kTopicNowPlayingTrack = "inkplate/state/now_playing_track";
-inline constexpr const char* kTopicActiveOverride  = "inkplate/state/active_override";
+inline constexpr const char* kTopicActiveMode       = "inkplate/command/active_mode";
+inline constexpr const char* kTopicGestureResponse  = "inkplate/command/gesture_response";
+inline constexpr const char* kTopicSchedule         = "inkplate/command/schedule";
+inline constexpr const char* kTopicWake             = "inkplate/command/wake";
+inline constexpr const char* kTopicGesture          = "inkplate/state/gesture";
+inline constexpr const char* kTopicDeviceState      = "inkplate/state/device";
+inline constexpr const char* kTopicNowPlayingTrack  = "inkplate/state/now_playing_track";
+inline constexpr const char* kTopicActiveOverride   = "inkplate/state/active_override";
 
 }  // namespace fw::config

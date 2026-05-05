@@ -181,10 +181,13 @@ TEST_CASE("IMU wake: gesture published before active_mode resolved") {
   const int full_before = s.display().fullRefreshCount();
 
   // Simulate HA: when the device publishes the gesture, HA reacts by
-  // setting active_mode = weather (single tap → weather_peek in HA).
+  // pushing the new face on the non-retained gesture_response event topic
+  // (so the device's grace-window wait sees a fresh push, not a stale
+  // retained value) AND updating retained active_mode for subsequent Fulls.
   auto& t = s.transport();
   t.setPublishHook([&t](const sim::MockTransport::Publish& p) {
     if (p.topic == fw::config::kTopicGesture) {
+      t.mqttPublish(fw::config::kTopicGestureResponse, "weather", /*retained=*/false);
       t.mqttPublish(fw::config::kTopicActiveMode, "weather", /*retained=*/true);
     }
   });
@@ -233,15 +236,13 @@ TEST_CASE("IMU wake during quiet hours: HA holds Night, no face change") {
   fw::tick(s.hal(), fw::wake::Reason::ColdBoot);
   const int full_before = s.display().fullRefreshCount();
 
-  // Simulate HA's quiet-hours guard: gesture arrives but active_mode does NOT
-  // change. (HA still acknowledges the message by re-publishing the same
-  // retained value — the device's grace-window reads it and finds no change.)
+  // Simulate HA's quiet-hours guard: gesture arrives but the gesture handler
+  // bails on its quiet-hours condition, so no gesture_response push fires.
+  // The device's grace-window wait times out, falls back to resolveActiveMode
+  // which reads retained active_mode = "night" (unchanged from cold-boot
+  // setup), and renders Night — same face, no visible change.
   auto& t = s.transport();
-  t.setPublishHook([&t](const sim::MockTransport::Publish& p) {
-    if (p.topic == fw::config::kTopicGesture) {
-      t.mqttPublish(fw::config::kTopicActiveMode, "night", /*retained=*/true);
-    }
-  });
+  t.setPublishHook([](const sim::MockTransport::Publish&) {});
 
   s.fireTap(/*isDouble=*/false);
   fw::tick(s.hal(), fw::wake::Reason::IMU);
@@ -267,6 +268,7 @@ TEST_CASE("IMU wake: double tap gesture payload") {
     if (p.topic == fw::config::kTopicGesture &&
         p.payload.find("double") != std::string::npos) {
       // HA's summary_gallery_toggle: Gallery → Summary.
+      t.mqttPublish(fw::config::kTopicGestureResponse, "summary", /*retained=*/false);
       t.mqttPublish(fw::config::kTopicActiveMode, "summary", /*retained=*/true);
     }
   });

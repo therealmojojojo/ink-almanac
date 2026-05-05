@@ -23,9 +23,12 @@ namespace sim {
 // Grace-window simulation: scenarios can install a publish-hook via
 // `setPublishHook()`. The hook fires synchronously inside `mqttPublish`,
 // letting a test react to a device-side publish by e.g. publishing the
-// matching retained `active_mode` — which then becomes visible to the
-// subsequent `mqttWaitForMessage` call. This models HA's response inside
-// the device's grace window without needing real event-loop timing.
+// gesture_response event — which then becomes visible to the subsequent
+// `mqttWaitForMessage` call. This models HA's response inside the device's
+// grace window without needing real event-loop timing. `mqttWaitForMessage`
+// returns either the retained value (mimics broker replay on subscribe) or
+// the most recent non-retained push since the last drain, draining the push
+// buffer on read so a second wait without a fresh push returns empty.
 class MockTransport : public hal::ITransport {
  public:
   struct Publish {
@@ -69,6 +72,7 @@ class MockTransport : public hal::ITransport {
   bool mqtt_online_ = true;
   std::unordered_map<std::string, hal::HttpResponse> canned_;
   std::map<std::string, std::string> retained_;  // retained msgs by topic
+  std::map<std::string, std::string> pending_push_;  // last non-retained push per topic, drained by mqttWaitForMessage
   std::map<std::string, std::vector<MqttCallback>> subs_;
   std::vector<Publish> publishes_;
   PublishHook publish_hook_;

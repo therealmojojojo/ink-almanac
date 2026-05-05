@@ -446,11 +446,24 @@ void doFull(hal::HAL& h,
     FW_LOG("gesture published (%s); grace window %d ms", kind,
            fw::config::kGestureGraceMs);
 
+    // Wait for HA's gesture handler to publish on the dedicated event channel.
+    // This topic is non-retained by contract — the broker has nothing to
+    // replay on subscribe, so the wait truly waits for HA's push and isn't
+    // tricked into accepting the previous mode as the "response". HA still
+    // updates the retained `active_mode` separately so subsequent Full wakes
+    // see the flipped face until the schedule alternation overrides it.
     auto payload = h.transport.mqttWaitForMessage(
-        fw::config::kTopicActiveMode, fw::config::kGestureGraceMs);
+        fw::config::kTopicGestureResponse, fw::config::kGestureGraceMs);
     if (!payload.empty()) {
       auto m = parseModePayload(payload);
       if (m != fw::modes::Mode::Unknown) active = m;
+    } else {
+      // HA didn't respond on the event channel within the grace window.
+      // Fall back to the retained state channel — captures any sleep-window
+      // alternation update without making this branch racy again (the
+      // retained read is a separate semantic from the grace-window wait,
+      // even when both happen to land on `active_mode`-derived state).
+      active = resolveActiveMode(h.transport, local_hour);
     }
   } else if (already_resolved.has_value() &&
              *already_resolved != fw::modes::Mode::Unknown) {

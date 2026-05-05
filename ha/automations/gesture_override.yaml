@@ -141,6 +141,19 @@
         flip_face: >-
           {% if (current_face | trim) == 'weather' %}{{ tier_main | trim }}
           {% else %}weather{% endif %}
+    # Event channel for the in-flight IMU wake's grace window. Non-retained
+    # by contract — the firmware's `mqttWaitForMessage` on this topic relies
+    # on the broker having nothing to replay on subscribe, so the only way
+    # the device sees a payload is via this fresh push. Without this the
+    # device's wait would short-circuit on the previous retained
+    # active_mode and ignore the flip. See firmware/src/main_loop.cpp
+    # around the IMU branch and openspec/specs/device-firmware "tap-driven
+    # mode change".
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/gesture_response
+        payload: "{{ flip_face | trim }}"
+        retain: false
     - service: mqtt.publish
       data:
         topic: inkplate/command/active_mode
@@ -197,6 +210,14 @@
           {% if m < 10*60 %}summary
           {% elif m < 22*60 %}gallery
           {% else %}gallery{% endif %}
+    # Event channel for the in-flight IMU wake's grace window — see notes on
+    # the schedule-tap automation above for why this non-retained push is
+    # required alongside the retained active_mode update.
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/gesture_response
+        payload: "{{ peek_face | trim }}"
+        retain: false
     - service: mqtt.publish
       data:
         topic: inkplate/command/active_mode

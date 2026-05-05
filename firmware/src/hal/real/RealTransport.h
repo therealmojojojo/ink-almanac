@@ -157,9 +157,12 @@ class RealTransport : public hal::ITransport {
   }
 
   // Subscribe to `topic` at QoS 0, spin the event loop for up to timeout_ms,
-  // and return the most recently received payload (retained or push). Used
-  // by the post-gesture grace window so HA has time to process the tap and
-  // re-publish active_mode.
+  // and return the first payload that arrives (or empty on timeout). Intended
+  // for non-retained event topics — on a retained topic the broker would
+  // replay the stored value on subscribe and the wait would short-circuit on
+  // it, defeating the purpose. Used by the post-gesture grace window
+  // (`inkplate/command/gesture_response`, contractually non-retained) so HA
+  // has time to process the tap and push a fresh response.
   std::string mqttWaitForMessage(const std::string& topic, int timeout_ms) override {
     return waitImpl(topic, timeout_ms);
   }

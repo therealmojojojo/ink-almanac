@@ -40,7 +40,11 @@ void MockTransport::mqttPublish(const std::string& topic,
                                 bool retained) {
   Publish p{topic, payload, retained};
   publishes_.push_back(p);
-  if (retained) retained_[topic] = payload;
+  if (retained) {
+    retained_[topic] = payload;
+  } else {
+    pending_push_[topic] = payload;
+  }
   auto it = subs_.find(topic);
   if (it != subs_.end()) {
     for (auto& cb : it->second) cb(topic, payload);
@@ -60,12 +64,21 @@ std::string MockTransport::mqttReadRetained(const std::string& topic) {
 std::string MockTransport::mqttWaitForMessage(const std::string& topic,
                                               int timeout_ms) {
   // The mock has no real event loop; all scenario-driven HA responses have
-  // already fired via the publish hook by the time this is called. Return
-  // whichever retained value is present now. timeout_ms is intentionally
-  // ignored — real-device semantics live in RealTransport.
+  // already fired via the publish hook by the time this is called. Mirror
+  // the broker's "deliver retained on subscribe, otherwise wait for a push"
+  // model: prefer the retained value when present, fall back to the most
+  // recent non-retained push since the last drain. The push slot is consumed
+  // on read so a second call without a fresh publish returns empty (matches
+  // a real wait that times out with no traffic). timeout_ms is intentionally
+  // ignored — real-device timing semantics live in RealTransport.
   (void)timeout_ms;
-  auto it = retained_.find(topic);
-  return it == retained_.end() ? std::string{} : it->second;
+  auto rt = retained_.find(topic);
+  if (rt != retained_.end()) return rt->second;
+  auto pt = pending_push_.find(topic);
+  if (pt == pending_push_.end()) return {};
+  std::string payload = pt->second;
+  pending_push_.erase(pt);
+  return payload;
 }
 
 void MockTransport::setRendererResponse(const std::string& url,

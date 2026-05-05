@@ -105,11 +105,21 @@ bare token from `RENDERER_INPUT_TOKEN`.
 
 | Topic | Direction | Retained | Producer | Consumer |
 |---|---|---|---|---|
-| `inkplate/command/active_mode` | HA → device | ✓ | schedule / now_playing_override | firmware (on wake) |
+| `inkplate/command/active_mode` | HA → device | ✓ | schedule / now_playing_override / gesture handlers | firmware (on wake) |
+| `inkplate/command/gesture_response` | HA → device |   | gesture handlers | firmware (IMU grace window only) |
 | `inkplate/command/wake` | HA → device |   | every transition | firmware (MQTT wake) |
 | `inkplate/command/sleep_strategy` | HA → device | ✓ | sleep_strategy automation | firmware (on wake) |
 | `inkplate/state/device` | device → HA | ✓ | firmware | low_battery, mqtt sensors |
-| `inkplate/state/gesture` | device → HA |   | firmware | (consumed by add-now-playing-mode) |
+| `inkplate/state/gesture` | device → HA |   | firmware | gesture_override (HA-side tap handler) |
+
+`gesture_response` is the event-channel counterpart of the state-channel
+`active_mode`. The IMU grace window in firmware listens on `gesture_response`
+specifically so the broker has nothing to replay on subscribe — without that,
+the wait would short-circuit on the previously retained `active_mode` (which
+encodes the *current* mode, not HA's response to the just-fired tap). HA
+publishes both in the gesture-handler actions: `gesture_response` so the
+in-flight wake renders the flipped face, `active_mode` so subsequent Full
+wakes keep rendering it until the schedule alternation overrides.
 
 ## Activation model and deactivation precedence
 
@@ -167,6 +177,7 @@ and **when**. The renderer decides **how it looks**. The device decides
 | Topic | Dir | Retained | Payload |
 |---|---|:-:|---|
 | `inkplate/command/active_mode` | HA→device | ✓ | face name |
+| `inkplate/command/gesture_response` | HA→device | — | face name (event channel for IMU grace window) |
 | `inkplate/command/wake` | HA→device | — | pulse on transitions / kitchen-motion |
 | `inkplate/command/sleep_strategy` | HA→device | ✓ | helper bundle (Sonos window, quiet window, fast-path interval) |
 | `inkplate/state/device` | device→HA | ✓ | `{voltage, percentage, wake_reason, active_mode, build}` |
