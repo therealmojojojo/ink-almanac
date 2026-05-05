@@ -38,17 +38,19 @@ export function buildHtml(input: NowPlayingInput): string {
 
   // Prefer `art_url` (HTTP fetch at render time by Chromium) over `art_path`
   // (local file from the legacy SSH-based publisher). Either can be absent,
-  // in which case we render the SONOS fallback.
+  // and the upstream chain (HA media_player_proxy → Sonos getaa) intermittently
+  // returns errors / empty bytes for some Spotify tracks. The `<img>` tag uses
+  // the local fallback both as the initial src when artSrc is empty and via
+  // an onerror swap when art_url fails to load — so the panel always shows
+  // *something* aesthetic in the art zone instead of a broken-image icon.
   const artSrc = s.art_url ?? s.art_path ?? '';
+  const fallbackArtSrc = '/static/img/now-playing/fallback.jpg';
+  const imgSrc = artSrc || fallbackArtSrc;
   const body = `
 <div class="face np-root">
   ${batteryIndicator(input.device?.battery?.percentage)}
   <section class="np-art">
-    ${
-      artSrc
-        ? `<img src="${escapeHtml(artSrc)}" alt="">`
-        : '<div class="fallback">SONOS</div>'
-    }
+    <img src="${escapeHtml(imgSrc)}" alt="" onerror="this.onerror=null;this.src='${fallbackArtSrc}'">
   </section>
   <section class="np-right">
     <div class="source">${escapeHtml(applyZone('np_source', sourceLabel))}</div>

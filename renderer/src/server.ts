@@ -108,6 +108,12 @@ app.get('/static/css/:file', (c) => {
 app.get('/static/fonts/:file', (c) =>
   serveFile(path.join('templates/fonts', c.req.param('file'))),
 );
+// Per-mode image assets (e.g., now-playing fallback art when Sonos's art_url
+// fails to load). URL shape mirrors the CSS route's stem→template-dir
+// convention: /static/img/<mode>/<file> → templates/<mode>/<file>.
+app.get('/static/img/:mode/:file', (c) =>
+  serveFile(path.join('templates', c.req.param('mode'), c.req.param('file'))),
+);
 app.get('/inputs/:file', (c) =>
   serveFile(path.join('inputs', c.req.param('file'))),
 );
@@ -149,10 +155,19 @@ app.get('/ha-proxy/api/media_player_proxy/:rest{.+}', async (c) => {
   const target = `${haBase.replace(/\/+$/, '')}/api/media_player_proxy/${rest}${url.search}`;
 
   // Shell out to curl — Node's fetch can't reach HA on this host.
+  // --max-time is intentionally short (2 s): when HA's media_player_proxy
+  // upstream hangs (Sonos `getaa` failing for some Spotify tracks), the
+  // happy-path fetch succeeds in ~50 ms on LAN, so anything past 2 s is
+  // already a failure. Returning a 502 quickly lets the renderer's
+  // now-playing template's `<img onerror>` fall back to the local fallback
+  // art well within the device's 3 s HTTP budget for the whole PNG render.
+  // Without this, slow upstream renders pushed total render time past the
+  // device's timeout, causing back-to-back failed Full draws and a multi-
+  // minute panel freeze.
   const { spawn } = await import('node:child_process');
   return new Promise<Response>((resolve) => {
     const child = spawn('curl', [
-      '-s', '--max-time', '10',
+      '-s', '--max-time', '2',
       '-o', '-',
       '-D', '-', // headers to stdout, separated from body by blank line
       '-H', `Authorization: Bearer ${haToken}`,
