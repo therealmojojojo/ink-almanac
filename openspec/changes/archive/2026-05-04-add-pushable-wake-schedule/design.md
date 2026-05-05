@@ -280,17 +280,18 @@ matches the baked behavior for the canonical input.
 
 Two new flag bits in `fw::diag::Entry::flags`:
 
-- `bit5 = schedule_loaded_from_cache` (RTC hit)
-- `bit6 = schedule_loaded_from_nvs` (NVS hit, RTC was empty)
+- `bit5 = schedule_loaded_from_cache` — set on every wake where
+  `resolveSchedule()` returned the RTC cache.
+- `bit6 = schedule_loaded_from_nvs` — set on the cold-boot wake where
+  `resolveScheduleColdBoot()` returned a valid NVS-loaded schedule.
+  Mutually exclusive with bit5 within a single tick.
 
-(`bit7 = schedule_load_failed` is implied if neither cache nor NVS hit on
-a wake that has mqtt up — operator can infer "running on baked default"
-from the absence of both bits.)
-
-When the schedule is updated mid-wake, the diag flag for that wake gets
-both `schedule_loaded_from_cache` AND a new
-`bit7 = schedule_updated_this_wake`. Operators reading the diag ring see
-exactly when the device picked up a new schedule.
+`bit7` remains reserved by this change. Operators infer "running on
+baked default" from the absence of both bit5 and bit6 on a wake that
+brought MQTT up. "Schedule changed during this wake" is detected via
+the `schedule_hash` field on `inkplate/state/device` transitioning, not
+via a per-wake bit — the hash is durable across diag-ring wraparound
+and is more useful for confirming pickup than a single-wake flag.
 
 ## What changes in HA
 
@@ -333,8 +334,10 @@ So the practical degradation path is:
 - Per-mode tier overrides — Now-Playing's "every minute" is preserved
   as the existing hardcoded special case in `pathForMinute()`. A
   v1-schedule-aware operator can't override Now-Playing's cadence.
-- Live mid-wake schedule updates — apply at start of next wake, not
-  this one. Avoids races.
+- Mid-tick path retargeting — the in-flight tick keeps the path it
+  chose at entry. The new schedule applies to `plannedSleepSec()` after
+  `tick()` returns, so the next wake (not this one) reflects the
+  change.
 - Operator UI dashboard cards — Phase 1 is YAML edit + redeploy.
 - Schema migration tooling — version 1 is the only schema until a v2
   proposal explicitly defines migration.

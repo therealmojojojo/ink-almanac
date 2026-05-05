@@ -24,5 +24,5 @@
 ## 4. Validation
 
 - [x] 4.1 `openspec validate add-epd-power-good-diagnostic` exits 0.
-- [ ] 4.2 Flash firmware (`pio run -e inkplate10 --target upload`) and `ha/deploy.sh`; confirm `"epd_pwrgood":true` appears in `inkplate/state/device` after the next Full and that `binary_sensor.inkplate_device_epd_power_good` reports `off` in HA.
-- [ ] 4.3 (Optional smoke) Force a wedge by writing 0x00 to TPS65186 register 0x01 mid-run and confirm the binary_sensor flips and the alert fires after the 31-min debounce window.
+- [x] 4.2 Verified in production during the 2026-05-04 wake-schedule + now-playing-cadence deploys: `state/device` consistently carries `"epd_pwrgood":true`, `binary_sensor.inkplate_device_epd_power_good` reads `off` (problem clear), and the diag-ring flag bit 2 (0x04 = epd_pwrgood) is set on every successful Full (e.g. `cFU4f/r1`, `tFN2f`).
+- [x] 4.3 N/A — forced-wedge smoke test deferred. **Reason**: writing 0x00 to TPS65186 register 0x01 on a live device is destructive (requires a battery-pull to recover, the very failure mode this change was written for). The reactive surface — binary_sensor flipping `on` and the 31-min debounced alert — is exercised by host scenarios using `MockDisplay`'s power-good setter; that's sufficient confidence to ship. The operator may run the destructive test on demand if the failure mode recurs.

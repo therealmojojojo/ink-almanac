@@ -101,8 +101,13 @@ tiers:
   tier). Already exists today as a hardcoded special case in
   `pathForMinute()` — preserved unchanged in this change.
 - **Operator UI dashboard cards.** YAML edit + redeploy is the Phase 1 UX.
-- **Live mid-wake schedule reload.** Updates apply at the start of the next
-  wake, not mid-tick. Avoids race conditions.
+- **Mid-tick path changes.** The in-flight tick keeps the path it chose
+  at entry; a schedule arriving mid-tick via MQTT does NOT retarget the
+  current wake (no race in `pathForMinute()`). The freshly-applied
+  schedule DOES take effect for `plannedSleepSec()` computed after
+  `tick()` returns and before deep sleep, so the *next* wake lands on
+  the new cadence. See the device-firmware spec's "Next-wake timing
+  reflects updated schedule" requirement for the contract.
 - **Schema migration.** Version 1 is the only schema; if/when a future change
   needs new fields, that's a separate openspec change with explicit migration
   rules.
