@@ -8,15 +8,23 @@ network.
 ## What's here
 
 - **Schedule planner** (`src/wake.cpp`) — pure-arithmetic decision over the
-  minute-of-day for what kind of wake to do (Full / Poll / Partial /
-  PollPartial / Skip). Tier table:
+  minute-of-day for what kind of wake to do (Full / Poll / Partial / Skip).
+  The schedule is operator-pushable via MQTT (`add-pushable-wake-schedule`);
+  see `ha/config/wake_schedule.yaml` for the live config. Default tier
+  table:
 
-  | Tier | Hours | Full cadence | Partial cadence |
-  |---|---|---|---|
-  | Night | 22:00 – 06:30 | 15 min | — |
-  | Morning | 06:30 – 10:00 | 15 min | 1 min |
-  | Midday | 10:00 – 17:00 | 30 min | 5 min (PollPartial) |
-  | Evening | 17:00 – 22:00 | 15 min | 1 min |
+  | Tier | Hours | Full cadence | Poll cadence | Partial cadence |
+  |---|---|---|---|---|
+  | Night | 22:00 – 06:30 | 15 min | — | — |
+  | Morning | 06:30 – 10:00 | 15 min | 3 min | 1 min |
+  | Midday | 10:00 – 17:00 | 30 min | — | 5 min |
+  | Evening | 17:00 – 22:00 | 15 min | 3 min | 1 min |
+
+  Partials are always offline (no WiFi). Poll cadences explicitly opt-in
+  to MQTT-based mode-change pickup between Fulls. The NowPlaying override
+  (session-aware, see `optimise-now-playing-cadence`) replaces every
+  minute's path with Poll while a Sonos session is active, with the Poll
+  handler conditionally promoting to Full on track change.
 
 - **Partial-refresh clock** (`src/clock_render.cpp` + `src/generated/clock_glyphs.{h,cpp}`)
   — composes "HH:MM" from baked Fraunces glyphs into the panel's 1-bit
@@ -106,8 +114,8 @@ which it isn't between wakes). All updates are USB.
 detect wake reason  → wake::Reason{ColdBoot,Timer,IMU,...}
 read IMU tap        → gestures::TapKind{None,Single,Double}
 showTapAck (if IMU + tap)
-plan path           → wake::planWake(minute_of_day, current_mode)
-                    → Path{Full,Poll,Partial,PollPartial,Skip}
+plan path           → wake::planWake(minute_of_day, current_mode, schedule, session)
+                    → Path{Full,Poll,Partial,Skip}
                       (non-Timer reasons all force Full)
 
 WiFi connect (timeout 10 s) → ensureTimeSynced (SNTP, 600 ms)
@@ -170,8 +178,11 @@ tap costs ~0.0036 % of capacity.
 
 ## Debugging
 
-Every Full / Poll / PollPartial wake publishes `inkplate/state/device` with
-`{voltage, percentage, wake_reason, active_mode, build}`. Watch via:
+Every Full wake publishes `inkplate/state/device` with `{voltage,
+percentage, wake_reason, active_mode, build, epd_pwrgood, wifi_rssi,
+schedule_hash, diag}`. Poll wakes that don't promote to Full are silent
+(no publish) — operator inspects the diag ring on the next Full to see
+the run of Polls. Watch via:
 
 ```sh
 mosquitto_sub -h <mqtt-host> -u inkplate -P <pwd> -t 'inkplate/state/#' -v

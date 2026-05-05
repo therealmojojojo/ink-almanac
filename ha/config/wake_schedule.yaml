@@ -1,0 +1,80 @@
+# Operator-editable wake schedule for the Inkplate device.
+#
+# This file is the source of truth for the device's per-tier wake cadence
+# (Full / Poll / Partial / Skip). When the file changes (or HA starts),
+# the `publish_wake_schedule` automation validates the contents and
+# republishes the rendered JSON to MQTT topic `inkplate/command/schedule`
+# (retained). The device picks it up on its next Full / Poll wake —
+# within ≤30 min worst case, or immediately if the operator double-taps.
+#
+# The four tier names form a closed set (`night`, `morning`, `midday`,
+# `evening`) and each must appear exactly once. Tier names are advisory
+# (firmware sorts by `start`); choose them to match how you reason about
+# the day.
+#
+# Per-tier fields:
+#   start         "HH:MM" local wall clock; the tier owns from this minute
+#                 until the next tier's start (modulo 24 h)
+#   full_min      Full-refresh cadence in minutes. Must be 1..720 and must
+#                 divide `start` evenly. Full = WiFi + MQTT + render fetch
+#                 + 3-bit panel refresh + state/device publish (~3 mAh).
+#   poll_min      Standalone-poll cadence (mode-change check) in minutes.
+#                 0 = no separate poll. Must divide `full_min` evenly and
+#                 be strictly less than `full_min`. Poll = WiFi + MQTT
+#                 reads (active_mode, schedule, active_override, plus
+#                 now_playing_track if NowPlaying); promotes to Full on
+#                 a detected change. ~0.5 mAh per Poll.
+#   partial_min   Partial-refresh (clock-zone update) cadence in minutes.
+#                 0 = no partials. Must divide `full_min` evenly.
+#                 **Always offline** — no WiFi, no MQTT. ~0.06 mAh per
+#                 Partial. To get HA pickup between Fulls, declare a
+#                 positive `poll_min`; the firmware does NOT auto-fold
+#                 a poll into the partial cadence.
+#
+# Path priority within a tier is Full > Poll > Partial > Skip. A minute
+# that's a multiple of multiple cadences resolves to the highest-priority
+# hit. So if poll_min=3 and partial_min=1, every multiple of 3 fires as
+# Poll (not Partial). Setting partial_min as a multiple of poll_min
+# means partials never fire — pick partial_min < poll_min when both.
+#
+# These tier cadences apply only when the device is NOT in a Now-Playing
+# session. During Sonos sessions (HA's `active_override == now_playing`),
+# the device runs per-minute Polls regardless of tier; the firmware's
+# session-aware override handles this transparently. See
+# `optimise-now-playing-cadence`.
+#
+# Editing this file:
+#   1. Save the change.
+#   2. Run `ha/deploy.sh` (or restart HA). The publish automation runs on
+#      file change AND on `homeassistant.start`.
+#   3. The deploy will fail loud (persistent_notification + error log) if
+#      validation rejects the new schedule. The currently-published
+#      retained value stays in place; the device keeps running on it.
+#   4. On success, watch `sensor.inkplate_device_schedule_hash` (device
+#      view) converge to `sensor.inkplate_schedule_hash_expected` (HA
+#      view). When they match, the device adopted the new schedule.
+#
+# Default values match the firmware's baked default (kDefaultSchedule).
+
+version: 1
+tiers:
+  night:
+    start: "22:00"
+    full_min: 60
+    poll_min: 0
+    partial_min: 15
+  morning:
+    start: "06:30"
+    full_min: 15
+    poll_min: 0
+    partial_min: 1
+  midday:
+    start: "10:00"
+    full_min: 30
+    poll_min: 0
+    partial_min: 10
+  evening:
+    start: "17:00"
+    full_min: 30
+    poll_min: 0
+    partial_min: 5

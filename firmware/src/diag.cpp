@@ -35,14 +35,16 @@ char reasonChar(uint8_t r) {
 }
 
 char pathChar(uint8_t p) {
-  // Mirrors fw::wake::Path: Full, Poll, Partial, PollPartial, Skip.
+  // Mirrors fw::wake::Path: Full, Poll, Partial, Skip.
   // 0xff means "not planned" — used for cold-boot Fulls that bypass planWake.
+  // Numeric value 3 (formerly PollPartial, removed) decodes to '?' for any
+  // pre-upgrade diag-ring entries that survive in RTC after the firmware
+  // flash; new wakes never produce this value.
   switch (p) {
     case 0:    return 'F';   // Full
     case 1:    return 'L';   // Poll
     case 2:    return 'P';   // Partial
-    case 3:    return 'Q';   // PollPartial
-    case 4:    return 'S';   // Skip
+    case 3:    return 'S';   // Skip
     case 0xff: return 'X';   // not planned
     default:   return '?';
   }
@@ -91,16 +93,19 @@ std::size_t format(char* buf, std::size_t n) {
   for (uint32_t i = start; i < g_count; ++i) {
     if (off + 1 >= n) break;
     const Entry& e = g_ring[i % kRingSize];
-    // Each entry: " <epoch_low>,<rcRR><pPP><mMM><flagsX>[/<cycles>]"
+    // Each entry: " <epoch_low>,<rcRR><pPP><mMM><flagsXX>[/<cycles>]"
     // - epoch_low: low 4 hex digits of the epoch (enough to distinguish
     //   wakes within ~18 hours; wraparound is fine, this is a debug log).
-    // - flags: hex digit packing (wifi=1, mqtt=2, pg=4, drew=8, partial=16).
+    // - flags: 2 hex digits packing the full byte:
+    //     bit0=wifi, bit1=mqtt, bit2=epd_pwrgood, bit3=drew, bit4=partial,
+    //     bit5=schedule_loaded_from_cache, bit6=schedule_loaded_from_nvs,
+    //     bit7=reserved.
     int wrote = std::snprintf(
         buf + off, n - off,
-        " %04x,%c%c%c%x",
+        " %04x,%c%c%c%02x",
         static_cast<unsigned>(e.epoch & 0xFFFF),
         reasonChar(e.reason), pathChar(e.path), modeChar(e.mode),
-        static_cast<unsigned>(e.flags) & 0x1F);
+        static_cast<unsigned>(e.flags));
     if (wrote < 0) break;
     off += static_cast<std::size_t>(wrote);
     if (e.cycles && off + 8 < n) {

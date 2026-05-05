@@ -24,6 +24,31 @@ command_line:
       scan_interval: 300
       value_template: "{{ value | default('', true) }}"
 
+  # Operator's wake schedule, validated and rendered to canonical JSON by
+  # `validate_wake_schedule.py`. The script applies all the same rules the
+  # firmware enforces (bounds, divisibility, alignment, distinct starts)
+  # so a typo in `wake_schedule.yaml` fails loud at deploy time rather than
+  # silently at the device's next Full wake.
+  #
+  # The script emits `{"hash": "<hex>", "payload": "<canonical-json>"}`.
+  # The sensor's STATE is the 8-hex-digit FNV-32 (well under HA's 255-char
+  # state limit and directly comparable against the device-side hash). The
+  # full payload sits in the `payload` json attribute and is what the
+  # publish automation forwards to MQTT.
+  #
+  # On validator failure the script exits non-zero with empty stdout →
+  # `value_json` is None → state goes `unknown`, which the publish
+  # automation maps to a persistent_notification.
+  - sensor:
+      name: inkplate_schedule_hash_expected
+      unique_id: inkplate_schedule_hash_expected
+      command: "python3 /config/custom/inkplate/scripts/validate_wake_schedule.py"
+      scan_interval: 300
+      value_template: "{{ value_json.hash | default('') }}"
+      json_attributes:
+        - hash
+        - payload
+
   # Tonight's Stars-cell statement — produced daily by
   # generate_astro_event.py (Skyfield + Launch Library 2 + RSS + Haiku
   # phrasing) and written to state/astro_event.txt.

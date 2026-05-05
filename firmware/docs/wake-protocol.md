@@ -12,9 +12,10 @@ The full HA ⇄ Renderer ⇄ Device state machine lives in
 | Topic | Direction | Retained | Payload |
 | ----- | --------- | -------- | ------- |
 | `inkplate/command/active_mode` | HA → device | yes | `summary` \| `weather` \| `gallery` \| `night` \| `now-playing` (or `{"mode":"..."}`) |
+| `inkplate/command/schedule` | HA → device | yes | JSON wake-schedule (4 tiers × `start`/`full_min`/`poll_min`/`partial_min`). Read on every Full / Poll wake; hash-deduped against the cached schedule so re-parses only happen on change. See `add-pushable-wake-schedule`. |
 | `inkplate/command/wake` | HA → device | no | empty — triggers HA-command wake path |
 | `inkplate/state/gesture` | device → HA | no | `{"kind":"single"\|"double"}` |
-| `inkplate/state/device` | device → HA | yes | `{voltage, percentage, wake_reason, active_mode, build}` |
+| `inkplate/state/device` | device → HA | yes | `{voltage, percentage, wake_reason, active_mode, build, epd_pwrgood, wifi_rssi, schedule_hash, diag}` |
 
 ## HTTP endpoints (renderer)
 
@@ -40,16 +41,26 @@ this section that disagrees with those files is wrong.
 
 ### Cadence by tier
 
-The day is partitioned into four tiers. Within a tier, the planner
-classifies every minute into one of five paths (Skip / Partial / Poll /
-PollPartial / Full) by simple modular arithmetic on `minute_of_day`.
+The day is partitioned into four tiers (operator-editable via MQTT —
+see `add-pushable-wake-schedule`; live YAML in
+`ha/config/wake_schedule.yaml`). Within a tier, the planner classifies
+every minute into one of four paths (Skip / Partial / Poll / Full) by
+simple modular arithmetic on `minute_of_day`. Path priority within a
+tier is **Full > Poll > Partial > Skip** — a minute that's a multiple
+of multiple cadences resolves to the highest-priority hit.
 
-| Tier | Hours | Full | Poll | Partial / PollPartial | Skip | Faces shown |
+Default tier table (subject to operator overrides):
+
+| Tier | Hours | Full | Poll | Partial | Skip | Faces shown |
 | --- | --- | --- | --- | --- | --- | --- |
-| Morning | 06:30 – 10:00 | every 15 min (`:00,:15,:30,:45`) | every 3 min (`:03,:06,:09,:12,…`) | **Partial** every other minute (`:01,:02,:04,:05,:07,…`) | — | Summary ↔ Weather, alternates every 15 min |
-| Midday | 10:00 – 17:00 | every 30 min (`:00,:30`) | (none standalone) | **PollPartial** every 5 min (`:05,:10,:15,:20,:25`) | all other minutes | Gallery ↔ Weather, alternates every 30 min |
-| Evening | 17:00 – 22:00 | every 15 min | every 3 min | **Partial** every other minute | — | Gallery ↔ Weather, alternates every 15 min |
+| Morning | 06:30 – 10:00 | every 15 min (`:00,:15,:30,:45`) | every 3 min (`:03,:06,:09,:12,…`) | every other minute (`:01,:02,:04,:05,:07,…`) | — | Summary ↔ Weather, alternates every 15 min |
+| Midday | 10:00 – 17:00 | every 30 min (`:00,:30`) | — | every 5 min (`:05,:10,:15,:20,:25`) | all other minutes | Gallery ↔ Weather, alternates every 30 min |
+| Evening | 17:00 – 22:00 | every 15 min | every 3 min | every other minute | — | Gallery ↔ Weather, alternates every 15 min |
 | Night | 22:00 – 06:30 | every 15 min | — | — | all other minutes | Night |
+
+Partials are always offline (no WiFi). To get MQTT-based mode-change
+pickup between Fulls, an operator declares an explicit `poll_min` in
+the tier; the firmware does not auto-fold polls into partials.
 
 ### What each path does
 
@@ -57,8 +68,7 @@ PollPartial / Full) by simple modular arithmetic on `minute_of_day`.
 | --- | --- | --- | --- | --- | --- |
 | Skip | no | no | no | none — re-arm + deep-sleep | ~0 |
 | Partial | no | no | no | clock zone only, 1-bit `partialUpdate` × 2 (seed + new) | ~0.06 mAh, ~250 ms |
-| Poll | yes | yes (`active_mode`) | only if mode changed → Full | none unless mode changed | ~0.5 mAh per poll |
-| PollPartial | yes | yes | only if mode changed → Full | clock zone if same mode (else Full) | ~0.5 mAh + ~0.06 mAh |
+| Poll | yes | yes (`active_mode`, `schedule`, `active_override`, `now_playing_track` if NowPlaying) | only if mode or track changed → Full | clock-zone partial when not promoted (modes with a baked preset) | ~0.5 mAh per poll |
 | Full | yes | yes | yes (PNG + clock-zone JSON) | whole-panel 3-bit refresh + 2 post-Full cleanup pulses on the clock zone | ~3 mAh, ~6–9 s |
 
 ### Per-face partial support
@@ -75,7 +85,7 @@ in `firmware/src/generated/clock_glyphs.{h,cpp}` (built by
 | Gallery — visual landscape | `.gv-caption .clock` | 44u | `kCompactClock` | yes |
 | Gallery — visual split | `.gv-root.gv-split .gv-clock` | 28u | `kCornerClock` | yes |
 | Gallery — text | `.gt-corner-time` | 28u | `kCornerClock` | yes |
-| NowPlaying | `.np-clock` | 28u | `kCornerClock` | n/a — planner forces Full every minute (`wake.cpp:pathForMinute`) |
+| NowPlaying | `.np-clock` | 28u | `kCornerClock` | n/a — planner forces Poll every minute (`wake.cpp:pathForMinute`); the Poll handler promotes to Full only on track change |
 | Night | (split `.hh` / `.mm`) | — | — | n/a — tier has no Partial cadence and renderer returns 404 |
 
 ### Overrides on top of the planner
@@ -84,12 +94,12 @@ in `firmware/src/generated/clock_glyphs.{h,cpp}` (built by
 | --- | --- | --- |
 | Cold boot, OTA, `inkplate/command/wake` | Forces `Path::Full` regardless of cadence | `main_loop.cpp::tick` |
 | Confirmed IMU tap | Reason becomes `IMU` → Full this wake; tap-ack pulse fires first | `main_loop.cpp::tick` |
-| `current_mode == NowPlaying` | Planner returns Full every minute (cadence ignored) | `wake.cpp::pathForMinute` |
-| Mode change detected at Poll / PollPartial | Promotes to Full of the new mode this wake | `main_loop.cpp` Poll / PollPartial branches |
+| `session_now_playing` true OR `current_mode == NowPlaying` | Planner returns Poll every minute (cadence ignored); Poll handler promotes to Full on track change | `wake.cpp::pathForMinute` + `main_loop.cpp` Poll branch |
+| Mode change detected at Poll | Promotes to Full of the new mode this wake | `main_loop.cpp` Poll branch |
 | No cached clock zone or no matching baked preset | `doPartial` returns false → caller promotes to Full | `main_loop.cpp::doPartial` |
 | Quiet-hours guard (HA-side) | Suppresses tap-driven mode changes; firmware's tier wakes still run | `ha/automations/gesture_override.yaml` |
 
-### Worked example — one Midday hour, Gallery active
+### Worked example — one Midday hour, Gallery active (default schedule)
 
 Midday tier with Gallery as the alternation phase. 12:00 to 13:00, in
 minute order:
@@ -98,17 +108,22 @@ minute order:
 | --- | --- | --- |
 | :00 | Full | Wi-Fi + MQTT + fetch Gallery PNG + 3-bit refresh + clock-zone fetch + 2 cleanup pulses |
 | :01–:04 | Skip | re-arm + sleep |
-| :05 | PollPartial | Wi-Fi + MQTT poll; same mode → 1-bit partial of clock zone (12:05) |
+| :05 | Partial | offline 1-bit partial of clock zone (12:05) — no network |
 | :06–:09 | Skip | sleep |
-| :10, :15, :20, :25 | PollPartial | partials at each cadence boundary |
+| :10, :15, :20, :25 | Partial | partials at each 5-min cadence boundary |
 | :30 | Full | next Full boundary |
 | :31–:34 | Skip | sleep |
-| :35, :40, :45, :50, :55 | PollPartial | partials |
+| :35, :40, :45, :50, :55 | Partial | partials |
 | 13:00 | Full | next boundary |
 
-So one Midday hour with Gallery active = **2 Fulls + 10 PollPartials + 48
-Skips**. For comparison, an Evening hour with Gallery (or a Morning hour
-with Summary) = **4 Fulls + 16 Polls + 40 Partials**.
+So one Midday hour = **2 Fulls + 10 Partials + 48 Skips**. Energy ≈
+2 × 3 + 10 × 0.06 = 6.6 mAh — about 5× cheaper than before this tier
+was simplified, at the cost of HA mode-change pickup latency between
+Fulls (now up to 30 min — operator either taps to switch faces, or
+declares a `poll_min` to trade battery for responsiveness).
+
+For comparison, a Morning hour with default schedule (`15/3/1`) =
+**4 Fulls + 16 Polls + 40 Partials** ≈ 12 + 8 + 2.4 = ~22.4 mAh.
 
 ## Resolving active mode
 

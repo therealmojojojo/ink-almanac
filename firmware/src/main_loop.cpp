@@ -1,6 +1,6 @@
 // Firmware main tick — wakes up, decides the wake path from the schedule
-// planner (Full / Poll / Partial / PollPartial / Skip), executes that path,
-// publishes device state where appropriate, and arms the next wake.
+// planner (Full / Poll / Partial / Skip), executes that path, publishes
+// device state where appropriate, and arms the next wake.
 //
 // Pure logic over the HAL interfaces so the same code runs on-device (with
 // real wrappers) and in the host simulator. The schedule planner lives in
@@ -108,6 +108,44 @@ fw::modes::Mode resolveActiveMode(hal::ITransport& mqtt, int hour) {
     if (m != fw::modes::Mode::Unknown) return m;
   }
   return timeOfDayFallback(hour);
+}
+
+// Read the retained `inkplate/state/active_override` topic and update
+// `Persisted::session_now_playing`. The session flag is the canonical
+// trigger for the per-minute Now-Playing cadence; it survives tap-peeks
+// (which flip active_mode but leave the override at "now_playing"), so
+// the device keeps polling every minute even when the visible face is
+// briefly Summary or Gallery during a peek. Empty payload leaves the
+// cache untouched (HA hasn't published yet, or has explicitly cleared
+// the topic).
+void readSessionOverride(hal::ITransport& mqtt) {
+  const auto payload = mqtt.mqttReadRetained(fw::config::kTopicActiveOverride);
+  if (payload.empty()) return;
+  fw::wake::persisted().session_now_playing = (payload == "now_playing");
+}
+
+// Read the retained `inkplate/command/schedule` topic and apply any change.
+// Empty payload short-circuits before hashing/parsing so a broker that has
+// no published schedule doesn't generate a spurious "parse failed" diag
+// flag. On hash match we skip the parse entirely; on mismatch we parse,
+// validate, and (on success) update both NVS and the RTC cache. Failures
+// keep the cached schedule in place — the next operator-published valid
+// schedule replaces it normally.
+void readAndApplySchedule(hal::ITransport& mqtt) {
+  const auto payload = mqtt.mqttReadRetained(fw::config::kTopicSchedule);
+  if (payload.empty()) return;
+  const uint32_t hash = fw::wake::fnv32(payload);
+  const auto current = fw::wake::resolveSchedule();
+  if (current.schedule.valid && current.schedule.payload_hash == hash) return;
+  fw::wake::Schedule parsed = fw::wake::parseSchedule(payload);
+  if (!parsed.valid) {
+    FW_LOG("schedule parse rejected payload (len=%u)",
+           static_cast<unsigned>(payload.size()));
+    return;
+  }
+  parsed.payload_hash = hash;
+  fw::wake::applySchedule(parsed);
+  FW_LOG("schedule applied hash=%08x", static_cast<unsigned>(hash));
 }
 
 std::string rendererBase() {
@@ -374,6 +412,16 @@ bool doPartial(hal::HAL& h, hal::Epoch local_now, fw::diag::Entry* diag = nullpt
 
 // ---------- full-path helper (original tick body, lightly factored) --------
 
+// Format the cached schedule's payload hash as 8-hex for the state/device
+// JSON. When the cache is invalid (cold-boot pre-MQTT, baked default in
+// effect) we publish "00000000" — a real hash collision with that value is
+// vanishingly improbable but in principle ambiguous; HA tolerates it
+// because the `valid` distinction also surfaces via the absence of the
+// schedule_loaded_from_cache / schedule_loaded_from_nvs diag-flag bits.
+void formatScheduleHash(uint32_t h, char* out, std::size_t n) {
+  std::snprintf(out, n, "%08x", static_cast<unsigned>(h));
+}
+
 void doFull(hal::HAL& h,
             wake::Reason reason,
             fw::gestures::TapKind tap,
@@ -381,8 +429,8 @@ void doFull(hal::HAL& h,
             hal::Epoch local_now,
             bool wifi,
             bool mqtt,
-            // If the caller (Poll/PollPartial) already decoded a mode payload
-            // and decided to escalate, pass it here so we don't re-fetch.
+            // If the caller (Poll) already decoded a mode payload and decided
+            // to escalate, pass it here so we don't re-fetch.
             std::optional<fw::modes::Mode> already_resolved,
             fw::diag::Entry* diag = nullptr) {
   bool gesture_published = false;
@@ -462,6 +510,18 @@ void doFull(hal::HAL& h,
   if (draw_succeeded) {
     wake::persisted().current_mode = active;
     wake::persisted().partial_refresh_count = 0;
+    // Cache the now-playing track hash after a successful NowPlaying draw,
+    // so subsequent Polls dedupe correctly and don't promote-to-Full back-
+    // to-back. Empty retained payload leaves the cache untouched (handles
+    // the edge case where active_mode is now-playing but no track has been
+    // published yet — keeps the device from spuriously cycling).
+    if (mqtt && active == fw::modes::Mode::NowPlaying) {
+      const auto track =
+          h.transport.mqttReadRetained(fw::config::kTopicNowPlayingTrack);
+      if (!track.empty()) {
+        wake::persisted().sonos_track_hash = fw::wake::fnv32(track);
+      }
+    }
     // Refresh the clock-zone cache for the just-drawn mode. Done after
     // the e-ink update so the visible refresh isn't blocked by this fetch.
     if (wifi) fetchAndStoreClockZone(h.transport, active);
@@ -520,9 +580,15 @@ void doFull(hal::HAL& h,
     char diag_buf[1024];
     if (diag) fw::diag::record(*diag);
     fw::diag::format(diag_buf, sizeof(diag_buf));
+    char sched_hash[9] = "00000000";
+    {
+      const auto rs = fw::wake::resolveSchedule();
+      const uint32_t h_hash = rs.schedule.valid ? rs.schedule.payload_hash : 0u;
+      formatScheduleHash(h_hash, sched_hash, sizeof(sched_hash));
+    }
     auto json = fw::battery::toDeviceStateJson(
         reading, wake::toString(reason), fw::modes::toString(active),
-        fw::kBuildVersion, epd_pwrgood, wifi_rssi, diag_buf);
+        fw::kBuildVersion, epd_pwrgood, wifi_rssi, diag_buf, sched_hash);
     h.transport.mqttPublish(fw::config::kTopicDeviceState, json, /*retained=*/true);
 
     if (reason == wake::Reason::IMU && tap != fw::gestures::TapKind::None &&
@@ -598,12 +664,28 @@ void tick(hal::HAL h, wake::Reason reason) {
     showTapAck(h.display, tap);
   }
 
+  // Resolve the operator's wake schedule before any path math. ColdBoot uses
+  // the explicit cold-boot variant so future divergence is easy. Set diag
+  // flag bits so an operator scanning the ring can tell at a glance whether
+  // this wake planned from the warm RTC cache or had to read NVS.
+  const auto sched =
+      reason == wake::Reason::ColdBoot ? wake::resolveScheduleColdBoot()
+                                       : wake::resolveSchedule();
+  switch (sched.source) {
+    case wake::ScheduleSource::Cache:   e.flags |= 0x20; break;
+    case wake::ScheduleSource::Nvs:     e.flags |= 0x40; break;
+    case wake::ScheduleSource::Default: break;
+  }
+
   // Decide path. Non-Timer reasons (ColdBoot, IMU-with-tap, HACommand,
   // SonosFastPath, PostOTA) all want a full refresh. Timer wakes consult the
-  // schedule planner; NowPlaying override happens inside planWake().
+  // schedule planner; NowPlaying / session override happens inside planWake().
   wake::Path path;
   if (reason == wake::Reason::Timer) {
-    const auto plan = wake::planWake(local_min_of_day, wake::persisted().current_mode);
+    const auto plan = wake::planWake(local_min_of_day,
+                                     wake::persisted().current_mode,
+                                     sched.schedule,
+                                     wake::persisted().session_now_playing);
     path = plan.path;
   } else {
     path = wake::Path::Full;
@@ -633,7 +715,7 @@ void tick(hal::HAL h, wake::Reason reason) {
     e.path = static_cast<uint8_t>(path);
   }
 
-  // Network bring-up for Poll, PollPartial, Full.
+  // Network bring-up for Poll and Full.
   const bool wifi = h.transport.wifiConnect();
   FW_LOG("wifi=%d", wifi ? 1 : 0);
   const bool mqtt = wifi ? h.transport.mqttConnect() : false;
@@ -641,12 +723,33 @@ void tick(hal::HAL h, wake::Reason reason) {
   if (wifi) e.flags |= 0x01;
   if (mqtt) e.flags |= 0x02;
 
+  // Refresh the operator's wake schedule on every wake that already paid
+  // for an MQTT session (Full / Poll). Hash dedup makes this
+  // ~free when nothing changed; a hash mismatch parses, validates, and
+  // applies via NVS+RTC. The freshly-applied cache is consulted by
+  // `plannedSleepSec()` after `tick()` returns, so the next wake lands on
+  // the new cadence — see add-pushable-wake-schedule.
+  if (mqtt) readAndApplySchedule(h.transport);
+  // Refresh the Now-Playing session flag from HA's mirror of
+  // `inkplate_active_override`. The flag governs the per-minute Poll
+  // cadence override and is consulted by `plannedSleepSec()` after this
+  // wake — so a session that ends mid-tick reverts to tier cadence on
+  // the next sleep. See optimise-now-playing-cadence.
+  if (mqtt) readSessionOverride(h.transport);
+
   // Poll — read the retained active_mode. If it changed, fall through to
   // Full (so the new face is drawn this wake instead of waiting another
-  // minute). If unchanged or MQTT failed, just sleep.
+  // minute). If unchanged or MQTT failed, attempt a partial clock draw on
+  // the same wake — keeps the clock fresh on Poll-heavy schedules where
+  // Poll cadence preempts Partial cadence at resonance minutes. When in
+  // NowPlaying (resolved == NowPlaying — gated on the visible mode, not
+  // the session, so peek-driven Summary/Gallery don't churn on track
+  // changes), also check the retained track-version topic and promote on
+  // mismatch.
   if (path == wake::Path::Poll) {
     fw::modes::Mode resolved = fw::modes::Mode::Unknown;
     if (mqtt) resolved = resolveActiveMode(h.transport, local_hour);
+    bool promoted = false;
     if (mqtt && resolved != fw::modes::Mode::Unknown &&
         resolved != wake::persisted().current_mode) {
       FW_LOG("poll detected mode change %s -> %s",
@@ -654,39 +757,31 @@ void tick(hal::HAL h, wake::Reason reason) {
              fw::modes::toString(resolved));
       doFull(h, reason, tap, local_hour, local_now, wifi, mqtt, resolved, &e);
       diag_recorded = true;  // doFull's MQTT publish path records the entry
-    } else {
-      record_diag();
+      promoted = true;
     }
-    h.clock.scheduleWake(wake::armMask(wake::persisted().current_mode, local_hour));
-    return;
-  }
-
-  // PollPartial — same as Poll but on no-change we still do a partial draw.
-  // The MQTT fetch piggybacks on the WiFi we already have up; the marginal
-  // cost over a pure Partial is one MQTT round-trip.
-  //
-  // When the active mode has no baked partial zone (Gallery, NowPlaying, etc.)
-  // we fall through to Full so the clock zone doesn't get stuck on the
-  // 30-minute Full boundary. That keeps the panel visibly fresh for the
-  // operator at the cost of one extra Full per cadence boundary in
-  // partial-less modes.
-  if (path == wake::Path::PollPartial) {
-    fw::modes::Mode resolved = fw::modes::Mode::Unknown;
-    if (mqtt) resolved = resolveActiveMode(h.transport, local_hour);
-    const bool mode_changed =
-        mqtt && resolved != fw::modes::Mode::Unknown &&
-        resolved != wake::persisted().current_mode;
-    if (mode_changed) {
-      FW_LOG("poll-partial detected mode change %s -> %s",
-             fw::modes::toString(wake::persisted().current_mode),
-             fw::modes::toString(resolved));
-      doFull(h, reason, tap, local_hour, local_now, wifi, mqtt, resolved, &e);
-      diag_recorded = true;
-    } else if (!doPartial(h, local_now, &e)) {
-      // No zone for this mode — promote to Full so the clock keeps moving.
-      doFull(h, reason, tap, local_hour, local_now, wifi, mqtt, std::nullopt, &e);
-      diag_recorded = true;
-    } else {
+    if (!promoted && mqtt && resolved == fw::modes::Mode::NowPlaying) {
+      const auto track =
+          h.transport.mqttReadRetained(fw::config::kTopicNowPlayingTrack);
+      if (!track.empty()) {
+        const uint32_t track_hash = fw::wake::fnv32(track);
+        if (track_hash != fw::wake::persisted().sonos_track_hash) {
+          FW_LOG("poll detected track change hash=%08x",
+                 static_cast<unsigned>(track_hash));
+          doFull(h, reason, tap, local_hour, local_now, wifi, mqtt, resolved, &e);
+          diag_recorded = true;
+          promoted = true;
+        }
+      }
+    }
+    if (!promoted) {
+      // Attempt a partial clock draw before sleeping. doPartial returns
+      // false when the active mode has no baked clock-glyph preset (Night,
+      // NowPlaying, etc.) — in that case we just record and sleep. We do
+      // NOT promote to Full on no-zone, because doing so would turn every
+      // NowPlaying Poll into a Full and revive the cadence we just
+      // killed. Modes without a clock zone simply don't get clock
+      // refreshes between Fulls; that's the existing Night behavior.
+      doPartial(h, local_now, &e);
       record_diag();
     }
     h.clock.scheduleWake(wake::armMask(wake::persisted().current_mode, local_hour));

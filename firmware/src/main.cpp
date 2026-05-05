@@ -31,12 +31,21 @@ fw::wake::Reason detectWakeReason() {
 // next minute boundary minus seconds-into-current-minute and tick-elapsed,
 // clamped to a sane lower bound so we never spin on a tight loop if planning
 // math somehow underflows.
+//
+// Re-resolves the schedule here (rather than carrying it from `tick()`) so a
+// schedule freshly applied during this wake's MQTT read is reflected in the
+// next-sleep computation — the spec's "Next-wake timing reflects updated
+// schedule" requirement.
 int plannedSleepSec(uint32_t tick_start_unix, uint32_t tick_end_unix) {
   const uint32_t local_now =
       tick_end_unix + static_cast<uint32_t>(fw::config::kTzOffsetSec);
   const int local_min_of_day = static_cast<int>((local_now / 60u) % 1440u);
   const int seconds_into_minute = static_cast<int>(local_now % 60u);
-  const auto plan = fw::wake::planWake(local_min_of_day, fw::wake::persisted().current_mode);
+  const auto rs = fw::wake::resolveSchedule();
+  const auto plan = fw::wake::planWake(local_min_of_day,
+                                       fw::wake::persisted().current_mode,
+                                       rs.schedule,
+                                       fw::wake::persisted().session_now_playing);
   // tick_elapsed = how many seconds the wake itself burned; subtract so the
   // next wake lands on the wall-clock minute, not 60 s after the present one.
   const int tick_elapsed = static_cast<int>(tick_end_unix - tick_start_unix);

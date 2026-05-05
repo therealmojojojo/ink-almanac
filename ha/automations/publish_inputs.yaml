@@ -220,6 +220,27 @@
     - service: rest_command.inkplate_publish_sonos
       data:
         body: "{{ body }}"
+    # IMPORTANT: this `mqtt.publish` MUST stay LAST in this action list.
+    # The device's NowPlaying Poll handler reads the retained
+    # `inkplate/state/now_playing_track` topic, hashes it, and fetches
+    # `/display/now-playing.png` on hash mismatch. The renderer's
+    # sonos.json must be current BEFORE the device sees the new hash —
+    # otherwise the device fetches an image rendered from the OLD
+    # sonos.json AND caches the NEW hash, leaving the panel permanently
+    # stale until the next track change. Sequencing within a single
+    # automation guarantees the renderer publish completes first; do NOT
+    # split this into a separate parallel automation. See
+    # openspec/changes/optimise-now-playing-cadence.
+    - service: mqtt.publish
+      data:
+        topic: inkplate/state/now_playing_track
+        payload: >-
+          {{ state_attr('media_player.kitchen_sonos','media_content_id')
+             or (state_attr('media_player.kitchen_sonos','media_title') ~ '|'
+                 ~ state_attr('media_player.kitchen_sonos','media_artist') ~ '|'
+                 ~ state_attr('media_player.kitchen_sonos','media_album_name')) }}
+        retain: true
+        qos: 0
 
 # 4. (Smart-pill / news previously published here from a live LLM regen
 #     pipeline.) Removed — the Summary face's smart pill is now sourced

@@ -1,0 +1,82 @@
+# Publishes the operator's wake schedule to MQTT topic
+# `inkplate/command/schedule` (retained), where the device picks it up on
+# its next Full / Poll / PollPartial wake. See
+# openspec/changes/add-pushable-wake-schedule for the contract.
+#
+# The validated payload is produced by `validate_wake_schedule.py`, called
+# via the `inkplate_schedule_hash_expected` command_line sensor. The
+# sensor's state is the FNV-32 hash; the full canonical JSON sits in its
+# `payload` attribute. This automation fires on:
+#   - HA start, so the retained topic stays in sync after broker restarts.
+#   - Sensor state change (operator edited `wake_schedule.yaml` and the
+#     sensor's command re-ran on its scan_interval, OR the operator
+#     manually called `homeassistant.update_entity` after editing).
+#
+# On success: publish retained, clear any prior validation-failure
+# notification.
+# On failure (sensor is `unknown`): persistent_notification + error log,
+# no publish (broker keeps the previous retained value, device keeps
+# running on its current schedule).
+#
+# Gated by `input_boolean.inkplate_publisher_enabled` per the existing
+# publisher convention.
+
+- alias: "Inkplate: publish wake schedule"
+  id: inkplate_publish_wake_schedule
+  initial_state: "on"
+  mode: single
+  max_exceeded: silent
+  trigger:
+    - platform: homeassistant
+      event: start
+    - platform: state
+      entity_id: sensor.inkplate_schedule_hash_expected
+  condition:
+    - condition: state
+      entity_id: input_boolean.inkplate_publisher_enabled
+      state: "on"
+  action:
+    - choose:
+        # Happy path: sensor has a populated hash + payload attribute.
+        - conditions:
+            - condition: template
+              value_template: >-
+                {% set v = states('sensor.inkplate_schedule_hash_expected') %}
+                {% set p = state_attr('sensor.inkplate_schedule_hash_expected', 'payload') %}
+                {{ v not in ['unknown', 'unavailable', '', None]
+                   and p is string and p.startswith('{') }}
+          sequence:
+            - service: mqtt.publish
+              data:
+                topic: inkplate/command/schedule
+                payload: "{{ state_attr('sensor.inkplate_schedule_hash_expected', 'payload') }}"
+                retain: true
+                qos: 0
+            - service: persistent_notification.dismiss
+              data:
+                notification_id: inkplate_wake_schedule_invalid
+            - service: logbook.log
+              data:
+                name: Inkplate
+                message: >-
+                  wake_schedule published (hash={{ states('sensor.inkplate_schedule_hash_expected') }})
+      # Default: validation failed or sensor not yet populated.
+      default:
+        - service: persistent_notification.create
+          data:
+            notification_id: inkplate_wake_schedule_invalid
+            title: "Inkplate: wake schedule invalid"
+            message: >-
+              `ha/config/wake_schedule.yaml` failed validation; broker
+              still serves the previously-published schedule and the
+              device will keep running on whatever it last cached.
+              Check the HA log for the validator's stderr line and fix
+              the file. Sensor state was:
+              {{ states('sensor.inkplate_schedule_hash_expected') }}
+        - service: system_log.write
+          data:
+            level: error
+            logger: inkplate.publish_wake_schedule
+            message: >-
+              wake schedule validation failed; sensor state:
+              {{ states('sensor.inkplate_schedule_hash_expected') }}

@@ -16,7 +16,7 @@ decided by `wake::planWake()` per-tier (see `firmware/README.md` and
 | --------- | ------- | ----- |
 | `kSummaryTimerSec`  | **60**  | Daytime cadence; the schedule planner overrides this with 15-min Full + 1-min Partial during Morning. |
 | `kWeatherTimerSec`  | **60**  | Same — overridden by the planner during alternation slots. |
-| `kGalleryTimerSec`  | **60**  | Same — overridden by Midday's 30-min Full + 5-min PollPartial cadence. |
+| `kGalleryTimerSec`  | **60**  | Same — overridden by Midday's 30-min Full + 5-min Partial cadence. |
 | `kNightTimerSec`    | **900** | 15-min cadence; matches the Night tier's Full-only schedule. |
 | `kSonosFastPathSec` | **60**  | Now-Playing forces 1-min Full; this fallback aligns with that. Redundant in normal operation but retained for non-planner paths. |
 
@@ -62,6 +62,7 @@ pulses landing on a sleeping device's next wakeup window.
 | Constant | Topic |
 | -------- | ----- |
 | `kTopicActiveMode` | `inkplate/command/active_mode` |
+| `kTopicSchedule`   | `inkplate/command/schedule` |
 | `kTopicWake`       | `inkplate/command/wake` |
 | `kTopicGesture`    | `inkplate/state/gesture` |
 | `kTopicDeviceState` | `inkplate/state/device` |
@@ -71,17 +72,23 @@ pulses landing on a sleeping device's next wakeup window.
 These aren't in `config.h` — they're inline constants in the planner — but
 they're the values that actually control the wake cadence.
 
-| Tier | Boundary (local) | full_min | poll_min | partial_min | partial_brings_poll |
-| --- | --- | --- | --- | --- | --- |
-| Night | 22:00 – 06:30 | 15 | — | — | — |
-| Morning | 06:30 – 10:00 | 15 | 3 | 1 | false |
-| Midday | 10:00 – 17:00 | 30 | — | 5 | true (PollPartial) |
-| Evening | 17:00 – 22:00 | 15 | 3 | 1 | false |
+| Tier | Boundary (local) | full_min | poll_min | partial_min |
+| --- | --- | --- | --- | --- |
+| Night | 22:00 – 06:30 | 15 | — | — |
+| Morning | 06:30 – 10:00 | 15 | 3 | 1 |
+| Midday | 10:00 – 17:00 | 30 | — | 5 |
+| Evening | 17:00 – 22:00 | 15 | 3 | 1 |
 
-For the per-path semantics (what Skip / Partial / Poll / PollPartial /
-Full each *do*), the per-face partial-rendering matrix, and a worked
-hour-long example, see `firmware/docs/wake-protocol.md § Refresh
-schedule`.
+Path priority within a tier is **Full > Poll > Partial > Skip**: a
+minute that's a multiple of multiple cadences resolves to the
+highest-priority hit. Partials are always offline (no WiFi); to get
+MQTT-based mode-change pickup between Fulls, declare a positive
+`poll_min` in the tier — the firmware no longer auto-folds a poll
+into the partial cadence.
+
+For the per-path semantics (what Skip / Partial / Poll / Full each
+*do*), the per-face partial-rendering matrix, and a worked hour-long
+example, see `firmware/docs/wake-protocol.md § Refresh schedule`.
 
 To change the schedule, edit `tierFor()` in `wake.cpp`, update
 `firmware/test/scenarios/schedule_tests.cpp` to cover the new boundaries,

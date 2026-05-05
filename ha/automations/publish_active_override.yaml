@@ -1,0 +1,39 @@
+# Mirror `input_text.inkplate_active_override` to the retained MQTT topic
+# `inkplate/state/active_override`. The device reads this on every
+# Full/Poll/PollPartial wake and updates its `Persisted::session_now_playing`
+# flag — the canonical trigger for the per-minute Now-Playing cadence,
+# regardless of which face is currently visible (so a tap-peek that briefly
+# flips active_mode to Summary doesn't drop the device to tier cadence
+# during a Sonos session).
+#
+# Triggers:
+#   - State-change of the input_text — every override transition.
+#   - homeassistant.start — re-publish on HA boot so the retained value
+#     stays in sync after broker restarts.
+#
+# Gated by `input_boolean.inkplate_publisher_enabled` per the existing
+# publisher convention.
+#
+# See openspec/changes/optimise-now-playing-cadence/.
+
+- alias: "Inkplate: publish active_override mirror"
+  id: inkplate_publish_active_override
+  initial_state: "on"
+  mode: single
+  max_exceeded: silent
+  trigger:
+    - platform: state
+      entity_id: input_text.inkplate_active_override
+    - platform: homeassistant
+      event: start
+  condition:
+    - condition: state
+      entity_id: input_boolean.inkplate_publisher_enabled
+      state: "on"
+  action:
+    - service: mqtt.publish
+      data:
+        topic: inkplate/state/active_override
+        payload: "{{ states('input_text.inkplate_active_override') }}"
+        retain: true
+        qos: 0

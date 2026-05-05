@@ -8,7 +8,6 @@
 
 using fw::modes::Mode;
 using fw::wake::Path;
-using fw::wake::planWake;
 
 namespace {
 
@@ -17,6 +16,15 @@ constexpr int hm(int h, int m) { return h * 60 + m; }
 
 // Default mode for tests that aren't exercising NowPlaying.
 constexpr Mode kAny = Mode::Summary;
+
+// Wrapper that pins these tests to the baked default schedule. The
+// `add-pushable-wake-schedule` change made the planner take the schedule as
+// a parameter; the existing tests cover the default behavior and become
+// regression coverage that the dynamic version matches the baked behavior
+// for the canonical input.
+fw::wake::WakePlan planWake(int min_of_day, Mode m) {
+  return fw::wake::planWake(min_of_day, m, fw::wake::kDefaultSchedule);
+}
 
 }  // namespace
 
@@ -63,23 +71,23 @@ TEST_CASE("Morning tier (06:30–10:00): Full > Poll > Partial precedence") {
   CHECK(planWake(hm(9, 59), kAny).path == Path::Partial);
 }
 
-TEST_CASE("Midday tier (10:00–17:00): Full at 30, PollPartial at 5") {
+TEST_CASE("Midday tier (10:00–17:00): Full at 30, plain Partial at 5") {
   // 10:00 → Full
   CHECK(planWake(hm(10, 0), kAny).path == Path::Full);
   // 10:01 → Skip (no 1-min partial in Midday)
   CHECK(planWake(hm(10, 1), kAny).path == Path::Skip);
   // 10:04 → Skip
   CHECK(planWake(hm(10, 4), kAny).path == Path::Skip);
-  // 10:05 → PollPartial (5-min cadence, with poll piggybacked)
-  CHECK(planWake(hm(10, 5), kAny).path == Path::PollPartial);
-  // 10:10 → PollPartial
-  CHECK(planWake(hm(10, 10), kAny).path == Path::PollPartial);
-  // 10:25 → PollPartial
-  CHECK(planWake(hm(10, 25), kAny).path == Path::PollPartial);
+  // 10:05 → Partial (5-min cadence; plain offline partial — no MQTT)
+  CHECK(planWake(hm(10, 5), kAny).path == Path::Partial);
+  // 10:10 → Partial
+  CHECK(planWake(hm(10, 10), kAny).path == Path::Partial);
+  // 10:25 → Partial
+  CHECK(planWake(hm(10, 25), kAny).path == Path::Partial);
   // 10:30 → Full (30-min cadence)
   CHECK(planWake(hm(10, 30), kAny).path == Path::Full);
-  // 16:55 → PollPartial
-  CHECK(planWake(hm(16, 55), kAny).path == Path::PollPartial);
+  // 16:55 → Partial
+  CHECK(planWake(hm(16, 55), kAny).path == Path::Partial);
   // 16:59 → Skip
   CHECK(planWake(hm(16, 59), kAny).path == Path::Skip);
 }
@@ -168,9 +176,9 @@ TEST_CASE("Midday: skip minutes between 5-cadence wakes") {
   CHECK(planWake(hm(10, 1), kAny).minutes_to_next_wake == 4);
   // 10:04 → next at 10:05 → +1
   CHECK(planWake(hm(10, 4), kAny).minutes_to_next_wake == 1);
-  // 10:05 (PollPartial) → next at 10:10 → +5
+  // 10:05 (Partial) → next at 10:10 → +5
   CHECK(planWake(hm(10, 5), kAny).minutes_to_next_wake == 5);
-  // 10:25 (PollPartial) → next at 10:30 (Full) → +5
+  // 10:25 (Partial) → next at 10:30 (Full) → +5
   CHECK(planWake(hm(10, 25), kAny).minutes_to_next_wake == 5);
   // 16:59 (Skip) → next at 17:00 (Evening Full) → +1
   CHECK(planWake(hm(16, 59), kAny).minutes_to_next_wake == 1);
@@ -178,23 +186,57 @@ TEST_CASE("Midday: skip minutes between 5-cadence wakes") {
 
 // -----------------------------------------------------------------------------
 // NowPlaying override.
+//
+// `optimise-now-playing-cadence` changed the override from Full-every-minute
+// to Poll-every-minute (with conditional Full-on-track-change handled by
+// the Poll handler in main_loop.cpp). The cadence (1 min) is preserved;
+// the per-wake work is now mostly cheap retained-MQTT reads.
 
-TEST_CASE("NowPlaying overrides every cadence — always Full, +1 min") {
-  // Every minute returns Full when in NowPlaying, regardless of tier.
+TEST_CASE("NowPlaying overrides every cadence — always Poll, +1 min") {
+  // Every minute returns Poll when in NowPlaying, regardless of tier.
   for (int m : {hm(0, 0), hm(2, 30), hm(6, 29), hm(10, 1), hm(13, 14),
                 hm(17, 1), hm(21, 59), hm(22, 1), hm(23, 59)}) {
     const auto p = planWake(m, Mode::NowPlaying);
     INFO("minute = ", m);
-    CHECK(p.path == Path::Full);
+    CHECK(p.path == Path::Poll);
     CHECK(p.minutes_to_next_wake == 1);
   }
 }
 
 TEST_CASE("NowPlaying override holds at tier boundaries too") {
-  CHECK(planWake(hm(6, 30), Mode::NowPlaying).path == Path::Full);
-  CHECK(planWake(hm(10, 0), Mode::NowPlaying).path == Path::Full);
-  CHECK(planWake(hm(17, 0), Mode::NowPlaying).path == Path::Full);
-  CHECK(planWake(hm(22, 0), Mode::NowPlaying).path == Path::Full);
+  CHECK(planWake(hm(6, 30), Mode::NowPlaying).path == Path::Poll);
+  CHECK(planWake(hm(10, 0), Mode::NowPlaying).path == Path::Poll);
+  CHECK(planWake(hm(17, 0), Mode::NowPlaying).path == Path::Poll);
+  CHECK(planWake(hm(22, 0), Mode::NowPlaying).path == Path::Poll);
+}
+
+TEST_CASE("Session override forces Poll cadence regardless of mode") {
+  // Even when the visible mode is Summary/Gallery (during a tap-peek), the
+  // session flag keeps the planner on per-minute Poll cadence so the
+  // device catches the peek-revert quickly.
+  auto pw_session = [](int m, Mode mode) {
+    return fw::wake::planWake(m, mode, fw::wake::kDefaultSchedule,
+                              /*session_now_playing=*/true);
+  };
+  for (Mode m : {Mode::Summary, Mode::Gallery, Mode::Weather, Mode::Night}) {
+    INFO("mode = ", static_cast<int>(m));
+    const auto p = pw_session(hm(13, 14), m);  // mid-Midday (no Polls in default tier)
+    CHECK(p.path == Path::Poll);
+    CHECK(p.minutes_to_next_wake == 1);
+  }
+}
+
+TEST_CASE("Session override off: planner follows tier dispatch") {
+  // Verifies the override is gated. With session_now_playing=false and
+  // mode != NowPlaying, midday (full=30, partial=5, poll=0) produces
+  // plain Partial / Full / Skip — partials are always offline now.
+  auto pw_no_session = [](int m, Mode mode) {
+    return fw::wake::planWake(m, mode, fw::wake::kDefaultSchedule,
+                              /*session_now_playing=*/false);
+  };
+  CHECK(pw_no_session(hm(10, 0), Mode::Summary).path == Path::Full);
+  CHECK(pw_no_session(hm(10, 5), Mode::Summary).path == Path::Partial);
+  CHECK(pw_no_session(hm(10, 1), Mode::Summary).path == Path::Skip);
 }
 
 // -----------------------------------------------------------------------------
@@ -247,12 +289,12 @@ TEST_CASE("whole-day path audit: Morning minutes follow Full>Poll>Partial") {
   }
 }
 
-TEST_CASE("whole-day path audit: Midday minutes follow Full>PollPartial>Skip") {
+TEST_CASE("whole-day path audit: Midday minutes follow Full>Partial>Skip") {
   for (int m = hm(10, 0); m < hm(17, 0); ++m) {
     const auto p = planWake(m, kAny).path;
     INFO("Midday minute ", m);
     if      (m % 30 == 0) CHECK(p == Path::Full);
-    else if (m % 5 == 0)  CHECK(p == Path::PollPartial);
+    else if (m % 5 == 0)  CHECK(p == Path::Partial);
     else                   CHECK(p == Path::Skip);
   }
 }

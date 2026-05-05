@@ -345,7 +345,7 @@ TEST_CASE("Timer @ Morning :02 after :01 partial → seed-then-draw (12 blits)")
   CHECK(s.display().partialUpdate1BitCount() - partial_after_first == 2);
 }
 
-TEST_CASE("Timer @ Morning :03 → Poll — MQTT read only, no draw") {
+TEST_CASE("Timer @ Morning :03 → Poll — MQTT read + clock partial (no Full)") {
   SIM_RESET();
   sim::Scenario s;
   s.clock().setNow(localTime(6, 30));
@@ -361,13 +361,16 @@ TEST_CASE("Timer @ Morning :03 → Poll — MQTT read only, no draw") {
 
   fw::tick(s.hal(), fw::wake::Reason::Timer);
 
-  // No e-ink work: neither full nor 1-bit partial. (Cold-boot's seed already
-  // happened above, so we compare deltas.)
+  // No Full and no device-state publish (Poll without mode change).
   CHECK(s.display().fullRefreshCount() == full_after_boot);
-  CHECK(s.display().partialUpdate1BitCount() == partial_after_boot);
-  CHECK(s.display().bitmapBlits().size() == blits_after_boot);
-  // No device-state publish (poll-only when mode unchanged).
   CHECK(s.publishedMessages(fw::config::kTopicDeviceState).size() == state_pubs_after_boot);
+  // BUT the Poll path also runs doPartial after the MQTT-read block when
+  // not promoting — keeps the clock fresh on Poll-heavy schedules where
+  // the Poll cadence preempts the Partial cadence at resonance minutes.
+  // Seed-then-draw produces 12 blits + 2 partialUpdates, same pattern as
+  // a plain Partial wake.
+  CHECK(s.display().bitmapBlits().size() - blits_after_boot == 12);
+  CHECK(s.display().partialUpdate1BitCount() - partial_after_boot == 2);
 }
 
 TEST_CASE("Timer @ Morning :03 → Poll detects mode change → falls through to Full") {
@@ -404,7 +407,7 @@ TEST_CASE("Timer @ Morning :15 → Full (forced-full at 15-min cadence)") {
   CHECK(s.display().fullRefreshCount() == full_after_boot + 1);
 }
 
-TEST_CASE("Timer @ Midday :05 → PollPartial — WiFi+MQTT then partial draw") {
+TEST_CASE("Timer @ Midday :05 → plain Partial (offline, no MQTT)") {
   SIM_RESET();
   sim::Scenario s;
   s.clock().setNow(localTime(10, 0));
@@ -415,7 +418,10 @@ TEST_CASE("Timer @ Midday :05 → PollPartial — WiFi+MQTT then partial draw") 
   const auto state_pubs_after_boot =
       s.publishedMessages(fw::config::kTopicDeviceState).size();
 
-  // 10:05 — PollPartial in Midday. Mode unchanged → MQTT poll then partial.
+  // 10:05 — plain Partial (Midday's `partial_min == 5`, `poll_min == 0`).
+  // Since the PollPartial path was removed, this wake is fully offline:
+  // no WiFi, no MQTT, no state/device publish. HA-driven mode changes
+  // outside the active session pickup are caught only on the next Full.
   s.clock().setNow(localTime(10, 5));
   fw::tick(s.hal(), fw::wake::Reason::Timer);
 
@@ -425,27 +431,6 @@ TEST_CASE("Timer @ Midday :05 → PollPartial — WiFi+MQTT then partial draw") 
   CHECK(s.display().partialUpdate1BitCount() - partial_after_boot == 2);
   CHECK(s.display().fullRefreshCount() == full_after_boot);
   CHECK(s.publishedMessages(fw::config::kTopicDeviceState).size() == state_pubs_after_boot);
-}
-
-TEST_CASE("Timer @ Midday :05 → PollPartial detects mode change → Full") {
-  SIM_RESET();
-  sim::Scenario s;
-  s.clock().setNow(localTime(10, 0));
-  coldBootInto(s, "summary");
-  const int full_after_boot = s.display().fullRefreshCount();
-  const int partial_after_boot = s.display().partialUpdate1BitCount();
-
-  s.mqttPublish(fw::config::kTopicActiveMode, "gallery", /*retained=*/true)
-      .setRendererResponse(urlFor("gallery"), fakePng());
-  // Stub a clock zone for the new mode so the post-Full seed lands.
-  stubClockZone(s, "gallery", /*x=*/1058, /*y=*/750, /*font_size=*/44);
-  s.clock().setNow(localTime(10, 5));
-  fw::tick(s.hal(), fw::wake::Reason::Timer);
-
-  CHECK(s.display().fullRefreshCount() == full_after_boot + 1);
-  // Post-Full zone cleanup: 2 partialUpdate1Bit pulses (solid black, then
-  // clean-to-white-with-digits) so the next partial wake can diff cleanly.
-  CHECK(s.display().partialUpdate1BitCount() - partial_after_boot == 2);
 }
 
 TEST_CASE("Timer @ Night :07 → Skip — no network, no draw, no work") {
@@ -469,21 +454,32 @@ TEST_CASE("Timer @ Night :07 → Skip — no network, no draw, no work") {
   CHECK(s.publishedMessages(fw::config::kTopicDeviceState).size() == state_pubs_after_boot);
 }
 
-TEST_CASE("Timer in NowPlaying mode → Full at every minute (override)") {
+TEST_CASE("Timer in NowPlaying mode → Poll at every minute (override)") {
+  // `optimise-now-playing-cadence` changed the override from Full-every-
+  // minute to Poll-every-minute. With the same retained track on the
+  // broker, a Timer wake in NowPlaying does NOT promote to Full; the Poll
+  // handler reads the track topic, finds the cached hash matches, and
+  // returns to sleep. Track changes are tested in
+  // now_playing_track_tests.cpp.
   SIM_RESET();
   sim::Scenario s;
   s.clock().setNow(localTime(10, 0));
-  coldBootInto(s, "now-playing");  // sets persisted.current_mode = NowPlaying
-  const int full_after_boot = s.display().fullRefreshCount();
-
-  // 10:07 — in Midday, this would be Skip for any other mode. NowPlaying
-  // promotes it to Full so track changes land within ~1 minute.
   s.mqttPublish(fw::config::kTopicActiveMode, "now-playing", /*retained=*/true)
+      .mqttPublish(fw::config::kTopicNowPlayingTrack, "spotify:track:abc",
+                   /*retained=*/true)
       .setRendererResponse(urlFor("now-playing"), fakePng());
+  stubClockZone(s, "now-playing", /*x=*/48, /*y=*/73, /*font_size=*/44);
+  fw::tick(s.hal(), fw::wake::Reason::ColdBoot);
+  const int full_after_boot = s.display().fullRefreshCount();
+  REQUIRE(full_after_boot >= 1);
+
+  // 10:07 — in Midday this would be Skip for any other mode. With NowPlaying
+  // override active, planWake returns Poll; the Poll handler checks the
+  // track topic, finds the cached hash matches, no promotion.
   s.clock().setNow(localTime(10, 7));
   fw::tick(s.hal(), fw::wake::Reason::Timer);
 
-  CHECK(s.display().fullRefreshCount() == full_after_boot + 1);
+  CHECK(s.display().fullRefreshCount() == full_after_boot);
 }
 
 TEST_CASE("Partial path falls back to Full when renderer reports no clock zone") {

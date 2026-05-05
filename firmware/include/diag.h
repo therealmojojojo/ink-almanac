@@ -27,7 +27,16 @@ struct Entry {
   uint8_t reason;        // fw::wake::Reason as uint8
   uint8_t path;          // fw::wake::Path as uint8 (0xff = not planned, e.g. cold-boot Full)
   uint8_t mode;          // fw::modes::Mode as uint8
-  uint8_t flags;         // bit0=wifi, bit1=mqtt, bit2=epd_pwrgood, bit3=draw_succeeded, bit4=partial_succeeded
+  uint8_t flags;         // bit0=wifi, bit1=mqtt, bit2=epd_pwrgood, bit3=draw_succeeded,
+                         // bit4=partial_succeeded, bit5=schedule_loaded_from_cache,
+                         // bit6=schedule_loaded_from_nvs, bit7=reserved.
+                         // bits 5/6 are mutually exclusive within a single
+                         // tick. Absence of both on a wake that brought MQTT
+                         // up means the device ran on the baked default for
+                         // this wake; "schedule changed during this wake" is
+                         // detected via the schedule_hash field on
+                         // inkplate/state/device transitioning, not via a
+                         // per-wake flag bit.
   uint16_t cycles;       // partialUpdate1Bit() cycles (>0 means panel was driven)
   uint8_t reset_reason;  // ESP-IDF esp_reset_reason_t enum int. Populated
                          // only on ColdBoot wakes (1=POWERON, 2=EXT,

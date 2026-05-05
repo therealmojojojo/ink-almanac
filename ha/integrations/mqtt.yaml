@@ -70,6 +70,23 @@ mqtt:
       unique_id: inkplate_commanded_face
       state_topic: "inkplate/command/active_mode"
 
+    # Device-side schedule hash — FNV-32 of the JSON payload that produced
+    # the schedule the device is currently running on. Pair with
+    # `sensor.inkplate_schedule_hash_expected` (HA-side, computed over the
+    # last published payload) to confirm the device adopted the latest
+    # schedule. When they match, the device is on the operator's intended
+    # cadence; when they differ for more than ~30 min, the device hasn't
+    # had a Full / Poll / PollPartial wake since the last edit (battery
+    # the prime suspect).
+    #
+    # Value `00000000` means the device is running on its baked-in default
+    # schedule (no operator-published schedule has ever been read by this
+    # device). Expected after a fresh flash; persistent across HA restarts.
+    - name: "Inkplate device schedule hash"
+      unique_id: inkplate_device_schedule_hash
+      state_topic: "inkplate/state/device"
+      value_template: "{{ value_json.schedule_hash | default('00000000') }}"
+
   binary_sensor:
     # EPD power-good — exposed by the firmware after probing the TPS65186
     # PMIC at the start of every Full. False means the chip fault-latched
