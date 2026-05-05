@@ -107,6 +107,19 @@ fw::modes::Mode resolveActiveMode(hal::ITransport& mqtt, int hour) {
     auto m = parseModePayload(payload);
     if (m != fw::modes::Mode::Unknown) return m;
   }
+  // Empty payload distinguishes two cases:
+  //  - Cold-boot before HA has populated `active_mode` (current_mode is
+  //    Unknown). The time-of-day fallback gives a reasonable default.
+  //  - Steady-state read failure on a marginal-RSSI link: mqttReadRetained
+  //    timed out at 800 ms before the broker delivered the retained value.
+  //    The persisted `current_mode` is what's actually on the panel —
+  //    inventing a face from time-of-day would cause a spurious mode-change
+  //    promotion (e.g., a NowPlaying-session Poll briefly drawing Weather
+  //    because the local hour is in the 10-22 window). See
+  //    openspec/changes/fix-active-mode-fallback.
+  if (wake::persisted().current_mode != fw::modes::Mode::Unknown) {
+    return wake::persisted().current_mode;
+  }
   return timeOfDayFallback(hour);
 }
 

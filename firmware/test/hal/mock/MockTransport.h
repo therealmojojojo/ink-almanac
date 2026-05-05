@@ -61,6 +61,12 @@ class MockTransport : public hal::ITransport {
   // state/gesture) by publishing the corresponding retained command topic.
   void setPublishHook(PublishHook hook) { publish_hook_ = std::move(hook); }
 
+  // Drop a retained message — simulates a broker-delivery miss (e.g., the
+  // 800 ms `mqttReadRetained` window expiring before the broker re-delivered
+  // on a marginal-RSSI link). Subsequent reads return empty until the topic
+  // is re-published.
+  void clearRetained(const std::string& topic) { retained_.erase(topic); }
+
   // Dry-run: forward HTTP GETs to a real host:port (default empty = disabled).
   void setLiveHttpBase(std::string base) { live_http_base_ = std::move(base); }
 

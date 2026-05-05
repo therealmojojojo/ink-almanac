@@ -119,6 +119,53 @@ TEST_CASE("timer wake always full-refreshes on Inkplate 10 (3-bit grayscale)") {
   CHECK(s.display().fullRefreshCount() == full_after_first + 2);
 }
 
+TEST_CASE("active_mode fallback: empty retained read after first Full preserves current_mode") {
+  // Steady-state MQTT-hiccup case from openspec/changes/fix-active-mode-fallback.
+  //
+  // ColdBoot draws Gallery (sets persisted.current_mode = Gallery). Then the
+  // retained active_mode is dropped (simulating the broker missing the
+  // 800 ms re-delivery window on a marginal-RSSI link). A subsequent Timer
+  // wake's resolveActiveMode reads empty, and SHOULD return the persisted
+  // current_mode (Gallery) rather than the time-of-day fallback (Weather at
+  // local hour 11 in this scenario). The Poll-Full mode-change-promotion
+  // sees Gallery == Gallery → no promotion → no extra Full.
+  SIM_RESET();
+  sim::Scenario s;
+  s.clock().setNow(kApr14_0800);
+  s.mqttPublish(fw::config::kTopicActiveMode, "gallery", /*retained=*/true)
+      .setRendererResponse(urlFor("gallery"), fakePng())
+      .setRendererResponse(urlFor("weather"), fakePng());
+  fw::tick(s.hal(), fw::wake::Reason::ColdBoot);
+  const int full_after_boot = s.display().fullRefreshCount();
+  REQUIRE(full_after_boot == 1);  // sanity — cold-boot drew Gallery
+
+  // Simulate broker-delivery miss: retained value is gone for this read.
+  s.transport().clearRetained(fw::config::kTopicActiveMode);
+
+  fw::tick(s.hal(), fw::wake::Reason::Timer);
+  // Without the fix, resolveActiveMode would have returned Weather (time-of-
+  // day at local hour 11), promoted the Poll to a Full, drawn Weather,
+  // bumping fullRefreshCount to 3 (Cold-boot Gallery + Timer Weather + the
+  // 3-bit-grayscale always-full clock-tick that doesn't apply to a mode
+  // change but would still be a separate refresh). With the fix,
+  // current_mode (Gallery) is preserved; the Timer wake still does its
+  // own Full per the 3-bit Inkplate-10 always-full policy, but it draws
+  // Gallery, NOT Weather.
+  CHECK(s.display().fullRefreshCount() == full_after_boot + 1);
+
+  // The fetch should have hit the gallery URL, not weather.
+  // (publishedMessages doesn't capture HTTP fetches; we infer from the
+  // fact that no extra weather-promotion happened — if it had, the URL
+  // for weather would have been requested too. The single increment of
+  // fullRefreshCount + the still-Gallery state in the next state/device
+  // publish is the assertion.)
+  auto state_pubs = s.publishedMessages(fw::config::kTopicDeviceState);
+  REQUIRE(!state_pubs.empty());
+  // Latest state/device JSON should still report active_mode=gallery.
+  const auto& last = state_pubs.back().payload;
+  CHECK(last.find("\"active_mode\":\"gallery\"") != std::string::npos);
+}
+
 TEST_CASE("quiet hours: IMU stays armed, no PIR slot exists") {
   SIM_RESET();
   sim::Scenario s;
