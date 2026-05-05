@@ -119,21 +119,29 @@ app.get('/inputs/:file', (c) =>
 // curl). To keep album art working, rewrite the Sonos entity_picture URL into
 // a same-origin path and proxy only the exact HA sub-surface we need.
 //
-// The entity_picture URL already carries its own `token=...` query param, so
-// this proxy forwards anonymously. We only allow the media_player_proxy path
-// to avoid turning this into a general HA bypass.
+// The entity_picture URL carries its own `token=...` query param, but as of
+// HA 2025.x the `/api/media_player_proxy/...` endpoint also requires a real
+// bearer auth token — without it, the request hangs to its server-side
+// timeout. We attach `ha_long_lived_token` from ha/secrets.yaml. We only
+// allow the media_player_proxy path to avoid turning this into a general
+// HA bypass.
 app.get('/ha-proxy/api/media_player_proxy/:rest{.+}', async (c) => {
-  // Resolve HA base URL from ha/secrets.yaml (same source as sim.ts).
+  // Resolve HA base URL + long-lived token from ha/secrets.yaml (same source
+  // as sim.ts).
   const haSecrets = path.resolve(ROOT, '..', 'ha', 'secrets.yaml');
   let haBase = '';
+  let haToken = '';
   try {
     const content = await fs.readFile(haSecrets, 'utf-8');
-    const m = content.match(/^ha_base_url:\s*"?([^"\n]+?)"?\s*$/m);
-    if (m?.[1]) haBase = m[1].trim();
+    const baseMatch = content.match(/^ha_base_url:\s*"?([^"\n]+?)"?\s*$/m);
+    if (baseMatch?.[1]) haBase = baseMatch[1].trim();
+    const tokenMatch = content.match(/^ha_long_lived_token:\s*"?([^"\n]+?)"?\s*$/m);
+    if (tokenMatch?.[1]) haToken = tokenMatch[1].trim();
   } catch {
     // fall through; empty haBase yields 502 below
   }
   if (!haBase) return c.text('ha_base_url not configured\n', 502);
+  if (!haToken) return c.text('ha_long_lived_token not configured\n', 502);
 
   // Reconstruct the full target URL. We preserve any query params (token).
   const rest = c.req.param('rest');
@@ -147,6 +155,7 @@ app.get('/ha-proxy/api/media_player_proxy/:rest{.+}', async (c) => {
       '-s', '--max-time', '10',
       '-o', '-',
       '-D', '-', // headers to stdout, separated from body by blank line
+      '-H', `Authorization: Bearer ${haToken}`,
       target,
     ]);
     const chunks: Buffer[] = [];
