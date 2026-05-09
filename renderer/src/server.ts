@@ -308,6 +308,34 @@ function parseDelightTestQuery(c: { req: { query: (k: string) => string | undefi
   return out;
 }
 
+// Scratch preview for the proposed classical now-playing layout. Static HTML
+// at templates/now-playing/_mock-classical.html — no data wiring, no spec
+// commitment. Remove with the file once the layout question is resolved.
+app.get('/debug/now-playing-classical-mock', async () => {
+  const full = path.join(ROOT, 'templates/now-playing/_mock-classical.html');
+  try {
+    const data = await fs.readFile(full, 'utf-8');
+    return new Response(data, {
+      status: 200,
+      headers: { 'content-type': 'text/html; charset=utf-8' },
+    });
+  } catch {
+    return new Response('mock not found', { status: 404 });
+  }
+});
+app.get('/debug/now-playing-classical-mock/tracks.json', async () => {
+  const full = path.join(ROOT, 'templates/now-playing/_mock-tracks.json');
+  try {
+    const data = await fs.readFile(full, 'utf-8');
+    return new Response(data, {
+      status: 200,
+      headers: { 'content-type': 'application/json; charset=utf-8' },
+    });
+  } catch {
+    return new Response('not found', { status: 404 });
+  }
+});
+
 app.get('/debug/delight-test/preview', async (c) => {
   try {
     const opts = parseDelightTestQuery(c);

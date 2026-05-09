@@ -1,0 +1,872 @@
+[
+  {
+    "id": "6nUPcVDYjCrnNMaXAJ9eO3",
+    "classical": false,
+    "composer": "",
+    "work": "Drinking Age",
+    "movement": "",
+    "performers": [
+      {
+        "name": "Cameron Winter",
+        "role": "",
+        "type": "Person"
+      }
+    ],
+    "album": "Heavy Metal",
+    "title_spotify": "Drinking Age",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b2734738aa171569052376f162fe",
+    "status": "NO_COMPOSER",
+    "first_release_date": "2024-12-06",
+    "first_release_year": "2024"
+  },
+  {
+    "id": "2d6ml9Qkx8r4EjuUyrdpRV",
+    "classical": true,
+    "composer": "Frédéric Chopin",
+    "work": "Nocturne No. 1 in B-Flat Minor, Op. 9 No. 1",
+    "movement": "",
+    "performers": [
+      {
+        "name": "Maurizio Pollini",
+        "role": "Piano",
+        "type": "Person"
+      }
+    ],
+    "album": "Chopin: Nocturnes",
+    "title_spotify": "Nocturne No. 1 in B-Flat Minor, Op. 9 No. 1",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b2731ac7945379c88fb7f5844b59",
+    "status": "CLASSICAL",
+    "first_release_date": "2022-05-02",
+    "first_release_year": "2022"
+  },
+  {
+    "id": "5PTiHxVkp46i4o8o2dFgtF",
+    "classical": true,
+    "composer": "Jean Sibelius",
+    "work": "13 Pieces for Piano, Op. 76",
+    "movement": "No. 2, Etude (Arr. Sandquist for Cello & Piano)",
+    "performers": [
+      {
+        "name": "Göran Söllscher",
+        "role": "Guitar",
+        "type": "Person"
+      },
+      {
+        "name": "Jian Wang",
+        "role": "Cello",
+        "type": "Person"
+      }
+    ],
+    "album": "Finlandia: Finland Independence Day",
+    "title_spotify": "13 Pieces for Piano, Op. 76: No. 2, Etude (Arr. Sandquist for Cello & Piano)",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b273988538b18b919b4f76daaf2d",
+    "status": "CLASSICAL",
+    "first_release_date": "2007-06-01",
+    "first_release_year": "2007"
+  },
+  {
+    "id": "4RUKTGXjyRM3wdksLgC6Ca",
+    "classical": true,
+    "composer": "Sergei Rachmaninoff",
+    "work": "Prelude in G Minor, Op. 23, No. 5 - Live at Philharmonie, Berlin, 2018",
+    "movement": "",
+    "performers": [
+      {
+        "name": "Yuja Wang",
+        "role": "",
+        "type": ""
+      }
+    ],
+    "album": "Rachmaninov: Prelude in G Minor, Op. 23, No. 5 (Live at Philharmonie, Berlin / 2018)",
+    "title_spotify": "Prelude in G Minor, Op. 23, No. 5 - Live at Philharmonie, Berlin, 2018",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b273c9db782920f973d61c3d6b00",
+    "status": "ISRC_MISS",
+    "first_release_date": "",
+    "first_release_year": ""
+  },
+  {
+    "id": "3YJrnXT1UNpRgnc7lcgXSF",
+    "classical": true,
+    "composer": "Claude Debussy",
+    "work": "Rêverie, CD 76",
+    "movement": "",
+    "performers": [
+      {
+        "name": "Jean-Yves Thibaudet",
+        "role": "",
+        "type": ""
+      }
+    ],
+    "album": "Debussy: Complete Works for Solo Piano, Vol.1",
+    "title_spotify": "Rêverie, CD 76",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b273735a91c9c4cef92e888068c8",
+    "status": "CLASSICAL",
+    "first_release_date": "1996-04-01",
+    "first_release_year": "1996"
+  },
+  {
+    "id": "0pjCsB0XNSyqM9UazlTODC",
+    "classical": true,
+    "composer": "Dmitri Shostakovich",
+    "work": "Jazz Suite No. 2",
+    "movement": "VI. Waltz 2",
+    "performers": [
+      {
+        "name": "Russian State Symphony Orchestra",
+        "role": "",
+        "type": "Orchestra"
+      },
+      {
+        "name": "Dmitry Yablonsky",
+        "role": "Cond.",
+        "type": "Person"
+      }
+    ],
+    "album": "Shostakovich: Jazz Suites Nos. 1 - 2 / The Bolt / Tahiti Trot",
+    "title_spotify": "Jazz Suite No. 2: VI. Waltz 2",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b273da2e4a4059497dbf17a9bb78",
+    "status": "CLASSICAL",
+    "first_release_date": "2002-03",
+    "first_release_year": "2002"
+  },
+  {
+    "id": "3U8Fx7zNTQrctytkj6Gqgd",
+    "classical": true,
+    "composer": "Camille Saint‐Saëns",
+    "work": "The Carnival of the Animals, R. 125",
+    "movement": "XIII. The Swan",
+    "performers": [
+      {
+        "name": "Camille Saint-Saëns",
+        "role": "",
+        "type": ""
+      },
+      {
+        "name": "Isata Kanneh-Mason",
+        "role": "",
+        "type": ""
+      },
+      {
+        "name": "Jeneba Kanneh-Mason",
+        "role": "",
+        "type": ""
+      },
+      {
+        "name": "Sheku Kanneh-Mason",
+        "role": "",
+        "type": ""
+      }
+    ],
+    "album": "Saint-Saëns: Carnival of the Animals: The Swan",
+    "title_spotify": "The Carnival of the Animals, R. 125: XIII. The Swan",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b2730f554ebde761482faecb143a",
+    "status": "CLASSICAL",
+    "first_release_date": "",
+    "first_release_year": ""
+  },
+  {
+    "id": "1BbQIyPnuhVIlJEqPcY3Ug",
+    "classical": true,
+    "composer": "Pyotr Ilyich Tchaikovsky",
+    "work": "Six Pieces, Op. 51, TH 143",
+    "movement": "VI. Valse sentimentale. Tempo di Valse",
+    "performers": [
+      {
+        "name": "Daniel Lozakovich",
+        "role": "",
+        "type": ""
+      },
+      {
+        "name": "Stanislav Soloviev",
+        "role": "",
+        "type": ""
+      }
+    ],
+    "album": "None but the Lonely Heart",
+    "title_spotify": "Six Pieces, Op. 51, TH 143: VI. Valse sentimentale. Tempo di Valse",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b2738fcc0b8cb82eb9477888d1a8",
+    "status": "ISRC_MISS",
+    "first_release_date": "",
+    "first_release_year": ""
+  },
+  {
+    "id": "2MSgFefjK0T7Iwjvr3OKqV",
+    "classical": true,
+    "composer": "Frédéric Chopin",
+    "work": "Chopin: Nocturne No. 20 in C-Sharp Minor, Op. Posth.",
+    "movement": "",
+    "performers": [
+      {
+        "name": "Mikhail Pletnev",
+        "role": "",
+        "type": ""
+      }
+    ],
+    "album": "Chopin: Piano Sonata No. 2, Nocturnes, Barcarolle & Scherzo",
+    "title_spotify": "Chopin: Nocturne No. 20 in C-Sharp Minor, Op. Posth.",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b273ae4dfa09519c27b64cd5a958",
+    "status": "ISRC_MISS",
+    "first_release_date": "",
+    "first_release_year": ""
+  },
+  {
+    "id": "06O078Zw6xX8iMh4lpWn01",
+    "classical": true,
+    "composer": "Henry Purcell",
+    "work": "Dido and Aeneas, Z. 626 / Act III: \"When I Am Laid in Earth\" Dido's Lamento (Arr. by Mathieu Herzog for Cello and Strings)",
+    "movement": "",
+    "performers": [
+      {
+        "name": "Camille Thomas",
+        "role": "Cello",
+        "type": "Person"
+      },
+      {
+        "name": "Brussels Philharmonic",
+        "role": "",
+        "type": "Orchestra"
+      },
+      {
+        "name": "Mathieu Herzog",
+        "role": "Cond.",
+        "type": "Person"
+      }
+    ],
+    "album": "Voice Of Hope",
+    "title_spotify": "Dido and Aeneas, Z. 626 / Act III: \"When I Am Laid in Earth\" Dido's Lamento (Arr. by Mathieu Herzog for Cello and Strings)",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b27313e49c0fd62e1b169104096d",
+    "status": "CLASSICAL",
+    "first_release_date": "2020-06-05",
+    "first_release_year": "2020"
+  },
+  {
+    "id": "4ObQ0m7VUtrgdEwpFeCKua",
+    "classical": true,
+    "composer": "Sergei Rachmaninoff",
+    "work": "12 Songs, Op. 21",
+    "movement": "V. Lilacs (Transcr. Rachmaninoff for Solo Piano)",
+    "performers": [
+      {
+        "name": "Sergei Babayan",
+        "role": "Piano",
+        "type": "Person"
+      }
+    ],
+    "album": "Rachmaninoff: Préludes; Études-Tableaux; Moments musicaux",
+    "title_spotify": "12 Songs, Op. 21: V. Lilacs (Transcr. Rachmaninoff for Solo Piano)",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b27307ec93581ad7b16b666165b6",
+    "status": "CLASSICAL",
+    "first_release_date": "2020-08-07",
+    "first_release_year": "2020"
+  },
+  {
+    "id": "6Gifhuvyk4uPDGSRrtw8Y6",
+    "classical": true,
+    "composer": "Franz Schubert",
+    "work": "Schwanengesang, D. 957: Ständchen",
+    "movement": "",
+    "performers": [
+      {
+        "name": "Mischa Maisky",
+        "role": "Cello",
+        "type": "Person"
+      },
+      {
+        "name": "Daria Hovora",
+        "role": "Piano",
+        "type": "Person"
+      }
+    ],
+    "album": "Schubert: Songs without Words",
+    "title_spotify": "Schwanengesang, D. 957: Ständchen",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b2734c565d6613ad5c7382b3274e",
+    "status": "CLASSICAL",
+    "first_release_date": "1996-07-01",
+    "first_release_year": "1996"
+  },
+  {
+    "id": "2f2egGUYIOUjcFG3EDFg2F",
+    "classical": true,
+    "composer": "Aram Khachaturian",
+    "work": "Masquerade Suite: Maskarad (Masquerade)",
+    "movement": "I. Waltz",
+    "performers": [
+      {
+        "name": "St. Petersburg State Symphony Orchestra",
+        "role": "",
+        "type": ""
+      }
+    ],
+    "album": "Great Waltzes",
+    "title_spotify": "Masquerade Suite: Maskarad (Masquerade): I. Waltz",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b2733d577e4459f0e1d0f2a8753f",
+    "status": "CLASSICAL",
+    "first_release_date": "1995-05-17",
+    "first_release_year": "1995"
+  },
+  {
+    "id": "5zWCfVmj9JHlVLNnBpIKt0",
+    "classical": true,
+    "composer": "Johannes Brahms",
+    "work": "21 Hungarian Dances, WoO 1",
+    "movement": "No. 1 in G Minor. Allegro molto (Version for Orchestra)",
+    "performers": [
+      {
+        "name": "Wiener Philharmoniker",
+        "role": "",
+        "type": "Orchestra"
+      },
+      {
+        "name": "Claudio Abbado",
+        "role": "Cond.",
+        "type": "Person"
+      }
+    ],
+    "album": "Brahms: 21 Hungarian Dances",
+    "title_spotify": "21 Hungarian Dances, WoO 1: No. 1 in G Minor. Allegro molto (Version for Orchestra)",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b273d2ca535155e882ce82de1feb",
+    "status": "CLASSICAL",
+    "first_release_date": "1982",
+    "first_release_year": "1982"
+  },
+  {
+    "id": "6GzMz3s0K1YKwRVI36CgRx",
+    "classical": true,
+    "composer": "Franz Liszt",
+    "work": "Liebestraume, S541/R211",
+    "movement": "No. 3: Nocturne in A-Flat Major",
+    "performers": [
+      {
+        "name": "Jenő Jandó",
+        "role": "Piano",
+        "type": "Person"
+      }
+    ],
+    "album": "Liszt: Scherzo and March / 3 Liebestraume / Berceuse",
+    "title_spotify": "Liebestraume, S541/R211 : No. 3: Nocturne in A-Flat Major",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b27321ef301217c69ef3f1be3803",
+    "status": "CLASSICAL",
+    "first_release_date": "1998-03-05",
+    "first_release_year": "1998"
+  },
+  {
+    "id": "2bgJtH1MgEV7CgaU3aDYAk",
+    "classical": true,
+    "composer": "Frédéric Chopin",
+    "work": "24 Preludes, Op. 28",
+    "movement": "No. 4 in E Minor. Largo",
+    "performers": [
+      {
+        "name": "Maurizio Pollini",
+        "role": "",
+        "type": ""
+      }
+    ],
+    "album": "Chopin: Preludes Op.28",
+    "title_spotify": "24 Preludes, Op. 28: No. 4 in E Minor. Largo",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b273ae920cf30c03c95d58949b88",
+    "status": "ISRC_MISS",
+    "first_release_date": "",
+    "first_release_year": ""
+  },
+  {
+    "id": "2LKMUX3iN0tQOvggbalydj",
+    "classical": true,
+    "composer": "Camille Saint-Saëns",
+    "work": "The Carnival of the Animals, R. 125",
+    "movement": "XIII. The Swan (Arr. for Cello and Piano)",
+    "performers": [
+      {
+        "name": "Yo-Yo Ma",
+        "role": "Cello",
+        "type": "Person"
+      },
+      {
+        "name": "Kathryn Stott",
+        "role": "Piano",
+        "type": "Person"
+      }
+    ],
+    "album": "\"The Swan\" & Other Saint-Saëns Masterpieces",
+    "title_spotify": "The Carnival of the Animals, R. 125: XIII. The Swan (Arr. for Cello and Piano)",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b273fe1daedcef433b516fa1e555",
+    "status": "NO_WORK",
+    "first_release_date": "2015-09-18",
+    "first_release_year": "2015"
+  },
+  {
+    "id": "3Dgmyz32dxvtxvUTPS0CUI",
+    "classical": true,
+    "composer": "Antonio Vivaldi",
+    "work": "Vivaldi Variation (Arr. for Piano from Concerto for Strings in G Minor, RV 156 by F. Christl)",
+    "movement": "",
+    "performers": [
+      {
+        "name": "Florian Christl",
+        "role": "",
+        "type": "Person"
+      }
+    ],
+    "album": "Vivaldi Variation (Arr. for Piano from Concerto for Strings in G Minor, RV 156 by F. Christl)",
+    "title_spotify": "Vivaldi Variation (Arr. for Piano from Concerto for Strings in G Minor, RV 156 by F. Christl)",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b273fd05513d625525fcf34d8eb1",
+    "status": "NO_WORK",
+    "first_release_date": "2019",
+    "first_release_year": "2019"
+  },
+  {
+    "id": "5OPT7l9b5SMwfTQgLPoNl7",
+    "classical": true,
+    "composer": "Erik Satie",
+    "work": "Gymnopédie No. 1",
+    "movement": "",
+    "performers": [
+      {
+        "name": "Philippe Entremont",
+        "role": "Cond.",
+        "type": "Person"
+      }
+    ],
+    "album": "Entremont Plays Satie",
+    "title_spotify": "Gymnopédie No. 1",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b27331c09ac3527f6f2f160bdc58",
+    "status": "NO_WORK",
+    "first_release_date": "2019-01-25",
+    "first_release_year": "2019"
+  },
+  {
+    "id": "24cgBBhZD1cWekUqaYuqTB",
+    "classical": true,
+    "composer": "Christoph Willibald Gluck",
+    "work": "Orfeo ed Euridice, Wq. 30: Dance of the Blessed Spirits \"Melody\" (Arr. Sgambati for Piano)",
+    "movement": "",
+    "performers": [
+      {
+        "name": "Yuja Wang",
+        "role": "Piano",
+        "type": "Person"
+      }
+    ],
+    "album": "Fantasia",
+    "title_spotify": "Orfeo ed Euridice, Wq. 30: Dance of the Blessed Spirits \"Melody\" (Arr. Sgambati for Piano)",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b2732aa849218866ec7455d5e647",
+    "status": "CLASSICAL",
+    "first_release_date": "2012-03-01",
+    "first_release_year": "2012"
+  },
+  {
+    "id": "2oLjhx7w8Hyd3gry9cCXr7",
+    "classical": true,
+    "composer": "Johannes Brahms",
+    "work": "21 Hungarian Dances, WoO 1",
+    "movement": "Hungarian Dance No. 5 in G Minor. Allegro (Orch. Schmeling)",
+    "performers": [
+      {
+        "name": "Wiener Philharmoniker",
+        "role": "",
+        "type": "Orchestra"
+      },
+      {
+        "name": "Claudio Abbado",
+        "role": "Cond.",
+        "type": "Person"
+      }
+    ],
+    "album": "Brahms: 21 Hungarian Dances",
+    "title_spotify": "21 Hungarian Dances, WoO 1: Hungarian Dance No. 5 in G Minor. Allegro (Orch. Schmeling)",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b273d2ca535155e882ce82de1feb",
+    "status": "CLASSICAL",
+    "first_release_date": "1982",
+    "first_release_year": "1982"
+  },
+  {
+    "id": "6QOxk7dSbNniwUgDh1zmBH",
+    "classical": true,
+    "composer": "George Frideric Handel",
+    "work": "Handel / Orch. Hale: Keyboard Suite No. 4 in D Minor, HWV 437",
+    "movement": "III. Sarabande",
+    "performers": [
+      {
+        "name": "Alexander Briger",
+        "role": "Cond.",
+        "type": "Person"
+      }
+    ],
+    "album": "Academy of St Martin in the Fields - Handel",
+    "title_spotify": "Handel / Orch. Hale: Keyboard Suite No. 4 in D Minor, HWV 437: III. Sarabande",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b273f6891aeab33e8ebcc4d62286",
+    "status": "CLASSICAL",
+    "first_release_date": "2002-04-29",
+    "first_release_year": "2002"
+  },
+  {
+    "id": "1lOVilzLQuYY2fnFrQ76DK",
+    "classical": true,
+    "composer": "Frédéric Chopin",
+    "work": "Waltz in C-sharp minor, Op. 64 No. 2",
+    "movement": "",
+    "performers": [
+      {
+        "name": "Khatia Buniatishvili",
+        "role": "Piano",
+        "type": "Person"
+      }
+    ],
+    "album": "Chopin: Works for Piano",
+    "title_spotify": "Waltz in C-sharp minor, Op. 64 No. 2",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b273c02214898cf8814d85ac87ad",
+    "status": "NO_WORK",
+    "first_release_date": "2019-01-25",
+    "first_release_year": "2019"
+  },
+  {
+    "id": "1Uqi7EGfUE63UQ1USYv9IG",
+    "classical": true,
+    "composer": "Dmitri Shostakovich",
+    "work": "Shostakovich / Arr. Atovmyan",
+    "movement": "The Gadfly, Suite Op. 97a: No. 8 Romance",
+    "performers": [
+      {
+        "name": "Tasmin Little",
+        "role": "Violin",
+        "type": "Person"
+      },
+      {
+        "name": "Piers Lane",
+        "role": "Piano",
+        "type": "Person"
+      }
+    ],
+    "album": "50 Best Classics",
+    "title_spotify": "Shostakovich / Arr. Atovmyan: The Gadfly, Suite Op. 97a: No. 8 Romance",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b2735bd6e7ec67c997a2accab141",
+    "status": "CLASSICAL",
+    "first_release_date": "1992",
+    "first_release_year": "1992"
+  },
+  {
+    "id": "1TZ9VIzwoQcSBQbJlbHOrH",
+    "classical": true,
+    "composer": "Modest Mussorgsky",
+    "work": "Pictures at an Exhibition (Orch. Ravel)",
+    "movement": "IV. Bydlo",
+    "performers": [
+      {
+        "name": "Wiener Philharmoniker",
+        "role": "",
+        "type": "Orchestra"
+      },
+      {
+        "name": "Gustavo Dudamel",
+        "role": "Cond.",
+        "type": "Person"
+      }
+    ],
+    "album": "Mussorgsky: Pictures At An Exhibition",
+    "title_spotify": "Pictures at an Exhibition (Orch. Ravel): IV. Bydlo",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b273a271c648dc170b9173c1cc67",
+    "status": "CLASSICAL",
+    "first_release_date": "2016-12-02",
+    "first_release_year": "2016"
+  },
+  {
+    "id": "25YnDL0y62aSk7wc35WBGJ",
+    "classical": true,
+    "composer": "Gustav Mahler",
+    "work": "Symphony No. 2 In C Minor - \"Resurrection\" / 1st Movement - Allegro maestoso (Totenfeier)",
+    "movement": "Allegro maestoso",
+    "performers": [
+      {
+        "name": "Wiener Philharmoniker",
+        "role": "",
+        "type": ""
+      },
+      {
+        "name": "Gilbert Kaplan",
+        "role": "",
+        "type": ""
+      }
+    ],
+    "album": "Mahler: Symphony No. 2",
+    "title_spotify": "Symphony No. 2 In C Minor - \"Resurrection\" / 1st Movement - Allegro maestoso (Totenfeier): Allegro maestoso",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b273b1b49e4dd060513b6c72ed24",
+    "status": "ISRC_MISS",
+    "first_release_date": "",
+    "first_release_year": ""
+  },
+  {
+    "id": "0Seumg0NAq7KS1r0Yso52H",
+    "classical": true,
+    "composer": "Erik Satie",
+    "work": "Satie / Orch. Ducros: Gymnopédie No. 1",
+    "movement": "",
+    "performers": [
+      {
+        "name": "Gautier Capuçon",
+        "role": "Cello",
+        "type": "Person"
+      },
+      {
+        "name": "Orchestre de chambre de Paris",
+        "role": "",
+        "type": "Orchestra"
+      },
+      {
+        "name": "Adrien Perruchon",
+        "role": "Cond.",
+        "type": "Person"
+      }
+    ],
+    "album": "Satie: Masterpieces",
+    "title_spotify": "Satie / Orch. Ducros: Gymnopédie No. 1",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b273b979534789eb6cdf38b9a1cf",
+    "status": "CLASSICAL",
+    "first_release_date": "2020-11-06",
+    "first_release_year": "2020"
+  },
+  {
+    "id": "0JAz38cFdhvoLznPLrNN7X",
+    "classical": true,
+    "composer": "Johannes Brahms",
+    "work": "21 Hungarian Dances, WoO 1",
+    "movement": "Hungarian Dance No. 4 in F Minor. Poco sostenuto (Orch. Juon in F-Sharp Minor)",
+    "performers": [
+      {
+        "name": "Wiener Philharmoniker",
+        "role": "",
+        "type": "Orchestra"
+      },
+      {
+        "name": "Claudio Abbado",
+        "role": "Cond.",
+        "type": "Person"
+      }
+    ],
+    "album": "Brahms: 21 Hungarian Dances",
+    "title_spotify": "21 Hungarian Dances, WoO 1: Hungarian Dance No. 4 in F Minor. Poco sostenuto (Orch. Juon in F-Sharp Minor)",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b273d2ca535155e882ce82de1feb",
+    "status": "CLASSICAL",
+    "first_release_date": "1982",
+    "first_release_year": "1982"
+  },
+  {
+    "id": "0H3JiNc4CGnFVwMqWvACmO",
+    "classical": true,
+    "composer": "Sergei Rachmaninoff",
+    "work": "Vocalise, Op. 34, No. 14",
+    "movement": "",
+    "performers": [
+      {
+        "name": "Berliner Philharmoniker",
+        "role": "",
+        "type": "Orchestra"
+      },
+      {
+        "name": "Lorin Maazel",
+        "role": "Cond.",
+        "type": "Person"
+      }
+    ],
+    "album": "Rachmaninoff: Symphonic Dances, Op.45; Intermezzo \"Aleko\"; Vocalise, Op.34",
+    "title_spotify": "Vocalise, Op. 34, No. 14",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b27393221cdb550163999dd3529d",
+    "status": "CLASSICAL",
+    "first_release_date": "1984-01-30",
+    "first_release_year": "1984"
+  },
+  {
+    "id": "1Xf4sNtMKc1xiUhuIPAUg2",
+    "classical": true,
+    "composer": "Frédéric Chopin",
+    "work": "Prélude in E minor, Op. 28, No. 4",
+    "movement": "",
+    "performers": [
+      {
+        "name": "Janusz Olejniczak",
+        "role": "",
+        "type": ""
+      }
+    ],
+    "album": "The Pianist (Original Motion Picture Soundtrack)",
+    "title_spotify": "Prélude in E minor, Op. 28, No. 4",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b27334ff9e62ad26a736cab0bf09",
+    "status": "ISRC_MISS",
+    "first_release_date": "",
+    "first_release_year": ""
+  },
+  {
+    "id": "7c8EKQLv5ld1uWm1BdGqds",
+    "classical": true,
+    "composer": "Dmitri Shostakovich",
+    "work": "Shostakovich / Arr. Atovmyan",
+    "movement": "Suite from the Gadfly, Op. 97a: VIII. Romance",
+    "performers": [
+      {
+        "name": "Tasmin Little",
+        "role": "Violin",
+        "type": "Person"
+      },
+      {
+        "name": "Piers Lane",
+        "role": "Piano",
+        "type": "Person"
+      }
+    ],
+    "album": "Virtuoso Violin",
+    "title_spotify": "Shostakovich / Arr. Atovmyan: Suite from the Gadfly, Op. 97a: VIII. Romance",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b27316904029c31ca50916e3116a",
+    "status": "CLASSICAL",
+    "first_release_date": "1992",
+    "first_release_year": "1992"
+  },
+  {
+    "id": "17i5jLpzndlQhbS4SrTd0B",
+    "classical": true,
+    "composer": "Johann Sebastian Bach",
+    "work": "Cello Suite No. 1 in G Major, BWV 1007",
+    "movement": "I. Prélude",
+    "performers": [
+      {
+        "name": "Yo-Yo Ma",
+        "role": "",
+        "type": ""
+      }
+    ],
+    "album": "Bach: Cello Suites Nos. 1, 5 & 6",
+    "title_spotify": "Cello Suite No. 1 in G Major, BWV 1007: I. Prélude",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b273cbb64bd416bb225456100bbc",
+    "status": "CLASSICAL",
+    "first_release_date": "1984",
+    "first_release_year": "1984"
+  },
+  {
+    "id": "6efNSDVWddlRxRQrEOVwNZ",
+    "classical": true,
+    "composer": "Edvard Grieg",
+    "work": "Peer Gynt Suite No. 1, Op. 46",
+    "movement": "II. The Death of Åse - Recorded 1982",
+    "performers": [
+      {
+        "name": "Berliner Philharmoniker",
+        "role": "",
+        "type": "Orchestra"
+      },
+      {
+        "name": "Herbert von Karajan",
+        "role": "Cond.",
+        "type": "Person"
+      }
+    ],
+    "album": "Grieg: Peer Gynt Suites / Sibelius: Valse triste",
+    "title_spotify": "Peer Gynt Suite No. 1, Op. 46: II. The Death of Åse - Recorded 1982",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b2739df8b31447375af1baa0c05f",
+    "status": "CLASSICAL",
+    "first_release_date": "1983-05-03",
+    "first_release_year": "1983"
+  },
+  {
+    "id": "1mVW84IVH1adjsp4jiU4Cf",
+    "classical": true,
+    "composer": "Antonín Dvořák",
+    "work": "8 Slavonic Dances, Op. 72, B. 147",
+    "movement": "2. Dumka. Allegretto grazioso",
+    "performers": [
+      {
+        "name": "Czech Philharmonic",
+        "role": "",
+        "type": ""
+      },
+      {
+        "name": "Jiří Bělohlávek",
+        "role": "",
+        "type": ""
+      }
+    ],
+    "album": "Dvorák: Slavonic Dances Opp. 46 & 72",
+    "title_spotify": "8 Slavonic Dances, Op. 72, B. 147: 2. Dumka. Allegretto grazioso",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b273b4eb21b985aed356811fca6c",
+    "status": "ISRC_MISS",
+    "first_release_date": "",
+    "first_release_year": ""
+  },
+  {
+    "id": "6fA0ItjPMuHOlmkeVpwU2w",
+    "classical": true,
+    "composer": "",
+    "work": "Gnossienne No. 1",
+    "movement": "",
+    "performers": [
+      {
+        "name": "Alena Cherny",
+        "role": "",
+        "type": ""
+      }
+    ],
+    "album": "For You - The World's Best Loved Classical Piano Pieces",
+    "title_spotify": "Gnossienne No. 1",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b2736fa32f9e6280f9792cbbf832",
+    "status": "ISRC_MISS",
+    "first_release_date": "",
+    "first_release_year": ""
+  },
+  {
+    "id": "3HrKJYaoMzKTZT3FMAcSp5",
+    "classical": true,
+    "composer": "Sergei Rachmaninoff",
+    "work": "No. 5 in G Minor: Alla marcia",
+    "movement": "",
+    "performers": [
+      {
+        "name": "Eldar Nebolsin",
+        "role": "Piano",
+        "type": "Person"
+      }
+    ],
+    "album": "Rachmaninov: Preludes for Piano (Complete)",
+    "title_spotify": "No. 5 in G Minor: Alla marcia",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b27323191b6629e021e6ba33e776",
+    "status": "CLASSICAL",
+    "first_release_date": "2007-05",
+    "first_release_year": "2007"
+  },
+  {
+    "id": "4q8f3Ls32PcXE8Ks4V1ufx",
+    "classical": true,
+    "composer": "Frédéric Chopin",
+    "work": "Chopin: 24 Preludes, Op. 28",
+    "movement": "No. 15 in D-Flat Major \"Raindrop\"",
+    "performers": [
+      {
+        "name": "Nikolai Lugansky",
+        "role": "Piano",
+        "type": "Person"
+      }
+    ],
+    "album": "Chopin : Preludes, Ballades Nos 3 & 4, Nocturnes",
+    "title_spotify": "Chopin: 24 Preludes, Op. 28: No. 15 in D-Flat Major \"Raindrop\"",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b2733e5a62d8763845265989dde1",
+    "status": "CLASSICAL",
+    "first_release_date": "2010-11-16",
+    "first_release_year": "2010"
+  },
+  {
+    "id": "4cf3rMJRAhxKln3qN5Gb8E",
+    "classical": true,
+    "composer": "Dmitri Shostakovich",
+    "work": "String Quartet No. 8 in C Minor, Op. 110",
+    "movement": "II. Allegro molto - Live",
+    "performers": [
+      {
+        "name": "Emerson String Quartet",
+        "role": "",
+        "type": "Group"
+      }
+    ],
+    "album": "Shostakovich: The String Quartets",
+    "title_spotify": "String Quartet No. 8 in C Minor, Op. 110: II. Allegro molto - Live",
+    "art_url": "https://i.scdn.co/image/ab67616d0000b273dce75ff93bf35e5476fd2064",
+    "status": "CLASSICAL",
+    "first_release_date": "1999-11-09",
+    "first_release_year": "1999"
+  }
+]
