@@ -23,6 +23,7 @@ import {
 } from './modes/debugDelight.js';
 import { renderToPng, type ClockZone } from './render.js';
 import { VerseOverflowError } from './zoneApply.js';
+import { enrichFromSonos } from './enrichment/index.js';
 
 /** Input names that `POST /inputs/:name` will accept. Matches the canonical
  *  set every face mode can consume; rejects everything else with 404 so the
@@ -307,34 +308,6 @@ function parseDelightTestQuery(c: { req: { query: (k: string) => string | undefi
   if (c.req.query('lh') != null) out.lineHeight = num('lh', 56);
   return out;
 }
-
-// Scratch preview for the proposed classical now-playing layout. Static HTML
-// at templates/now-playing/_mock-classical.html — no data wiring, no spec
-// commitment. Remove with the file once the layout question is resolved.
-app.get('/debug/now-playing-classical-mock', async () => {
-  const full = path.join(ROOT, 'templates/now-playing/_mock-classical.html');
-  try {
-    const data = await fs.readFile(full, 'utf-8');
-    return new Response(data, {
-      status: 200,
-      headers: { 'content-type': 'text/html; charset=utf-8' },
-    });
-  } catch {
-    return new Response('mock not found', { status: 404 });
-  }
-});
-app.get('/debug/now-playing-classical-mock/tracks.json', async () => {
-  const full = path.join(ROOT, 'templates/now-playing/_mock-tracks.json');
-  try {
-    const data = await fs.readFile(full, 'utf-8');
-    return new Response(data, {
-      status: 200,
-      headers: { 'content-type': 'application/json; charset=utf-8' },
-    });
-  } catch {
-    return new Response('not found', { status: 404 });
-  }
-});
 
 app.get('/debug/delight-test/preview', async (c) => {
   try {
@@ -1015,10 +988,32 @@ app.post('/inputs/:name', async (c) => {
     return c.text(`body exceeds ${MAX_INPUT_BYTES} bytes\n`, 413);
   }
   const text = Buffer.from(raw).toString('utf8');
+  let parsed: Record<string, unknown>;
   try {
-    JSON.parse(text);
+    parsed = JSON.parse(text) as Record<string, unknown>;
   } catch {
     return c.text('body is not valid JSON\n', 400);
+  }
+
+  // Sonos enrichment: when the publisher sends a `media_content_id`, run the
+  // Spotify+MusicBrainz enrichment pipeline before persisting so that the
+  // next render sees composer/work/movement/performers/year. Failures are
+  // logged but not surfaced; the unenriched payload still produces a valid
+  // (flat-layout) Now-Playing render.
+  let bodyToWrite = text;
+  if (name === 'sonos') {
+    try {
+      const enriched = await enrichFromSonos(parsed as { media_content_id?: string | null });
+      if (enriched) {
+        // Spread enrichment over the publisher's payload. The enrichment
+        // module sets `art_url` only when it has a Spotify CDN URL; when
+        // omitted the publisher's existing `art_url` (HA proxy URL) wins.
+        const merged: Record<string, unknown> = { ...parsed, ...enriched };
+        bodyToWrite = JSON.stringify(merged);
+      }
+    } catch (err) {
+      log.warn({ err }, 'sonos enrichment failed; persisting unenriched payload');
+    }
   }
 
   const dir = inputsDir();
@@ -1026,7 +1021,7 @@ app.post('/inputs/:name', async (c) => {
   const finalPath = path.join(dir, `${name}.json`);
   const tmpPath = path.join(dir, `.${name}.${randomUUID()}.tmp`);
   try {
-    await fs.writeFile(tmpPath, text);
+    await fs.writeFile(tmpPath, bodyToWrite);
     await fs.rename(tmpPath, finalPath);
   } catch (err) {
     await fs.rm(tmpPath, { force: true }).catch(() => {});

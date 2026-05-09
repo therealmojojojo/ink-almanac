@@ -3,5 +3,14 @@
   "title": "Spiegel im Spiegel",
   "artist": "Arvo Pärt",
   "album": "Alina",
-  "source": "spotify"
+  "source": "spotify",
+  "classical": true,
+  "composer": "Arvo Pärt",
+  "work": "Spiegel im Spiegel",
+  "movement": "",
+  "performers": [
+    { "name": "Vladimir Spivakov", "role": "Violin" },
+    { "name": "Sergej Bezrodny", "role": "Piano" }
+  ],
+  "first_release_year": "1999"
 }

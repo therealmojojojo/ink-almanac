@@ -93,6 +93,22 @@ export const sonosInput = z.object({
    *  now_playing_sources.yaml mapping so new sources can be added without a
    *  renderer deploy. */
   source_indicator: z.string().optional(),
+  /** Sonos `media_content_id` (e.g. `spotify:track:<id>`, the URL-encoded
+   *  `x-sonos-spotify:spotify%3atrack%3a<id>?...` variant, or empty). The
+   *  renderer's enrichment pipeline parses a Spotify track id from this
+   *  when present; absent for non-Spotify sources. */
+  media_content_id: z.string().optional(),
+  /* === Enriched fields, written by the renderer's enrichment pipeline.
+   * All optional. The publisher (HA) does not set these. When absent the
+   * renderer falls back to today's flat title/artist/album rendering. */
+  classical: z.boolean().optional(),
+  composer: z.string().optional(),
+  work: z.string().optional(),
+  movement: z.string().optional(),
+  performers: z
+    .array(z.object({ name: z.string(), role: z.string() }))
+    .optional(),
+  first_release_year: z.string().optional(),
 });
 
 export const newsInput = z.object({

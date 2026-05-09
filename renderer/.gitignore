@@ -6,3 +6,4 @@ out/
 test/__golden__/*.diff.png
 test/__actual__/
 .playwright-cache/
+cache/

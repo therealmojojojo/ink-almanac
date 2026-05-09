@@ -215,7 +215,8 @@
             "artist": {{ (state_attr('media_player.kitchen_sonos','media_artist') or '') | to_json }},
             "album": {{ (state_attr('media_player.kitchen_sonos','media_album_name') or '') | to_json }},
             "source_indicator": {{ source_indicator | trim | to_json }},
-            "art_url": {{ (art_url | trim) | to_json }}
+            "art_url": {{ (art_url | trim) | to_json }},
+            "media_content_id": {{ (state_attr('media_player.kitchen_sonos','media_content_id') or '') | to_json }}
           }
     - service: rest_command.inkplate_publish_sonos
       data:

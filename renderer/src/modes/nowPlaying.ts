@@ -1,6 +1,6 @@
 import type { DitherMask } from '../image/dither.js';
+import { workBucket } from '../enrichment/classify.js';
 import { batteryIndicator } from '../templateMacros.js';
-import { applyZone } from '../zoneApply.js';
 import { escapeHtml, htmlShell } from './shell.js';
 import type { NowPlayingInput } from './schema.js';
 
@@ -13,17 +13,41 @@ const SOURCE_LABELS: Record<string, string> = {
   other: 'OTHER',
 };
 
-/** Pick a title size bucket that keeps longer track names readable without
- * cropping. Thresholds are tuned against the right column's available width
- * (~324 u after padding) and Fraunces 500's metrics. See now-playing.css
- * for the corresponding font-size values. */
-function titleSizeBucket(title: string): 'l' | 'm' | 's' | 'xs' {
-  // Use extended-grapheme length (same metric the zone budget uses).
-  const n = [...title].length;
-  if (n <= 14) return 'l';
-  if (n <= 22) return 'm';
-  if (n <= 32) return 's';
-  return 'xs';
+interface Slots {
+  topLabel: string;          // composer (classical) | artist (non-classical)
+  work: string;              // work title (classical) | track title (non-classical)
+  movement: string;          // italic subtitle, classical only
+  /** Bottom strip rows. For classical: performers + an optional year row.
+   *  For non-classical: a single album-and-year row. */
+  rows: { role: string; name: string; isYear?: boolean }[];
+}
+
+/** Decide which slots get which fields based on the enrichment flag. The
+ *  fallback path (classical undefined) reuses the non-classical mapping with
+ *  the publisher's flat `title/artist/album` fields, so the existing pop
+ *  pipeline keeps working when enrichment is unavailable. */
+function pickSlots(s: NowPlayingInput['sonos']): Slots {
+  const year = s.first_release_year ?? '';
+  if (s.classical) {
+    return {
+      topLabel: s.composer ?? '',
+      work: s.work ?? s.title ?? '',
+      movement: s.movement ?? '',
+      rows: [
+        ...(s.performers ?? []).map((p) => ({ role: p.role, name: p.name })),
+        ...(year ? [{ role: '', name: year, isYear: true }] : []),
+      ],
+    };
+  }
+  // Non-classical: artist top, track in the work slot, album+year bottom.
+  const album = s.album ?? '';
+  const albumLine = album && year ? `${album} · ${year}` : album || year;
+  return {
+    topLabel: (s.artist ?? '').toUpperCase(),
+    work: s.title ?? '',
+    movement: '',
+    rows: albumLine ? [{ role: '', name: albumLine }] : [],
+  };
 }
 
 export function buildHtml(input: NowPlayingInput): string {
@@ -31,21 +55,24 @@ export function buildHtml(input: NowPlayingInput): string {
   const sourceLabel =
     s.source_indicator ??
     (s.source ? `SONOS · ${SOURCE_LABELS[s.source] ?? s.source.toUpperCase()}` : 'SONOS');
-  const title = applyZone('np_title', s.title ?? '—');
-  const artist = applyZone('np_artist', (s.artist ?? '—').toUpperCase());
-  const album = applyZone('np_album', s.album ?? '');
-  const titleSize = titleSizeBucket(title);
+  const slots = pickSlots(s);
+  const wb = workBucket(slots.work);
 
-  // Prefer `art_url` (HTTP fetch at render time by Chromium) over `art_path`
-  // (local file from the legacy SSH-based publisher). Either can be absent,
-  // and the upstream chain (HA media_player_proxy → Sonos getaa) intermittently
-  // returns errors / empty bytes for some Spotify tracks. The `<img>` tag uses
-  // the local fallback both as the initial src when artSrc is empty and via
-  // an onerror swap when art_url fails to load — so the panel always shows
-  // *something* aesthetic in the art zone instead of a broken-image icon.
+  // Album art: prefer `art_url` (set by the enrichment pipeline to Spotify's
+  // CDN URL when reachable, or by HA's publisher to a /ha-proxy URL) over the
+  // legacy `art_path`. Either can be absent; the fallback handles a broken
+  // image with a graceful onerror swap.
   const artSrc = s.art_url ?? s.art_path ?? '';
   const fallbackArtSrc = '/static/img/now-playing/fallback.jpg';
   const imgSrc = artSrc || fallbackArtSrc;
+
+  const stripRows = slots.rows
+    .map((r) => {
+      const cls = r.isYear ? 'row year-row' : 'row';
+      return `<div class="${cls}"><span class="role">${escapeHtml(r.role)}</span><span class="name">${escapeHtml(r.name)}</span></div>`;
+    })
+    .join('');
+
   const body = `
 <div class="face np-root">
   ${batteryIndicator(input.device?.battery?.percentage)}
@@ -53,22 +80,13 @@ export function buildHtml(input: NowPlayingInput): string {
     <img src="${escapeHtml(imgSrc)}" alt="" onerror="this.onerror=null;this.src='${fallbackArtSrc}'">
   </section>
   <section class="np-right">
-    <div class="source">${escapeHtml(applyZone('np_source', sourceLabel))}</div>
-    <div class="text">
-      <div class="title" data-size="${titleSize}">${escapeHtml(title)}</div>
-      <div class="artist">${escapeHtml(artist)}</div>
-      ${album ? `<div class="album">${escapeHtml(album)}</div>` : ''}
-    </div>
-    ${
-      s.next_track
-        ? `<div class="next">
-  <div class="label">Next</div>
-  <div class="track">${escapeHtml(applyZone('np_next', s.next_track))}</div>
-</div>`
-        : ''
-    }
+    <div class="source">${escapeHtml(sourceLabel)}</div>
+    <div class="label-top">${escapeHtml(slots.topLabel)}</div>
+    <div class="work" data-size="${wb}">${escapeHtml(slots.work)}</div>
+    <div class="movement">${escapeHtml(slots.movement)}</div>
+    <div class="strip">${stripRows}</div>
+    <div class="np-clock">${escapeHtml(input.clock.time)}</div>
   </section>
-  <div class="np-clock">${escapeHtml(input.clock.time)}</div>
 </div>`;
 
   return htmlShell({
