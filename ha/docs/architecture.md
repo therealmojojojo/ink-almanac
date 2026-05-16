@@ -29,25 +29,38 @@ and the renderer are otherwise stateless.
 │   └─ astro.yaml             sunrise/sunset/moon/astro_event      │
 │                                                                  │
 │  automations/                                                     │
-│   ├─ schedule.yaml          per-tier face alternation tick      │
-│   │   (cadence reference: firmware/docs/wake-protocol.md)        │
-│   (no triplet automation — generated all-at-once, on demand)     │
-│   ├─ poetic_weather.yaml    Hourly 21:00–07:00 LLM line          │
-│   ├─ low_battery.yaml       <20% → mobile-app notify             │
-│   ├─ sleep_strategy.yaml    republish retained helper bundle     │
-│   └─ now_playing_override.yaml  Sonos → Now-Playing face         │
+│   ├─ schedule.yaml          per-tier 3:1 main:weather alternation │
+│   ├─ gesture_override.yaml  tap handler (flip / first-wake / peek)│
+│   ├─ now_playing_override.yaml  Sonos → Now-Playing face          │
+│   ├─ publish_active_override.yaml  mirror override to MQTT        │
+│   ├─ publish_wake_schedule.yaml  validate + push wake_schedule    │
+│   ├─ publish_inputs.yaml    clock / weather / climate / sonos /   │
+│   │                         device REST publishers                │
+│   ├─ publish_today_pairing.yaml  06:00 SSH → publish_today.py     │
+│   ├─ sleep_strategy.yaml    republish retained helper bundle      │
+│   ├─ kitchen_motion_{wake,battery}.yaml  Zigbee PIR → wake / batt │
+│   ├─ epd_pwrgood.yaml       low-pwrgood alert from device JSON    │
+│   ├─ astro_event.yaml       precompute tonight's astro line       │
+│   ├─ poetic_weather.yaml    Hourly LLM line (21:00–07:00)         │
+│   ├─ low_battery.yaml       <20% → mobile-app notify              │
+│   └─ sonos_remote.yaml      Z2M button → media controls           │
 │                                                                  │
 │  scripts/                                                         │
-│   ├─ generate_curated_news.sh      Kottke+AO+Aeon → Claude       │
-│   ├─ fetch_rss.sh / fetch_json.sh  feed loaders                  │
-│   ├─ generate_news_sensors.py      pre-rsync regen               │
-│   ├─ generate_triplets.sh          SSH → Mac host (one-shot)     │
-│   └─ generate_poetic_weather_line.sh  Claude / Ollama call       │
+│   ├─ publish_today_pairing.sh      SSH → publish_today.py (06:00) │
+│   ├─ generate_triplets.sh          SSH → triplet build (one-shot) │
+│   ├─ fetch_sonos_art.sh            (legacy; live path is REST)    │
+│   ├─ purge_stale_sonos_art.sh      daily cache prune              │
+│   ├─ generate_astro_event.{py,sh}  tonight's astronomy line       │
+│   ├─ generate_poetic_weather_line.sh  Claude / Ollama call        │
+│   ├─ validate_wake_schedule.py     used by publish_wake_schedule  │
+│   └─ generate_news_sensors.py      legacy RSS sensors (optional)  │
 │                                                                  │
 │  config/                                                          │
-│   ├─ news_sources.yaml                                            │
+│   ├─ wake_schedule.yaml     operator-editable per-tier cadences   │
 │   ├─ poetic_weather_line.yaml                                     │
-│   └─ night_fallback_lines.yaml                                    │
+│   ├─ night_fallback_lines.yaml                                    │
+│   ├─ now_playing_sources.yaml                                     │
+│   └─ news_sources.yaml      (legacy RSS list)                     │
 │                                                                  │
 │  state/                                                           │
 │   └─ poetic_weather.txt     latest line, read by renderer         │
@@ -69,11 +82,11 @@ and the renderer are otherwise stateless.
 
 | Face | HA produces | Renderer consumes |
 |---|---|---|
-| Summary | temp/cond/H-L/rain × 2 loc, HN top-5, news_\* top-5, sunrise/sunset, kitchen T/H, device battery | `/display/summary.png` |
+| Summary | temp/cond/H-L/rain × 2 loc, sunrise/sunset, kitchen T/H, device battery; smart-pill body is pre-baked into the triplet sidecar | `/display/summary.png` |
 | Weather | per-location weather fields, astro (sunrise/sunset/moon/daylight/next-full, astro_event_tonight) | `/display/weather.png` |
 | Gallery | (no live HA inputs; reads pairings/ files on the host) | `/display/gallery.png` |
-| Night | poetic_weather.txt (from ha/state/ or HTTP) | `/display/night.png` |
-| Now-Playing | media_player.kitchen_sonos attributes | `/display/now-playing.png` |
+| Night | `sensor.inkplate_poetic_weather_line` (LLM-or-fallback) | `/display/night.png` |
+| Now-Playing | media_player.kitchen_sonos attributes (incl. `media_content_id`); renderer enriches via Spotify+MusicBrainz for the classical layout | `/display/now-playing.png` |
 
 ## Input publisher catalog
 
@@ -86,11 +99,10 @@ Gated by `input_boolean.inkplate_publisher_enabled` (master kill-switch).
 | `clock` | time-pattern every 1 minute + HA start | `now()` |
 | `weather` | state change on any weather template sensor; hourly safety; HA start | weather + astro sensors + `sensor.inkplate_poetic_weather_line` |
 | `climate` | state change on kitchen temp/humidity; HA start (gated on sensor availability) | `sensor.kitchen_temperature` / `_humidity` |
-| `news` | state change on `sensor.inkplate_curated_news`; HA start | first 3 items of the attribute list |
-| `device` | MQTT trigger on retained `inkplate/state/device`; HA start | `sensor.inkplate_device_battery` + voltage + build |
-| `sonos` | track change, via SSH + `renderer/scripts/fetch_sonos_art.sh` | Sonos entity attributes + fetched album art |
-| `pairing` (pool) | One-shot, operator-fired via `shell_command.generate_triplets` (SSH → `python3 pairing/corpus_build_triplets_v2.py --apply`) | `corpus/_triplets/*.yaml` on the Mac (rebuilds the rotation pool) |
-| `pairing` (today) | Daily 06:00 via `shell_command.publish_today_pairing` (SSH → `python3 pairing/publish_today.py`) | Picks today's triplet by sequence rotation; writes `renderer/inputs/{pairing,news}.json` + companion/gallery/nocturne binaries. Also reads `smart_pill.body` from the summary item's YAML and stages it as `news.json` (the runtime smart-pill source). Rotation anchor in host-local `pairing/_state/triplet_epoch.json`. |
+| `device` | MQTT trigger on retained `inkplate/state/device`; HA start | battery percentage + voltage + build + wifi_rssi + epd_pwrgood |
+| `sonos` | state / `media_content_id` change on `media_player.kitchen_sonos`; HA start | Sonos entity attributes (title, artist, album, `media_content_id`, `source_indicator`, `art_url` via `/ha-proxy` same-origin route). The renderer enriches via Spotify+MusicBrainz when a `media_content_id` is present. |
+| `pairing` (pool) | One-shot, operator-fired via `shell_command.generate_triplets` (SSH → triplet builder) | `corpus/_triplets/*.yaml` on the Mac (rebuilds the rotation pool) |
+| `pairing` (today) | Daily 06:00 via `shell_command.publish_today_pairing` (SSH → `python3 pairing/publish_today.py`) | Picks today's triplet by sequence rotation; writes `renderer/inputs/{pairing,news}.json` + companion/gallery/nocturne binaries. The smart-pill body is read from the summary item's YAML sidecar (`summary.smart_pill.body`) and staged as `news.json` — deterministic per-day, no runtime LLM regen. |
 
 Failure handling: HA's `rest_command` does not retry. A connection-refused
 or 5xx is logged at `warning` and the next natural trigger re-publishes.
@@ -109,7 +121,10 @@ bare token from `RENDERER_INPUT_TOKEN`.
 | `inkplate/command/gesture_response` | HA → device |   | gesture handlers | firmware (IMU grace window only) |
 | `inkplate/command/wake` | HA → device |   | every transition | firmware (MQTT wake) |
 | `inkplate/command/sleep_strategy` | HA → device | ✓ | sleep_strategy automation | firmware (on wake) |
-| `inkplate/state/device` | device → HA | ✓ | firmware | low_battery, mqtt sensors |
+| `inkplate/command/schedule` | HA → device | ✓ | publish_wake_schedule (validated from `ha/config/wake_schedule.yaml`) | firmware (on wake) |
+| `inkplate/state/device` | device → HA | ✓ | firmware | low_battery, epd_pwrgood, mqtt sensors |
+| `inkplate/state/active_override` | HA → broker | ✓ | publish_active_override (mirrors `input_text`) | firmware (per-minute NowPlaying Poll gate) |
+| `inkplate/state/now_playing_track` | HA → broker | ✓ | now_playing_override on track change | firmware (NowPlaying Poll mode-change detection) |
 | `inkplate/state/gesture` | device → HA |   | firmware | gesture_override (HA-side tap handler) |
 
 `gesture_response` is the event-channel counterpart of the state-channel
@@ -123,38 +138,28 @@ wakes keep rendering it until the schedule alternation overrides.
 
 ## Activation model and deactivation precedence
 
-Two separate rules (see `openspec/changes/revise-tap-override-semantics`).
+Two separate rules (origin: `openspec/changes/archive/2026-04-27-revise-tap-override-semantics`; later refined by `2026-05-09-fix-tap-during-now-playing-first-wake` and the per-tier alternation engine).
 
-**Activation** — explicit beats ambient:
+**Activation** — explicit beats ambient. Both single and double tap drive the same handlers (the wire-tied frame mount can latch either depending on tap force; distinguishing them would force the operator to calibrate, so HA treats both as the same intent):
 
-- Single tap activates `weather_peek` unconditionally outside quiet hours,
-  including during `now_playing`. A 60 s auto-revert returns to whatever was
-  active before (Sonos gets its face back if still playing).
-- Double tap activates `summary_gallery_toggle` outside quiet hours, except
-  during `now_playing` (deliberate asymmetry — see gesture_override.yaml
-  header for the rationale).
-- Sonos-starts-playing activates `now_playing` outside quiet hours, preempting
-  whatever was active.
-- Scheduled transitions only publish a new `active_mode` when the active
-  override is `schedule` (or `summary_gallery_toggle`, which clears at the
-  boundary); higher overrides see their `scheduled_face` helper update but
-  the device isn't advanced.
+- **Tap during schedule** (outside Night, outside quiet hours): flip the *currently-displayed* face to its counterpart and publish (`active_mode = <flip>`, retained, plus `gesture_response = <flip>` non-retained for the firmware's IMU grace window). The flip is read from `sensor.inkplate_commanded_face` (a mirror of the device's last-drawn face) rather than recomputed from the schedule, so repeat taps in the same slot toggle visibly. `active_override` is NOT touched; the next /15 schedule tick republishes the schedule's a priori target, overwriting the tap-driven flip — so a tap is a transient peek lasting up to one Full interval.
+- **Tap during now_playing**, branched on `sensor.inkplate_commanded_face`:
+  - **First-wake** (mirror ≠ `now-playing`): publish `gesture_response = now-playing` (non-retained). `active_mode` already retains `now-playing` from the Sonos-started automation — no republish needed. Use case: the wake pulse from Sonos-started was lost while the device was deep-asleep, and the operator taps to wake the device into the session.
+  - **Peek** (mirror = `now-playing`): publish `gesture_response = weather` and `active_mode = weather` retained, hold 60 s, then republish `active_mode = now-playing`. Lets the operator glance at weather without leaving the music session.
+- **Tap during Night or quiet hours**: suppressed (acknowledged on-device by the tap-ack dot but no face change).
+- **Sonos → playing** activates `now_playing` outside quiet hours, preempting whatever was active.
+- **Schedule boundary**: `scheduled_face` advances always; `active_mode` advances + wake fires only if `active_override == schedule`. Higher overrides see `scheduled_face` advance silently so restore-on-expiry lands on the right phase.
 
 **Deactivation precedence** — on expiry, what do we restore? Highest to lowest:
 
 1. `now_playing` — if `prior_override == now_playing` and Sonos is playing
-2. `weather_peek` — if `prior_override == weather_peek` and the expiry is still in the future
-3. `summary_gallery_toggle` — if `prior_override == summary_gallery_toggle`
-4. `schedule` — default fallthrough, including for unknown / empty `prior`
+2. `weather_peek` — if `prior_override == weather_peek` and the expiry is still in the future *(legacy / defensive; no current automation creates `weather_peek`, but the restore cascade still honors a stale retained value)*
+3. `summary_gallery_toggle` — if `prior_override == summary_gallery_toggle` *(legacy / defensive, same reason)*
+4. `schedule` — default fallthrough
 
-Encoded once as the unified restore cascade (see below), reused by three
-sites: `weather_peek` expiry, `now_playing` linger expiry, and the HA-start
-stale-peek cleanup.
+Encoded once as the unified restore cascade, reused by three sites: `weather_peek` expiry (defensive), `now_playing` linger expiry, and the HA-start stale-peek cleanup.
 
-**Invariant**: `prior_override` SHALL NEVER equal `active_override`. Re-
-triggering the same state (a second tap during an active peek, a double-tap
-during an active toggle) refreshes the state's timer/face but leaves `prior`
-untouched.
+**Invariant**: `prior_override` SHALL NEVER equal `active_override`.
 
 ## State machine — the full HA ⇄ Renderer ⇄ Device lifecycle
 
@@ -180,7 +185,10 @@ and **when**. The renderer decides **how it looks**. The device decides
 | `inkplate/command/gesture_response` | HA→device | — | face name (event channel for IMU grace window) |
 | `inkplate/command/wake` | HA→device | — | pulse on transitions / kitchen-motion |
 | `inkplate/command/sleep_strategy` | HA→device | ✓ | helper bundle (Sonos window, quiet window, fast-path interval) |
-| `inkplate/state/device` | device→HA | ✓ | `{voltage, percentage, wake_reason, active_mode, build}` |
+| `inkplate/command/schedule` | HA→device | ✓ | validated wake-schedule JSON (per-tier `full_min` / `poll_min` / `partial_min`) |
+| `inkplate/state/device` | device→HA | ✓ | `{voltage, percentage, wake_reason, active_mode, build, epd_pwrgood, wifi_rssi, schedule_hash, diag}` |
+| `inkplate/state/active_override` | HA→broker | ✓ | mirror of `input_text.inkplate_active_override` — gates per-minute NowPlaying Poll |
+| `inkplate/state/now_playing_track` | HA→broker | ✓ | current `media_content_id` for the NowPlaying Poll mode-change check |
 | `inkplate/state/gesture` | device→HA | — | `{kind: single \| double}` |
 
 **HTTP** (renderer on LAN):
@@ -191,8 +199,9 @@ and **when**. The renderer decides **how it looks**. The device decides
 
 **SSH** (HAOS VM → Mac):
 
-- `ha/scripts/fetch_sonos_art.sh` — writes `renderer/inputs/sonos.json` + album art on track change
-- `ha/scripts/generate_triplets.sh` — operator-fired SSH wrapper around `python3 pairing/corpus_build_triplets_v2.py --apply`; regenerates the entire triplet pool in one run (not on a cadence)
+- `ha/scripts/publish_today_pairing.sh` — fired daily at 06:00; runs `python3 pairing/publish_today.py` on the Mac to stage the day's triplet inputs.
+- `ha/scripts/generate_triplets.sh` — operator-fired SSH wrapper around the triplet builder; regenerates the entire rotation pool in one run (not on a cadence).
+- `ha/scripts/fetch_sonos_art.sh` — legacy; the live Sonos input path is HA → renderer REST POST in `publish_inputs.yaml`.
 
 ### HA state — what HA owns authoritatively
 
@@ -216,31 +225,35 @@ Activation and deactivation follow different rules — there is no single
 priority cascade. Each event type has its own handler, and deactivations
 share one restore cascade.
 
-**Activations** (per event):
+**Activations** (per event — single and double tap behave the same):
 
 ```
-single tap     ──▶  active = weather_peek
-                    prior  = <current>  (unless current already weather_peek;
-                                         invariant prior != active)
-                    arm expiry at now + 60 s
-                    suppressed during quiet hours
+tap, active=schedule       ──▶  flip displayed face (Weather ↔ tier_main)
+(outside Night, outside        publish active_mode = <flip> retained
+ quiet hours)                  publish gesture_response = <flip> non-retained
+                               active_override UNCHANGED
+                               next /15 tick republishes schedule's target
 
-double tap     ──▶  active = summary_gallery_toggle
-                    prior  = <current>  (unless current already toggle)
-                    publish the toggled face (summary↔gallery)
-                    suppressed during quiet hours
-                    suppressed during now_playing
-                    no-op when scheduled_face == night
+tap, active=now_playing,   ──▶  publish gesture_response = now-playing
+ mirror != now-playing         (first-wake; firmware draws now-playing)
+ (outside Night/quiet)
 
-sonos→playing  ──▶  active = now_playing
-                    prior  = <current>
-                    publish now-playing
-                    suppressed during quiet hours (re-evaluated at quiet-end)
+tap, active=now_playing,   ──▶  publish gesture_response = weather +
+ mirror == now-playing         active_mode = weather retained, hold 60 s,
+ (outside Night/quiet)         then republish active_mode = now-playing
+                               (peek)
 
-schedule boundary  ──▶  scheduled_face advances always
-                        active_mode advances + wake only if
-                            active_override in {schedule, summary_gallery_toggle}
-                        toggle is cleared to schedule on boundary
+tap during Night or        ──▶  suppressed (tap-ack dot only)
+ quiet hours
+
+sonos→playing              ──▶  active = now_playing, prior = <current>
+                               publish active_mode = now-playing retained
+                               suppressed during quiet hours
+                               (re-evaluated at quiet-end and HA start)
+
+schedule boundary          ──▶  scheduled_face advances always
+                               active_mode advances + wake only if
+                                   active_override == schedule
 ```
 
 **Deactivations** run the *unified restore cascade*:
@@ -288,10 +301,10 @@ music ends and linger elapses, the restore cascade lands on
 `scheduled_face == night` → `wake` fires.
 
 **Tap during now_playing linger**: a tap while the 90 s linger timer is
-running peeks weather; the linger-expired event later finds
-`active_override != now_playing` and is a no-op. If the peek then expires,
-its restore cascade asks "is Sonos playing?" — no → fall through to
-`schedule`, not back to a phantom now-playing.
+running enters the first-wake-vs-peek branch (override is still
+`now_playing`). If music has genuinely stopped, the linger-expired event
+later fires the restore cascade — which asks "is Sonos playing?" — no →
+fall through to `schedule`, not back to a phantom now-playing.
 
 ### Device wake loop — one tick of `fw::tick(hal, reason)`
 
@@ -299,59 +312,62 @@ A single wake = a single complete tick. Steps:
 
 ```
 1. Identify wake reason:
-   timer | imu | ha_command | sonos_fast_path | cold_boot | post_ota
+   timer | imu | ha_command | cold_boot | post_ota
    (PIR removed — motion is HA-side now)
 
 2. If reason == imu:
-   a. Read 1-second gyroscope burst.
-   b. If |ω| > 20°/s OR last_door_rotation < 2 s ago → suppress, goto 9.
-   c. Else read TAP_SRC, queue gesture publish.
+   a. Read 1-second gyroscope burst (door-rotation suppression).
+   b. If |ω| > 20°/s → suppress, goto 9.
+   c. Else read TAP_SRC; if a valid tap, paint the tap-ack dot and
+      queue a gesture publish.
 
-3. WiFi + MQTT connect (10 s WiFi, 5 s MQTT).
-   On failure: fall back to time-of-day schedule; enable corner indicator;
-   continue to step 5 with last-known config.
+3. Plan path (schedule planner, src/wake.cpp):
+   Full | Poll | Partial | Skip — per the retained schedule
+   (inkplate/command/schedule) with the NowPlaying override (per-minute
+   Poll while inkplate/state/active_override == now_playing). IMU and
+   cold_boot/post_ota force Full.
 
-4. Read retained topics:
-   - inkplate/command/active_mode → desired
-   - inkplate/command/sleep_strategy → helpers
+4. If Partial: render the clock zone offline (no network); goto 9.
 
-5. Fast-path early-return: if reason == sonos_fast_path AND
-   desired == last_drawn_mode → goto 8.
+5. WiFi + MQTT connect (10 s WiFi, 5 s MQTT).
+   On failure: keep the prior-drawn face (no time-of-day invention —
+   see fix-active-mode-fallback); enable corner indicator; goto 9.
 
-6. Fetch GET /display/{desired}.png (3 retries with back-off).
-   On permanent failure: corner indicator, keep current face, goto 8.
+6. Read retained topics:
+   - inkplate/command/active_mode    → desired face
+   - inkplate/command/schedule       → wake-schedule
+   - inkplate/command/sleep_strategy → helper bundle
+   - inkplate/state/active_override  → NowPlaying-Poll gate
+   - inkplate/state/now_playing_track → mode-change check (Poll only)
 
-7. Refresh policy:
-   - desired != last_drawn_mode          → FULL, reset partial count
-   - cold_boot | post_ota                 → FULL
-   - partial_refresh_count ≥ 30           → FULL (ghost flush), reset
-   - else (minute-tick eligible modes)    → PARTIAL, count++
-   last_drawn_mode = desired
+7. If Poll AND no mode-change AND no track-change: publish heartbeat,
+   goto 9 (Poll → no Full, no fetch).
 
-8. Publish inkplate/state/device (always).
-   Publish inkplate/state/gesture if step 2c queued one.
+8. Otherwise (Full or Poll-promoting-to-Full):
+   - Fetch GET /display/{desired}.png (with retries + corner-indicator
+     on permanent failure).
+   - Refresh: 3-bit Full; periodic partial-counter reset; clock-zone
+     post-Full cleanup.
+   - Publish inkplate/state/device (heartbeat).
 
-9. Arm wake sources for the current period (see sleep-strategy table
-   in the device-firmware spec). sleepFor(next_timer).
+9. Arm wake sources for the current tier (per the wake schedule).
+   sleepFor(next minute boundary at Full/Poll/Partial cadence).
 ```
 
 ### Period-driven wake arming
 
-The sleep-strategy table in `device-firmware` is the normative source.
-Summary at a glance:
+The wake schedule is **operator-pushable** — edit `ha/config/wake_schedule.yaml`, deploy, and HA validates (via `ha/scripts/validate_wake_schedule.py`) and republishes the result to retained MQTT `inkplate/command/schedule`. The firmware reads it on the next wake. Per-tier fields:
 
-| Period | Hours | Mode | Timer | Fast-path | IMU |
-|---|---|---|---|---|---|
-| Morning | 06:30–10:00 | Summary | 15m | 3m (from 07:00) | yes |
-| Daytime | 10:00–20:00 | Gallery | 60m | 3m | yes |
-| Evening | 20:00–22:00 | Gallery | 60m | — | yes |
-| Night | 22:00–00:00 | Night | 60m | — | yes |
-| Quiet | 00:00–05:00 | Night | 60m | — | yes |
-| Pre-dawn | 05:00–06:30 | Night | 60m | — | yes |
-| Now-Playing | variable | Now-Playing | 15m | — | yes |
+- `start` — local-time tier boundary
+- `full_min` — Full-refresh cadence (WiFi + MQTT + fetch + 3-bit refresh)
+- `poll_min` — Poll cadence (WiFi + MQTT mode-change check; promotes to Full on change). `0` = no separate poll.
+- `partial_min` — Partial-refresh cadence (offline; clock zone only). `0` = no partials.
 
-IMU INT is always armed. Motion (IKEA) is HA-side; the device observes
-HA-triggered wakes on its next natural wake (timer or fast-path).
+A typical configuration: Morning `15/0/1`, Midday `30/0/10`, Evening `30/0/5`, Night `60/0/15`. See `wake_schedule.yaml` for the live values and the file's header comment for editing rules.
+
+**NowPlaying override**: while `inkplate/state/active_override = now_playing`, the firmware ignores the tier's `poll_min` and runs a fixed per-minute Poll (with the same Full-promote-on-change rule). The override mirror is published by `publish_active_override.yaml` and the track-id by `now_playing_override.yaml` on every track change. See `openspec/changes/archive/2026-05-05-optimise-now-playing-cadence`.
+
+IMU INT is always armed. Motion (IKEA Zigbee PIR) drives HA-side wake pulses; the device picks them up on its next natural wake.
 
 ### The wake-latency ladder
 
@@ -361,9 +377,8 @@ When HA decides the face must change, how soon does the device see it?
 |---|---|
 | Cold boot, OTA reboot | Immediate (device is already in the active cycle) |
 | Device is in the middle of a wake cycle | Immediate (same cycle re-fetches) |
-| Sonos activation during fast-path window | ≤ 180 s (fast-path default) |
-| Schedule boundary or motion during fast-path window | ≤ 180 s |
-| Schedule boundary or motion outside fast-path window | ≤ mode timer (15 min Summary, 60 min Gallery/Night) |
+| Sonos track change during an active NowPlaying session | ≤ 60 s (per-minute Poll while `active_override == now_playing`) |
+| Schedule boundary, NowPlaying activation, or motion | ≤ `poll_min` if defined for the current tier, else ≤ `full_min` |
 | IMU gesture (tap) | Immediate — device already awake |
 
 Note: HA's `wake` pulse is non-retained. It's effectively a UX
@@ -377,7 +392,8 @@ trusts on any wake.
 | Renderer down | Device | Corner indicator; 30s/1m/5m/15m/30m back-off; last face persists |
 | HA/MQTT down | Device | Fall back to time-of-day schedule; same indicator; retry each wake |
 | Renderer POST fails | HA publisher | Log warning, no retry; next natural trigger republishes |
-| Sonos art fetch fails | HA script + renderer | JSON still written; spec'd `--faint` + SONOS fallback renders |
+| Sonos art fetch fails | Renderer | `/ha-proxy/*` shells to curl with a short fast-fail; renderer falls back to `templates/now-playing/fallback.jpg` at render time |
+| Spotify or MusicBrainz unreachable | Renderer | Enrichment pipeline is skipped; Now-Playing falls back to the non-classical layout with the publisher's flat title/artist/album fields |
 | LLM fails for poetic line | HA script | Hand-curated fallback line from `night_fallback_lines.yaml` |
 | Verse overflows zone | Renderer | 422 naming the zone; pairing pipeline retries with a shorter selection |
 | Renderer input absent (non-device) | Renderer | 503 naming the file; device treats as unreachable |

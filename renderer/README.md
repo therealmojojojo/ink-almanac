@@ -97,6 +97,14 @@ Recording metadata is immutable, so no TTL applies.
 When Spotify or MB are unreachable, the renderer falls back to the
 non-classical layout populated from `title` / `artist` / `album` alone.
 
+Album art is fetched at render time through the same-origin
+`/ha-proxy/api/media_player_proxy/...` route (Chromium inside Playwright
+on the renderer host cannot reach the HA VM directly; the proxy shells
+to curl). The proxy is **fast-fail**: short timeouts so a slow HA
+doesn't stall the Full. If the fetch fails for any reason, the template
+swaps to a baked fallback image at `templates/now-playing/fallback.jpg`
+via an inline `onerror` handler — Now-Playing always renders.
+
 Secrets (`spotify_client_id`, `spotify_client_secret`,
 `musicbrainz_user_agent`) are read directly from `ha/secrets.yaml` at
 startup by `src/enrichment/secrets.ts`. When any field is missing the

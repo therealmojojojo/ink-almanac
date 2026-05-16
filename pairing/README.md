@@ -1,10 +1,10 @@
 # pairing/
 
-Python tooling for the Inkplate corpus. Three subcommands today — `validate`,
-`audit`, `refetch` — exposed as a unified `corpus` CLI (dispatcher at
-`inkplate_corpus_cli.py`). The fetch / propose / prune / restore /
-ingest-personal subcommands from `add-corpus-ingestion` are stubs that
-print a pointer to the spec.
+Python tooling for the Inkplate corpus and the daily triplet publisher. Most
+subcommands are exposed as a unified `corpus` CLI (dispatcher at
+`inkplate_corpus_cli.py`); standalone scripts under `pairing/` remain
+runnable on their own. Daily publishing is in `publish_today.py`, fired
+by HA cron at 06:00.
 
 ## Install / run
 
@@ -18,25 +18,76 @@ pip install -e pairing
 python3 pairing/inkplate_corpus_cli.py <subcommand> [...]
 ```
 
-Only runtime dependency is PyYAML. The richer subcommands will add `httpx`,
-`anthropic`, `pydantic`, `rich`, and `Pillow` under the `ingestion` extra.
+Runtime dependencies: PyYAML always; `httpx`, `anthropic`, `pydantic`,
+`rich`, `Pillow` for the ingestion / harvest / review subcommands.
+
+## Subcommands (current)
+
+Run `corpus help` for the full list. Categories:
+
+**Validation & audit**
 
 ```sh
-corpus help                             # subcommand reference
-corpus validate                         # structural + taxonomy + manifest
-corpus validate --full                  # + sha256 of every manifest entry
-corpus audit                            # markdown coverage report to stdout
-corpus audit --out corpus/_audits/audit-$(date +%F).md
-corpus audit --format json              # machine-readable
-corpus refetch                          # retry every panel_verdict=reject image
-corpus refetch <id1> <id2>              # retry specific ids
-corpus refetch --dry                    # show the search plan only
+corpus validate                # structural + taxonomy + manifest
+corpus validate --full         # + sha256 of every manifest entry
+corpus audit                   # markdown coverage report to stdout
+corpus audit --format json     # machine-readable
+corpus audit-truncations       # bodies ending mid-clause or without
+                               # terminal punctuation
+```
 
-# personal-library folder ingestion (stage → review → commit):
-corpus ingest-personal --folder ~/Downloads/kollwitz-prints --citation 'Kollwitz, *Graphic Works*, Dover, 1969'
+**Web fetching**
+
+```sh
+corpus refetch                 # rotate panel_verdict=reject images through
+                               # Commons / ARTIC / Met at ≥ 1200 px
+corpus harvest <creator>       # photographer-level DDG harvest with gate,
+                               # pHash dedup, contact-sheet review
+corpus harvest --commit <creator>           # commit accepted items via
+                                             # Claude-vision tagging
+corpus harvest --auto-commit <creator> --all  # skip operator review
+corpus fetch-work --creator <id> --id <entry-id>
+                               # targeted per-work fetch via query-
+                               # expansion ladder
+```
+
+**Personal library (stage → review → commit)**
+
+```sh
+corpus ingest-personal --folder ~/Downloads/<batch> \
+                       --citation '<bibliographic citation>'
 # edit tag placeholders under corpus/_staging/<batch-id>/sidecars/
 corpus ingest-personal --commit --batch-id <batch-id>
 ```
+
+**Triplet review**
+
+```sh
+corpus review                  # in-browser per-triplet accept / reject UI
+corpus build-review-page       # static HTML card-grid for Stage-1 extracts
+                               # (each card embeds a production summary PNG)
+```
+
+**Restore from manifest backup**
+
+```sh
+corpus restore --check         # report missing binaries / body files
+corpus restore --verify        # re-fetch + verify sha256 of everything
+corpus restore --force <paths> # force-rebuild specific items
+```
+
+**Daily publish (not under `corpus`)**
+
+```sh
+python3 pairing/publish_today.py     # picker v2: tier-aware summary
+                                     # admission, uncapped anchor target
+```
+
+Picks today's triplet by sequence rotation and stages
+`renderer/inputs/{pairing,news}.json` plus the companion / gallery /
+nocturne binaries. Smart-pill body is read deterministically from the
+summary item's YAML sidecar (`summary.smart_pill.body`) — no runtime
+LLM regen. Rotation anchor in `pairing/_state/triplet_epoch.json`.
 
 ## corpus_validate.py
 
@@ -125,10 +176,13 @@ to restore today's actual triplet.
 See [`docs/review.md`](docs/review.md) for the full reference,
 keyboard shortcuts, and the `/sim` device simulator view.
 
-## What it does NOT do yet
+## Planned (not yet implemented)
 
-- Fetch binaries or body files from the web.
-- Propose canonical lists via Claude.
-- Check `pixel_width` / `pixel_height` match the actual binary (would need Pillow; trusted for now).
+- `propose-shortlist` — Claude-drafted creator shortlist (Stage-1 of `add-ingestion-automation`).
+- `propose-checklist` — Claude-drafted per-creator works checklist (Stage-2).
+
+## What it does NOT do
+
 - Backfill missing fields. Reports what's wrong; you fix the YAML.
-- Validate the `openspec/changes/build-seed-corpus/lists/*.yaml` proposal files. Those are operator-review artifacts, not ingested sidecars.
+- Check `pixel_width` / `pixel_height` match the actual binary (trusted from the sidecar; would need Pillow on the validate path).
+- Validate operator-review artifact YAMLs (e.g. `openspec/changes/.../lists/*.yaml`) — those are review documents, not ingested sidecars.

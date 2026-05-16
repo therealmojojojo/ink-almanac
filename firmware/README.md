@@ -9,22 +9,20 @@ network.
 
 - **Schedule planner** (`src/wake.cpp`) — pure-arithmetic decision over the
   minute-of-day for what kind of wake to do (Full / Poll / Partial / Skip).
-  The schedule is operator-pushable via MQTT (`add-pushable-wake-schedule`);
-  see `ha/config/wake_schedule.yaml` for the live config. Default tier
-  table:
+  The schedule is operator-pushable via MQTT: edit
+  `ha/config/wake_schedule.yaml`, deploy, and HA validates + republishes
+  the result to retained `inkplate/command/schedule`. The firmware reads
+  it on the next wake. The file's header has the editing rules; the
+  baked default lives in `firmware/src/wake.cpp:kDefaultSchedule` and is
+  used only until the device sees its first retained schedule.
 
-  | Tier | Hours | Full cadence | Poll cadence | Partial cadence |
-  |---|---|---|---|---|
-  | Night | 22:00 – 06:30 | 15 min | — | — |
-  | Morning | 06:30 – 10:00 | 15 min | 3 min | 1 min |
-  | Midday | 10:00 – 17:00 | 30 min | — | 5 min |
-  | Evening | 17:00 – 22:00 | 15 min | 3 min | 1 min |
-
-  Partials are always offline (no WiFi). Poll cadences explicitly opt-in
-  to MQTT-based mode-change pickup between Fulls. The NowPlaying override
-  (session-aware, see `optimise-now-playing-cadence`) replaces every
-  minute's path with Poll while a Sonos session is active, with the Poll
-  handler conditionally promoting to Full on track change.
+  Partials are always offline (no WiFi, ~0.06 mAh each). Poll cadences
+  explicitly opt-in to MQTT-based mode-change pickup between Fulls
+  (~0.5 mAh each). The **NowPlaying override** (see
+  `optimise-now-playing-cadence`) replaces every minute's path with a
+  Poll while `inkplate/state/active_override == now_playing`, with the
+  Poll handler promoting to Full when the retained
+  `inkplate/state/now_playing_track` differs from the device's cached id.
 
 - **Partial-refresh clock** (`src/clock_render.cpp` + `src/generated/clock_glyphs.{h,cpp}`)
   — composes "HH:MM" from baked Fraunces glyphs into the panel's 1-bit
@@ -57,6 +55,25 @@ network.
   firmware re-sleeps without doing any work. Defends against the IMU
   emitting INT1 pulses that don't latch a tap event (observed during
   device-side noise).
+
+- **Active-mode fallback** (`fix-active-mode-fallback`, 2026-05-05) — if
+  WiFi or MQTT can't be reached this wake, the firmware keeps the
+  previously-drawn face instead of inventing one from time-of-day. The
+  retained `inkplate/command/active_mode` is the only source of truth.
+
+- **Gesture grace-window event channel** (`fix-gesture-grace-window-race`,
+  2026-05-05) — on an IMU wake, the firmware publishes a gesture and
+  subscribes to **`inkplate/command/gesture_response`** (non-retained,
+  separate from the state-channel `active_mode`) for ~2 s. HA's gesture
+  handler publishes the response there, so the wait can't short-circuit
+  on the retained `active_mode` (which still encodes the *current* mode,
+  not HA's reply to this tap).
+
+- **Per-wake diagnostics in `state/device`** — every Full publishes
+  `epd_pwrgood` (panel power-good probe), `wifi_rssi`, `schedule_hash`
+  (so HA can detect the device hasn't yet picked up a freshly-pushed
+  schedule), `reset_reason` (cold-boot cause for crash-loop diagnosis),
+  and a `diag` ring of the last ~30 wakes' path codes.
 
 - **Host simulator** — same source compiles for the Mac via `cmake`,
   driven by `doctest` scenarios in `test/scenarios/`. Covers schedule
@@ -120,9 +137,10 @@ plan path           → wake::planWake(minute_of_day, current_mode, schedule, se
 
 WiFi connect (timeout 10 s) → ensureTimeSynced (SNTP, 600 ms)
 MQTT connect → publish gesture (if IMU + tap)
-            → grace window: subscribe to active_mode for 2 s
+            → grace window: subscribe to gesture_response for 2 s
+              (non-retained event channel; ignores retained active_mode)
 
-resolve active_mode (retained MQTT, fallback to time-of-day)
+resolve active_mode (retained MQTT; on hiccup, keep prior face)
 draw URL/PNG → drawImageFromUrl(/display/<mode>.png, full=true)
 fetchAndStoreClockZone(/display/<mode>/clock-zone.json)
 post-Full zone cleanup: 2× partialUpdate1Bit
