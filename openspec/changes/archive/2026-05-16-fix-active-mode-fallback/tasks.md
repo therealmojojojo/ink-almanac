@@ -21,5 +21,5 @@
 
 ## 5. Deployment
 
-- [ ] 5.1 USB-flash the device (`pio run -e inkplate10 -t upload --upload-port /dev/cu.usbserial-220`).
-- [ ] 5.2 Live verification: start a Sonos session, observe diag for 10+ minutes. The pattern of `tLY → tLW → tLY` flips that we saw before the fix should not recur. The diag ring should stay solidly in `tLY…` (Polls + partial clock ticks) with Fulls only on actual track changes or peek/peek-revert.
+- [x] 5.1 USB-flash the device (`pio run -e inkplate10 -t upload --upload-port /dev/cu.usbserial-220`). Confirmed via retained `inkplate/state/device.build == 0.8.1-active-mode-fallback`.
+- [x] 5.2 Live verification: start a Sonos session, observe diag for 10+ minutes. The pattern of `tLY → tLW → tLY` flips that we saw before the fix should not recur. The diag ring should stay solidly in `tLY…` (Polls + partial clock ticks) with Fulls only on actual track changes or peek/peek-revert.
