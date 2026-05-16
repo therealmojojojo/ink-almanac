@@ -72,9 +72,9 @@
 - [x] 8.3 Snapshot test now-playing fixture: `test/fixtures/sonos.json` extended with classical enrichment fields renders the composer-anchored layout end-to-end (composer top label, work big serif, performer rows with role chips, year footer).
 - [x] 8.4 Snapshot test fallback path: a sonos input without enrichment fields renders the artist/track/album+year non-classical layout.
 - [x] 8.5 Visual audit via `/debug/now-playing-classical-mock` over all 38 tracks during prototyping; the production CSS port replicates the iterated mock layout 1:1 by construction.
-- [ ] 8.6 Operator live verification — pause + resume Sonos on a classical track and a pop track; confirm `inputs/sonos.json` contains enriched fields; confirm the rendered `/display/now-playing.png` matches the new layouts. (Pending HA-side deploy of the `media_content_id` publisher change.)
-- [ ] 8.7 Operator deploy of the HA `inkplate_publish_sonos` automation update via `ha/deploy.sh` so future Sonos publishes carry `media_content_id`.
+- [x] 8.6 Operator live verification — pause + resume Sonos on a classical track and a pop track; confirm `inputs/sonos.json` contains enriched fields; confirm the rendered `/display/now-playing.png` matches the new layouts.
+- [x] 8.7 Operator deploy of the HA `inkplate_publish_sonos` automation update via `ha/deploy.sh` so future Sonos publishes carry `media_content_id`.
 
 ## 9. Archive
 
-- [ ] 9.1 After operator live verification, archive via `openspec archive add-now-playing-classical-layout`.
+- [x] 9.1 After operator live verification, archive via `openspec archive add-now-playing-classical-layout`.

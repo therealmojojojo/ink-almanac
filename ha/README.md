@@ -104,7 +104,7 @@ with HA's view of the world. Five publishers, all gated on
 |---|---|---|
 | clock | every minute + HA start | `time` ("HH:MM") + `date` ("Monday · April 27") |
 | weather | weather sensor state-change + hourly + HA start | locations × {current, forecast, nowcast}, poetic line, astro |
-| sonos | media_player.kitchen_sonos state / content_id change + HA start | state, title, artist, album, source_indicator, art_url — only when actually playing AND has metadata (defensive: empty transients no longer overwrite the file) |
+| sonos | media_player.kitchen_sonos state / content_id change + HA start | state, title, artist, album, source_indicator, art_url, media_content_id — only when actually playing AND has metadata (defensive: empty transients no longer overwrite the file). The renderer uses `media_content_id` (Spotify track id) to enrich the input with composer / work / performers / year for the classical Now-Playing layout. |
 | device | MQTT message on `inkplate/state/device` + HA start | battery percentage + voltage + build, last_seen |
 
 The daily triplet — `pairing/publish_today.py` over SSH at 06:00 — writes

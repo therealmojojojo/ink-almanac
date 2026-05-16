@@ -68,6 +68,41 @@ simplified to a deterministic single-item smart-pill body sourced from
 the daily summary item's YAML sidecar — the live-LLM regen pipeline
 that used to overwrite it on every HA restart was removed.
 
+### Now-Playing enrichment
+
+When HA POSTs `sonos.json` with a Spotify `media_content_id`, the renderer
+runs an enrichment pipeline (`src/enrichment/`) before persisting it:
+
+- Spotify Web API (Client Credentials flow) for canonical track / album /
+  artist data including the ISRC.
+- MusicBrainz (politely, per their TOU) by ISRC for work-rel composer,
+  work type, performer roles, and `first-release-date`.
+- A classifier (`enrichment/classify.ts`) decides whether the track is
+  classical and, when so, splits the title into `work` / `movement`.
+- Spotify's stock edition suffixes (`" - 2021 Remaster"`, `"(Deluxe
+  Edition)"`, etc.) are stripped from title and album so they don't leak
+  onto the panel — for both classical and non-classical layouts.
+
+Output fields are added in-place on the persisted `sonos.json`:
+`classical`, `composer`, `work`, `movement`, `performers[]`,
+`first_release_year`. The Now-Playing template renders a
+composer-anchored layout when `classical: true` and a track-anchored
+layout otherwise. Both share the same three-row anatomy
+(label · primary · strip + year row).
+
+Enrichment results are cached on disk under `cache/` indefinitely
+(keyed by Spotify track id, ISRC, MB work MBID, MB artist MBID).
+Recording metadata is immutable, so no TTL applies.
+
+When Spotify or MB are unreachable, the renderer falls back to the
+non-classical layout populated from `title` / `artist` / `album` alone.
+
+Secrets (`spotify_client_id`, `spotify_client_secret`,
+`musicbrainz_user_agent`) are read directly from `ha/secrets.yaml` at
+startup by `src/enrichment/secrets.ts`. When any field is missing the
+enrichment pipeline is disabled and the renderer falls back to the
+non-classical layout.
+
 ### `POST /inputs/:name`
 
 HA publishes each renderer input by POSTing its JSON body to this endpoint.
