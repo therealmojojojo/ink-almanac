@@ -28,6 +28,10 @@ export interface MbRecording {
 export interface MbWork {
   id: string;
   title: string;
+  /** MB classifies works by form: "Song" for popular music, "Symphony" /
+   *  "Sonata" / "Concerto" / "Quartet" / "Aria" / etc. for classical. Used
+   *  by `isClassical` as the strongest available gate. */
+  type?: string | null;
   relations?: {
     type: string;
     artist?: MbArtistRef;

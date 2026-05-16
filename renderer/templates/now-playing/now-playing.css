@@ -128,7 +128,7 @@
 /* Source indicator — top-left corner of the right column. */
 .np-right .source {
   position: absolute;
-  top: calc(32 * var(--u));
+  top: calc(42 * var(--u));
   left: calc(32 * var(--u));
   right: calc(32 * var(--u));
   font-family: var(--font-mono);

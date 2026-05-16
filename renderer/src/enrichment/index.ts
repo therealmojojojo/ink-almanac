@@ -1,6 +1,6 @@
 import { log } from '../logger.js';
 import * as cache from './cache.js';
-import { chooseYear, isClassical, roleFor, splitWork } from './classify.js';
+import { chooseYear, cleanSpotifyTitle, isClassical, roleFor, splitWork } from './classify.js';
 import type { MbArtistRef } from './musicbrainz.js';
 import * as mb from './musicbrainz.js';
 import { loadEnrichmentSecrets } from './secrets.js';
@@ -72,8 +72,9 @@ export async function enrich(spotifyId: string): Promise<Enrichment | null> {
     const isrc = track.external_ids?.isrc ?? '';
     const recording = isrc ? await mb.byISRC(isrc, secrets) : null;
 
-    // Find a work-rel; follow it for canonical composer.
+    // Find a work-rel; follow it for canonical composer + work type.
     let workRelTitle = '';
+    let workType: string | null = null;
     let workComposer: string | null = null;
     let workComposerRef: MbArtistRef | undefined;
     if (recording?.relations) {
@@ -85,17 +86,21 @@ export async function enrich(spotifyId: string): Promise<Enrichment | null> {
             workComposer = composerRel.artist.name;
             workComposerRef = composerRel.artist;
             workRelTitle = work?.title ?? r.work.title;
+            workType = work?.type ?? null;
             break;
           }
         }
       }
     }
 
+    const cleanedTitle = cleanSpotifyTitle(track.name);
+
     const classical = isClassical({
+      mbWorkType: workType,
       mbWorkComposer: workComposer,
       recording,
       spotifyArtists: track.artists,
-      spotifyTitle: track.name,
+      spotifyTitle: cleanedTitle,
     });
 
     // Composer: from MB work-rel when available, else from Spotify's first
@@ -115,7 +120,8 @@ export async function enrich(spotifyId: string): Promise<Enrichment | null> {
 
     // Work + movement from Spotify's title (familiar capitalisation; MB's is
     // sometimes structurally cleaner but inconsistent across entries).
-    const { work, movement } = splitWork(track.name);
+    // Suffix-cleaned so " - Remastered 2021" / " - Live" don't leak in.
+    const { work, movement } = splitWork(cleanedTitle);
 
     // Performers: MB recording's typed credits when present; otherwise fall
     // back to Spotify's artists[] minus the inferred composer. Drop credits
@@ -123,11 +129,19 @@ export async function enrich(spotifyId: string): Promise<Enrichment | null> {
     const spotifyNames = new Set(track.artists.map((a) => a.name.toLowerCase()));
     const performers: { name: string; role: string }[] = [];
     const credits = recording?.['artist-credit'] ?? [];
+    // Whether the recording itself carries an ensemble — decides whether
+    // a "pianist and conductor"-style disambiguation should resolve to
+    // their instrument (no ensemble, solo / chamber recording) or to
+    // 'Cond.' (ensemble present, podium context).
+    const hasEnsemble = credits.some((c) => {
+      const t = c.artist?.type;
+      return t === 'Orchestra' || t === 'Choir';
+    });
     if (credits.length > 0) {
       for (const c of credits) {
         if (composer && c.name.toLowerCase() === composer.toLowerCase()) continue;
         if (spotifyNames.size > 0 && !spotifyNames.has(c.name.toLowerCase())) continue;
-        performers.push({ name: c.name, role: roleFor(c.artist) });
+        performers.push({ name: c.name, role: roleFor(c.artist, hasEnsemble) });
       }
     }
     if (performers.length === 0 && track.artists.length > 0) {

@@ -49,8 +49,90 @@ export function workBucket(text: string): 'l' | 'm' | 's' | 'xs' {
   return 'xs';
 }
 
+/** Strip Spotify's stock edition suffixes from track and album names —
+ *  hyphen form on tracks ("Heroes - 2017 Remaster", " - Live", " - Mono
+ *  Version") and parenthetical form on albums ("The Boatman's Call (2011 -
+ *  Remaster)", "(Remastered)", "(Deluxe Edition)"). Applied iteratively to
+ *  handle stacked suffixes ("Track - Remastered 2021 - Live"). Conservative:
+ *  the hyphen form requires a leading ` - ` separator and the parenthetical
+ *  form requires the noise keyword inside `()` at end-of-string, so legit
+ *  hyphenated titles ("Comfortably Numb - Pulse") and legit parentheticals
+ *  ("Symphony No. 9 (Choral)") survive. */
+const SPOTIFY_SUFFIX_RE = new RegExp(
+  '\\s+-\\s+(?:' +
+    'Remastered(?:\\s+\\d{4})?|' +
+    '\\d{4}\\s+Remaster(?:ed)?|' +
+    'Mono(?:\\s+Version)?|' +
+    'Stereo(?:\\s+Version)?|' +
+    'Live(?:\\s+(?:at|in|from)\\s+.+|\\s+Version)?|' +
+    'Single\\s+Version|' +
+    'Album\\s+Version|' +
+    'Radio\\s+Edit|' +
+    'Bonus\\s+Track|' +
+    'Deluxe(?:\\s+Edition)?|' +
+    'Acoustic(?:\\s+Version)?|' +
+    'Extended(?:\\s+Version)?|' +
+    'Take\\s+\\d+|' +
+    'Edit' +
+    ')\\s*$',
+  'i',
+);
+
+const SPOTIFY_EDITION_PAREN_RE = new RegExp(
+  '\\s+\\(' +
+    '(?:\\d{4}\\s*-\\s*)?' +
+    '(?:' +
+      'Remaster(?:ed)?(?:\\s+Version)?|' +
+      '\\d{4}\\s+Remaster(?:ed)?|' +
+      'Mono(?:\\s+Version)?|' +
+      'Stereo(?:\\s+Version)?|' +
+      'Live(?:\\s+at\\s+[^)]+|\\s+Version)?|' +
+      'Single\\s+Version|' +
+      'Album\\s+Version|' +
+      'Radio\\s+Edit|' +
+      'Bonus\\s+Track|' +
+      'Deluxe(?:\\s+Edition)?|' +
+      'Acoustic(?:\\s+Version)?|' +
+      'Extended(?:\\s+Version)?|' +
+      'Anniversary(?:\\s+Edition)?|' +
+      'Reissue|' +
+      'Special\\s+Edition' +
+    ')' +
+  '\\)\\s*$',
+  'i',
+);
+
+export function cleanSpotifyTitle(title: string): string {
+  let s = title.trim();
+  for (let i = 0; i < 4; i++) {
+    const next = s.replace(SPOTIFY_SUFFIX_RE, '').replace(SPOTIFY_EDITION_PAREN_RE, '').trim();
+    if (next === s) break;
+    s = next;
+  }
+  return s;
+}
+
+/** MB `work.type` values that mark a piece as classical. Anything outside
+ *  this set (including the catch-all "Song" used for popular music) does
+ *  not by itself qualify a track for the classical layout. */
+const CLASSICAL_WORK_TYPES = new Set([
+  'Symphony', 'Sonata', 'Sonatina', 'Concerto', 'Quartet', 'Quintet',
+  'Trio', 'Sextet', 'Septet', 'Octet', 'Suite', 'Mass', 'Requiem',
+  'Opera', 'Operetta', 'Cantata', 'Oratorio', 'Aria', 'Étude', 'Etude',
+  'Prelude', 'Fugue', 'Nocturne', 'Mazurka', 'Polonaise', 'Waltz',
+  'Sarabande', 'Allemande', 'Gigue', 'Variations', 'Variation',
+  'Impromptu', 'Ballade', 'Scherzo', 'Madrigal', 'Motet', 'Lied',
+  'Song cycle', 'Tone poem', 'Symphonic poem', 'Overture', 'Rondo',
+  'Toccata', 'Capriccio', 'Rhapsody', 'Chant', 'Chorale', 'Movement',
+  'Partita',
+]);
+
+/** Instrument and voice roles, matched against MB artist `disambiguation`.
+ *  Conductor is intentionally absent here — it's resolved separately, by
+ *  context (see `roleFor`), because many concert artists are tagged
+ *  "pianist and conductor" / "violinist and conductor" and we want the
+ *  instrument to win on solo and chamber recordings. */
 const DISAMBIG_TO_ROLE: [RegExp, string][] = [
-  [/\bconductor\b/i, 'Cond.'],
   [/\bpianist\b/i, 'Piano'],
   [/\bcellist\b/i, 'Cello'],
   [/\bviolinist\b/i, 'Violin'],
@@ -67,13 +149,23 @@ const DISAMBIG_TO_ROLE: [RegExp, string][] = [
 ];
 
 /** Map an MB artist ref to a display role chip. Ensembles return '' because
- *  their type is already in the name (Quartet/Choir/Orchestra). */
-export function roleFor(artist: MbArtistRef): string {
+ *  their type is already in the name (Quartet/Choir/Orchestra).
+ *
+ *  `hasEnsemble` tells the function whether the recording's artist-credit
+ *  list includes an orchestra or choir. When it does, an artist tagged
+ *  "X and conductor" is almost certainly conducting — emit `Cond.` and
+ *  skip the instrument match. When it doesn't, the recording is solo /
+ *  chamber and the instrument match wins (Barenboim-as-pianist on a Liszt
+ *  Consolation, not Barenboim-as-conductor on a Beethoven symphony). */
+export function roleFor(artist: MbArtistRef, hasEnsemble = false): string {
   if (!artist) return '';
-  if (artist.type === 'Orchestra' || artist.type === 'Choir' || artist.type === 'Group') return '';
+  if (artist.type === 'Orchestra' || artist.type === 'Choir') return '';
+  const disambig = artist.disambiguation ?? '';
+  if (hasEnsemble && /\bconductor\b/i.test(disambig)) return 'Cond.';
   for (const [rgx, label] of DISAMBIG_TO_ROLE) {
-    if (rgx.test(artist.disambiguation ?? '')) return label;
+    if (rgx.test(disambig)) return label;
   }
+  if (/\bconductor\b/i.test(disambig)) return 'Cond.';
   return '';
 }
 
@@ -104,23 +196,39 @@ const CLASSICAL_TITLE_SHAPE = new RegExp(
 );
 
 /** Decide whether a track is classical, given the merged Spotify+MB picture.
- *  Three positive signals (any one is enough):
- *    1. MB has a work-rel and the work has at least one composer
- *    2. MB has typed performer disambiguations (cellist/pianist/cond./etc.)
- *       or ensemble types (Orchestra/Choir/Group)
- *    3. Spotify lists ≥2 artists AND the title matches a classical shape */
+ *  Positive signals (any one is enough):
+ *    1. MB work has a composer AND the work `type` is in
+ *       CLASSICAL_WORK_TYPES (Symphony/Sonata/Concerto/...). The composer-
+ *       presence-alone signal we used to rely on is too permissive — MB now
+ *       carries work entries with songwriter-as-composer for most charting
+ *       pop and rock songs (Bowie, Velvet Underground, etc.).
+ *    2. MB work has a composer, no `type`, BUT the Spotify title shape is
+ *       unmistakably classical (Op./BWV/K./Symphony/Nocturne/...). Catches
+ *       Satie/Chopin recordings where MB hasn't typed the work.
+ *    3. MB has typed performer disambiguations (cellist/pianist/cond./etc.)
+ *       or ensemble types (Orchestra/Choir). "Group" is intentionally
+ *       excluded — every rock band is "Group" in MB.
+ *    4. Spotify lists ≥2 artists AND the title matches a classical shape. */
 export function isClassical(opts: {
+  mbWorkType?: string | null;
   mbWorkComposer?: string | null;
   recording?: MbRecording | null;
   spotifyArtists?: { name: string }[];
   spotifyTitle?: string;
 }): boolean {
-  if (opts.mbWorkComposer) return true;
+  if (opts.mbWorkComposer) {
+    if (opts.mbWorkType && CLASSICAL_WORK_TYPES.has(opts.mbWorkType)) return true;
+    if (!opts.mbWorkType && opts.spotifyTitle && CLASSICAL_TITLE_SHAPE.test(opts.spotifyTitle)) {
+      return true;
+    }
+    // Composer present but the work is typed non-classical (typically
+    // "Song"). Fall through — other signals can still classify it.
+  }
 
   const credits = opts.recording?.['artist-credit'] ?? [];
   const mbInstrumentSignal = credits.some((c) => {
     const t = c.artist?.type;
-    if (t === 'Orchestra' || t === 'Choir' || t === 'Group') return true;
+    if (t === 'Orchestra' || t === 'Choir') return true;
     return roleFor(c.artist) !== '';
   });
   if (mbInstrumentSignal) return true;

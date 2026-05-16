@@ -1,5 +1,5 @@
 import type { DitherMask } from '../image/dither.js';
-import { workBucket } from '../enrichment/classify.js';
+import { cleanSpotifyTitle, workBucket } from '../enrichment/classify.js';
 import { batteryIndicator } from '../templateMacros.js';
 import { escapeHtml, htmlShell } from './shell.js';
 import type { NowPlayingInput } from './schema.js';
@@ -17,8 +17,9 @@ interface Slots {
   topLabel: string;          // composer (classical) | artist (non-classical)
   work: string;              // work title (classical) | track title (non-classical)
   movement: string;          // italic subtitle, classical only
-  /** Bottom strip rows. For classical: performers + an optional year row.
-   *  For non-classical: a single album-and-year row. */
+  /** Bottom strip rows. Classical: performers + optional year row.
+   *  Non-classical: album row + optional year row (year on its own line so
+   *  the strip reads consistently across both layouts). */
   rows: { role: string; name: string; isYear?: boolean }[];
 }
 
@@ -39,14 +40,21 @@ function pickSlots(s: NowPlayingInput['sonos']): Slots {
       ],
     };
   }
-  // Non-classical: artist top, track in the work slot, album+year bottom.
-  const album = s.album ?? '';
-  const albumLine = album && year ? `${album} · ${year}` : album || year;
+  // Non-classical: artist top, track in the work slot, album then year as
+  // separate rows (year on its own line, matching the classical layout).
+  // Both title and album go through cleanSpotifyTitle so Spotify's stock
+  // edition tags ("Red Right Hand - 2021 Remaster", "The Boatman's Call
+  // (2011 - Remaster)") don't leak into the display. The classical branch
+  // already strips these via splitWork(cleanedTitle) upstream.
+  const album = cleanSpotifyTitle(s.album ?? '');
   return {
     topLabel: (s.artist ?? '').toUpperCase(),
-    work: s.title ?? '',
+    work: cleanSpotifyTitle(s.title ?? ''),
     movement: '',
-    rows: albumLine ? [{ role: '', name: albumLine }] : [],
+    rows: [
+      ...(album ? [{ role: '', name: album }] : []),
+      ...(year ? [{ role: '', name: year, isYear: true }] : []),
+    ],
   };
 }
 
