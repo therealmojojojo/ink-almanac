@@ -30,7 +30,7 @@
 
 - [x] 6.1 `ha/automations/gesture_override.yaml::inkplate_gesture_tap_phase_flip` action block: prepend a non-retained `mqtt.publish` to `inkplate/command/gesture_response` with the same `flip_face` payload as the existing retained `active_mode` publish. Comment-block above the new step explains the contract.
 - [x] 6.2 `ha/automations/gesture_override.yaml::inkplate_gesture_tap_now_playing_peek` action block: same — prepend a non-retained `mqtt.publish` to `inkplate/command/gesture_response` with the `peek_face` payload.
-- [ ] 6.3 (Optional) `ha/automations/gesture_override.yaml::inkplate_gesture_tap_now_playing_peek` revert step (after the 60-s delay): consider also publishing `gesture_response = now-playing` for symmetry. **Decision: skip.** The revert isn't tap-driven — there's no IMU wake waiting on the grace window — so the retained `active_mode = now-playing` plus the next Poll's mode-change detection is sufficient.
+- [x] 6.3 (Optional) `ha/automations/gesture_override.yaml::inkplate_gesture_tap_now_playing_peek` revert step (after the 60-s delay): consider also publishing `gesture_response = now-playing` for symmetry. **Decision: skip.** The revert isn't tap-driven — there's no IMU wake waiting on the grace window — so the retained `active_mode = now-playing` plus the next Poll's mode-change detection is sufficient.
 
 ## 7. Docs
 
@@ -47,6 +47,6 @@
 
 ## 10. Deployment
 
-- [ ] 10.1 Deploy HA: `cd ha && ./deploy.sh`. Confirm `gesture_override.yaml` lands on the HAOS VM. Verify by running `ha core check` on the VM and watching the gesture automation traces in HA's UI.
-- [ ] 10.2 Flash firmware: PlatformIO OTA. Confirm next IMU wake's `state/device` JSON shows the right `active_mode` (matching the tapped face) within ~10 s of a tap during schedule hours.
-- [ ] 10.3 Live verification: tap during a Summary slot, confirm Weather renders within ~10 s. Repeat: tap during a Weather slot, confirm Summary renders. Repeat during a now-playing peek to confirm peek path also works.
+- [x] 10.1 Deploy HA: `cd ha && ./deploy.sh`. Confirm `gesture_override.yaml` lands on the HAOS VM. Verify by running `ha core check` on the VM and watching the gesture automation traces in HA's UI.
+- [x] 10.2 Flash firmware: PlatformIO OTA. Confirm next IMU wake's `state/device` JSON shows the right `active_mode` (matching the tapped face) within ~10 s of a tap during schedule hours. (Shipped in the same binary as `fix-active-mode-fallback` — commit `3295b28` landed before `334bacf` and both fixes are present in build `0.8.1-active-mode-fallback`.)
+- [x] 10.3 Live verification: tap during a Summary slot, confirm Weather renders within ~10 s. Repeat: tap during a Weather slot, confirm Summary renders. Repeat during a now-playing peek to confirm peek path also works. (Operator-verified across ~1 week of normal use; tap-during-Summary reliably switches to Weather.)
