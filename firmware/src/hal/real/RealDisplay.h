@@ -3,12 +3,20 @@
 
 #include <Arduino.h>
 #include <Inkplate.h>
+#include <Wire.h>
 
 #include <string>
 
 #include "hal/IDisplay.h"
 
 namespace fw::hal_real {
+
+// TPS65186 I2C address and PWR_GOOD register, per the TI datasheet and
+// the Soldered library's TPS65186.h. We hit the register directly rather
+// than going through the library so the read is independent of any
+// library-internal cached state.
+inline constexpr uint8_t kTpsAddr      = 0x48;
+inline constexpr uint8_t kTpsRegPwrGood = 0x0F;
 
 class RealDisplay : public hal::IDisplay {
  public:
@@ -100,6 +108,46 @@ class RealDisplay : public hal::IDisplay {
     // stuck, brownout, etc.). Idempotent — if the chip is already up, the
     // library returns 1 immediately without re-running the I2C config.
     return panel_.einkOn() == 1;
+  }
+
+  uint8_t readPwrGoodByte() override {
+    // Direct I2C read of TPS65186 register 0x0F. Bypasses the library so
+    // the value is the chip's current opinion, not a cached `_poweredUp`
+    // bool. 0xFA = all five rails good (healthy). 0xA0 = the partial-power
+    // wedge we diagnosed on 2026-05-17. 0xFF = chip did not ACK (likely
+    // because WAKEUP is low and rails are off — telemetry treats this as
+    // "down," but callers can distinguish).
+    Wire.beginTransmission(kTpsAddr);
+    Wire.write(kTpsRegPwrGood);
+    if (Wire.endTransmission(false) != 0) return 0xFF;  // repeated start
+    if (Wire.requestFrom((uint8_t)kTpsAddr, (uint8_t)1) != 1) return 0xFF;
+    return Wire.available() ? Wire.read() : 0xFF;
+  }
+
+  bool ensurePanelDown(uint32_t timeout_ms = 3000) override {
+    // 1) Tell the library to start its power-down sequence. einkOff() is
+    //    idempotent — if rails are already off it's effectively a no-op.
+    //    The library waits 250 ms internally then forces enableRails(false)
+    //    even if rails haven't actually collapsed.
+    panel_.einkOff();
+
+    // 2) Poll the chip directly until rails physically drain. 50 ms
+    //    cadence keeps the I2C load light; total budget = `timeout_ms`.
+    //    A clean draw cycle on a healthy chip reaches 0 in 100–200 ms;
+    //    we give 3 s of headroom for warm panels with slow cap discharge.
+    const uint32_t start = millis();
+    while ((millis() - start) < timeout_ms) {
+      const uint8_t pg = readPwrGoodByte();
+      // 0x00 — all rails reporting collapsed. Healthy off state.
+      // 0xFF — chip did not ACK. This is the expected reading when the
+      //        chip is fully powered down and WAKEUP is low; the chip's
+      //        I2C interface goes quiet. Treat as "down."
+      if (pg == 0x00 || pg == 0xFF) return true;
+      delay(50);
+    }
+    // Timed out with rails still partially up. This is the wedge-entry
+    // moment. The caller logs it and includes the byte in telemetry.
+    return false;
   }
 
  private:

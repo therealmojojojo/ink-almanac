@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
 
 #include "hal/HAL.h"
@@ -20,6 +21,17 @@ Reading read(hal::IBattery& b);
 // the live PMIC power-good state; HA reads it as a binary_sensor with
 // `device_class: problem` and alerts when the panel is wedged.
 //
+// `epd_pg_raw` is the raw PWR_GOOD register byte (0xFA healthy, 0xA0 the
+// partial-power wedge, 0xFF chip not responding). Carried alongside the
+// bool so HA can distinguish "chip wedged at 0xA0" from "chip not even
+// ACKing" without needing USB serial. See
+// openspec/changes/prevent-tps65186-partial-power-wedge.
+//
+// `epd_down_clean` is true if the previous draw cycle ended with rails
+// fully collapsed (PWR_GOOD reached 0 within the ensurePanelDown timeout),
+// false if it timed out with rails still partially up — i.e. the wedge
+// was *just entered* and the next wake will probably see einkOn fail.
+//
 // `diag` is the rendered fw::diag ring (compact text, ~900 chars max). nullable.
 //
 // `wifi_rssi` is the device's just-measured WiFi signal in dBm (0 means
@@ -38,6 +50,8 @@ std::string toDeviceStateJson(Reading r,
                               bool epd_pwrgood,
                               int wifi_rssi,
                               const char* diag = nullptr,
-                              const char* schedule_hash = nullptr);
+                              const char* schedule_hash = nullptr,
+                              uint8_t epd_pg_raw = 0xFA,
+                              bool epd_down_clean = true);
 
 }  // namespace fw::battery

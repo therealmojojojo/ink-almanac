@@ -33,8 +33,44 @@
       data:
         title: "Inkplate panel wedged"
         message: >-
-          EPD PMIC fault-latched.
+          EPD PMIC wedged at PWR_GOOD={{ states('sensor.inkplate_device_epd_pwr_good_raw') }}.
           Battery {{ states('sensor.inkplate_device_battery') }}%,
           last wake_reason {{ states('sensor.inkplate_device_wake_reason') }}.
           Recovery: remove the LiPo battery (the slider switch alone is
           insufficient — bulk caps hold VIN up). Re-insert after ~30 s.
+
+# Predictive warning — fires BEFORE the panel freezes. The
+# `epd_down_clean` boolean published by the firmware at the end of every
+# Full wake is false when the TPS65186's rails didn't drain to 0 within
+# the 3-second post-draw budget — meaning the chip just entered the
+# partial-power state that becomes a wedge on the next wake.
+#
+# The two-cycle debounce (31 min in Midday) keeps the warning quiet on
+# transient rail-discharge slowness while still landing ahead of the
+# actual freeze. The 4-hour re-notify throttle mirrors the wedged-alert
+# automation so a single incident produces at most two notifications
+# (warning, then confirmed-wedged ~30 min later).
+#
+# See openspec/changes/prevent-tps65186-partial-power-wedge.
+- id: inkplate_epd_down_unclean_warning
+  alias: "Inkplate: EPD clean-down failed — panel may freeze next wake"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.inkplate_device_epd_down_clean
+      to: "on"               # device_class: problem → "on" means unclean
+      for: "00:31:00"        # one Midday full-cycle window
+  condition:
+    - condition: template
+      value_template: >-
+        {% set last = state_attr('automation.inkplate_epd_down_unclean_warning','last_triggered') %}
+        {{ last is none or (now() - last).total_seconds() > 4*3600 }}
+  action:
+    - service: notify.inkplate_operator
+      data:
+        title: "Inkplate panel may freeze on next wake"
+        message: >-
+          PMIC rails did not drain cleanly (epd_down_clean=false on two
+          consecutive wakes). PWR_GOOD={{ states('sensor.inkplate_device_epd_pwr_good_raw') }}.
+          If a freeze follows, recovery is the same as the wedged alert:
+          remove the LiPo battery for ~30 s. Acting now (before the freeze)
+          gives you a chance to power-cycle while the panel is still drawing.

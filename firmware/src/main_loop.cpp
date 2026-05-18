@@ -597,6 +597,23 @@ void doFull(hal::HAL& h,
 
   if (diag && draw_succeeded) diag->flags |= 0x08;
 
+  // EPD clean-down probe. The Soldered library calls einkOff() internally
+  // at the end of display() / partialUpdate(), but with a hard 250 ms cap on
+  // waiting for rails to actually collapse — and on Inkplate 10 those rails
+  // can take longer than 250 ms to bleed below the chip's PG threshold.
+  // When the library gives up early, the chip's enable bit (0) disagrees
+  // with its physical rail state (partially up), and the next wake finds
+  // PWR_GOOD stuck at 0xA0 with no way to recover in software. We poll the
+  // PMIC directly here with a 3 s budget; a `false` return means we just
+  // entered the wedge and the *next* wake will probably fail einkOn().
+  // The result + raw PWR_GOOD byte get published in the state JSON below
+  // so HA can alert before the panel freezes for hours.
+  // See openspec/changes/prevent-tps65186-partial-power-wedge.
+  const bool epd_down_clean = h.display.ensurePanelDown(/*timeout_ms=*/3000);
+  const uint8_t epd_pg_raw = h.display.readPwrGoodByte();
+  FW_LOG("epd_down_clean=%d pg_raw=0x%02X",
+         epd_down_clean ? 1 : 0, static_cast<unsigned>(epd_pg_raw));
+
   if (mqtt) {
     auto reading = fw::battery::read(h.battery);
     const int wifi_rssi = h.transport.wifiRssi();
@@ -614,7 +631,8 @@ void doFull(hal::HAL& h,
     }
     auto json = fw::battery::toDeviceStateJson(
         reading, wake::toString(reason), fw::modes::toString(active),
-        fw::kBuildVersion, epd_pwrgood, wifi_rssi, diag_buf, sched_hash);
+        fw::kBuildVersion, epd_pwrgood, wifi_rssi, diag_buf, sched_hash,
+        epd_pg_raw, epd_down_clean);
     h.transport.mqttPublish(fw::config::kTopicDeviceState, json, /*retained=*/true);
 
     if (reason == wake::Reason::IMU && tap != fw::gestures::TapKind::None &&

@@ -87,11 +87,30 @@ mqtt:
       state_topic: "inkplate/state/device"
       value_template: "{{ value_json.schedule_hash | default('00000000') }}"
 
+    # Raw PWR_GOOD byte from the TPS65186 PMIC at the END of every Full
+    # wake (after the draw, after the library's einkOff()). Surfaced as
+    # a string sensor so HA Developer Tools shows e.g. "0x00" (healthy
+    # off), "0xFA" (still on — should be transient), "0xA0" (the
+    # partial-power wedge documented in
+    # openspec/changes/prevent-tps65186-partial-power-wedge), or "0xFF"
+    # (chip stopped ACKing — also a valid off state on Inkplate 10
+    # where the PMIC's I2C goes quiet with WAKEUP low).
+    #
+    # Use case: when the panel freezes, the operator opens this sensor
+    # to identify the wedge class without flashing the USB diagnostic.
+    # Entity_id is derived by HA from `name`: "EPD PWR_GOOD raw" →
+    # `sensor.inkplate_device_epd_pwr_good_raw`. (object_id isn't allowed
+    # in YAML-configured MQTT entities, so we accept HA's slugification.)
+    - name: "Inkplate device EPD PWR_GOOD raw"
+      unique_id: inkplate_device_epd_pg_raw
+      state_topic: "inkplate/state/device"
+      value_template: "{{ value_json.epd_pg_raw | default('0xFA') }}"
+
   binary_sensor:
     # EPD power-good — exposed by the firmware after probing the TPS65186
-    # PMIC at the start of every Full. False means the chip fault-latched
-    # (the panel will show stale pixels until the operator removes the LiPo;
-    # no software recovery exists on this hardware). See
+    # PMIC at the START of every Full (via einkOn()). False means the
+    # chip is wedged AT THIS WAKE; the panel will show stale pixels until
+    # the operator removes the LiPo. See
     # openspec/changes/add-epd-power-good-diagnostic for the alert path.
     - name: "Inkplate device EPD power good"
       unique_id: inkplate_device_epd_pwrgood
@@ -99,4 +118,19 @@ mqtt:
       device_class: problem
       value_template: "{{ value_json.epd_pwrgood }}"
       payload_on: "False"
+      payload_off: "True"
+
+    # EPD clean-down — exposed by the firmware after the draw and
+    # ensurePanelDown probe at the END of every Full. False means the
+    # rails didn't drain in the 3-second budget, i.e. the wedge has
+    # *just been entered* and the NEXT wake will probably find
+    # epd_power_good = false. This is a PREDICTIVE warning: it fires
+    # ahead of the freeze, not after. See
+    # openspec/changes/prevent-tps65186-partial-power-wedge.
+    - name: "Inkplate device EPD down clean"
+      unique_id: inkplate_device_epd_down_clean
+      state_topic: "inkplate/state/device"
+      device_class: problem
+      value_template: "{{ value_json.epd_down_clean }}"
+      payload_on: "False"   # device_class=problem inverts: on = problem (unclean)
       payload_off: "True"

@@ -16,7 +16,9 @@ std::string toDeviceStateJson(Reading r,
                               bool epd_pwrgood,
                               int wifi_rssi,
                               const char* diag,
-                              const char* schedule_hash) {
+                              const char* schedule_hash,
+                              uint8_t epd_pg_raw,
+                              bool epd_down_clean) {
   // 1.5 KB is enough for all fixed fields plus the ring (~900 chars max).
   char buf[1536];
   const char* sched = (schedule_hash && *schedule_hash) ? schedule_hash : "00000000";
@@ -25,12 +27,15 @@ std::string toDeviceStateJson(Reading r,
         buf, sizeof(buf),
         "{\"voltage\":%.2f,\"percentage\":%d,\"wake_reason\":\"%s\","
         "\"active_mode\":\"%s\",\"build\":\"%s\",\"epd_pwrgood\":%s,"
+        "\"epd_pg_raw\":\"0x%02X\",\"epd_down_clean\":%s,"
         "\"wifi_rssi\":%d,\"schedule_hash\":\"%s\",\"diag\":\"%s\"}",
         static_cast<double>(r.voltage), r.percentage,
         wake_reason ? wake_reason : "",
         active_mode ? active_mode : "",
         build_version ? build_version : "",
         epd_pwrgood ? "true" : "false",
+        static_cast<unsigned>(epd_pg_raw),
+        epd_down_clean ? "true" : "false",
         wifi_rssi,
         sched,
         diag);
@@ -39,12 +44,15 @@ std::string toDeviceStateJson(Reading r,
         buf, sizeof(buf),
         "{\"voltage\":%.2f,\"percentage\":%d,\"wake_reason\":\"%s\","
         "\"active_mode\":\"%s\",\"build\":\"%s\",\"epd_pwrgood\":%s,"
+        "\"epd_pg_raw\":\"0x%02X\",\"epd_down_clean\":%s,"
         "\"wifi_rssi\":%d,\"schedule_hash\":\"%s\"}",
         static_cast<double>(r.voltage), r.percentage,
         wake_reason ? wake_reason : "",
         active_mode ? active_mode : "",
         build_version ? build_version : "",
         epd_pwrgood ? "true" : "false",
+        static_cast<unsigned>(epd_pg_raw),
+        epd_down_clean ? "true" : "false",
         wifi_rssi,
         sched);
   }
