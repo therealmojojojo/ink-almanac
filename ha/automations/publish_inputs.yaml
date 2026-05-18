@@ -235,11 +235,21 @@
     - service: mqtt.publish
       data:
         topic: inkplate/state/now_playing_track
+        # Use the title|artist|album composite as the per-track hash key —
+        # NOT media_content_id. On Spotify Connect, Sonos reports a stable
+        # connect-session URI as media_content_id (e.g.
+        # `x-sonos-vli:RINCON_…,spotify:<32hex>`) that does not change across
+        # tracks, so a content_id-keyed hash would never promote the
+        # firmware's NowPlaying Poll to a Full and the panel would stay on
+        # the first track of the session indefinitely. title/artist/album do
+        # change per track. The renderer's classical enrichment still reads
+        # the raw media_content_id field from sonos.json above (for the
+        # `spotify:track:<id>` URI form), so this only narrows the hash
+        # signal, not the sidecar.
         payload: >-
-          {{ state_attr('media_player.kitchen_sonos','media_content_id')
-             or (state_attr('media_player.kitchen_sonos','media_title') ~ '|'
-                 ~ state_attr('media_player.kitchen_sonos','media_artist') ~ '|'
-                 ~ state_attr('media_player.kitchen_sonos','media_album_name')) }}
+          {{ state_attr('media_player.kitchen_sonos','media_title') ~ '|'
+             ~ state_attr('media_player.kitchen_sonos','media_artist') ~ '|'
+             ~ state_attr('media_player.kitchen_sonos','media_album_name') }}
         retain: true
         qos: 0
 
