@@ -20,13 +20,13 @@ ha/
 ├── sensors/             template / rest / scrape sensors
 ├── scripts/             helper scripts invoked via shell_command
 │                        (LLM line generators, pairing runner)
-├── config/              operator-editable lists (poetic_weather, news_sources,
+├── config/              operator-editable lists (poetic_weather,
 │                        night_fallback_lines, now_playing_sources)
 ├── integrations/        included from configuration.yaml — helpers,
 │                        rest_commands, shell_commands, command_line_sensors,
 │                        weather_forecast template
-├── state/               runtime state files (poetic_weather.txt, astro_event.txt,
-│                        curated_news.json) — gitignored
+├── state/               runtime state files (poetic_weather.txt,
+│                        astro_event.txt) — gitignored
 ├── docs/                architecture, deploy, troubleshooting, sleep-strategy
 ├── deploy.sh            rsync + ha core check + restart over SSH
 ├── secrets.yaml.example copy to secrets.yaml, fill in, never commit
@@ -120,7 +120,7 @@ with HA's view of the world. Five publishers, all gated on
 
 The daily triplet — `pairing/publish_today.py` over SSH at 06:00 — writes
 `pairing.json`, `companion.jpg`, `gallery.jpg`, `nocturne.jpg`, and
-`news.json` (the smart-pill body) directly via filesystem on the
+`smart_pill.json` (the smart-pill body) directly via filesystem on the
 renderer host. It does NOT go through the HA REST publisher.
 
 Smart-pill content is **deterministic per-day**: read from the summary
@@ -158,15 +158,12 @@ HA_HOST=${HA_HOST} HA_SSH_PORT=2222 HA_USER=root HA_SSH_KEY=~/.ssh/id_ed25519 ma
 The script:
 
 1. Verifies SSH connectivity to the HAOS VM.
-2. Optionally regenerates `sensors/news_sources.yaml` from
-   `config/news_sources.yaml` (if you maintain RSS feed sensors for
-   custom dashboards).
-3. Wipes `/config/custom/inkplate/*` (preserving `state/` runtime artifacts).
-4. Streams the `ha/` tree over SSH and untars on the VM.
-5. Streams `secrets.yaml` separately to `/config/custom/inkplate/secrets.yaml`.
-6. Runs `ha core check && ha core restart` (full restart — `ha core reload`
+2. Wipes `/config/custom/inkplate/*` (preserving `state/` runtime artifacts).
+3. Streams the `ha/` tree over SSH and untars on the VM.
+4. Streams `secrets.yaml` separately to `/config/custom/inkplate/secrets.yaml`.
+5. Runs `ha core check && ha core restart` (full restart — `ha core reload`
    doesn't pick up newly-introduced helpers / entities).
-7. Tails the recent HA log for visible errors.
+6. Tails the recent HA log for visible errors.
 
 A 30-60 s blackout window during the restart is normal.
 

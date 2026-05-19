@@ -111,8 +111,13 @@ export const sonosInput = z.object({
   first_release_year: z.string().optional(),
 });
 
-export const newsInput = z.object({
-  items: z.array(z.object({ body: z.string() })).max(1),
+// The Summary face's smart-pill input. Flat shape: a single `body` string,
+// optional so missing/empty bodies route through the placeholder branch in
+// `summary.ts`. Previously wrapped as `{ count, items: [{ body }] }` from the
+// dead RSS scaffolding; flattened in drop-news-rename-smart-pill once the
+// dynamic news pipeline was removed and only `items[0].body` was ever read.
+export const smartPillInput = z.object({
+  body: z.string().optional(),
 });
 
 const form = z.enum([
@@ -211,7 +216,7 @@ export const SCHEMAS = {
   summary: z.object({
     clock: clockInput,
     weather: weatherInput,
-    news: newsInput,
+    smart_pill: smartPillInput,
     pairing: pairingInput,
     sonos: sonosInput.optional(),
     device: deviceInput.optional(),

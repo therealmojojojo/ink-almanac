@@ -32,11 +32,6 @@ rest_command:
     # Body assembled by the driving automation and passed as `body`.
     payload: "{{ body }}"
 
-  # inkplate_publish_news removed: the Smart pill's news.json is written
-  # directly by pairing/publish_today.py at 06:00 daily (over the renderer-
-  # host SSH path), sourced from the day's summary item sidecar
-  # `summary.smart_pill.body`. No HA-side publisher needed.
-
   inkplate_publish_device:
     url: "http://${RENDERER_HOST}:8575/inputs/device"
     method: post

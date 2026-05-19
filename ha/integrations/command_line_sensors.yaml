@@ -5,11 +5,6 @@
 # !include_dir_merge_list but the new dict-root format isn't).
 
 command_line:
-  # (inkplate_curated_news sensor removed alongside the curated-news live
-  # regeneration pipeline. The Smart pill is now sourced from the
-  # deterministic per-day `summary.smart_pill.body` field, staged into
-  # renderer/inputs/news.json directly by pairing/publish_today.py.)
-
   # Night-mode poetic weather line — reads the file written by
   # generate_poetic_weather_line.sh. scan_interval keeps the sensor fresh
   # within minutes of new generations; the publish_weather automation triggers

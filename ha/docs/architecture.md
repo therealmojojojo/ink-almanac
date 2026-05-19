@@ -25,7 +25,6 @@ and the renderer are otherwise stateless.
 │   ├─ weather_template.yaml  renderer-facing fields × 2 locations │
 │   ├─ kitchen_climate.yaml   aliased to chosen physical sensor    │
 │   ├─ hn.yaml                HN top-5 every 30min                 │
-│   ├─ news_sources.yaml      AUTOGEN from config/news_sources.yaml│
 │   └─ astro.yaml             sunrise/sunset/moon/astro_event      │
 │                                                                  │
 │  automations/                                                     │
@@ -52,15 +51,13 @@ and the renderer are otherwise stateless.
 │   ├─ purge_stale_sonos_art.sh      daily cache prune              │
 │   ├─ generate_astro_event.{py,sh}  tonight's astronomy line       │
 │   ├─ generate_poetic_weather_line.sh  Claude / Ollama call        │
-│   ├─ validate_wake_schedule.py     used by publish_wake_schedule  │
-│   └─ generate_news_sensors.py      legacy RSS sensors (optional)  │
+│   └─ validate_wake_schedule.py     used by publish_wake_schedule  │
 │                                                                  │
 │  config/                                                          │
 │   ├─ wake_schedule.yaml     operator-editable per-tier cadences   │
 │   ├─ poetic_weather_line.yaml                                     │
 │   ├─ night_fallback_lines.yaml                                    │
-│   ├─ now_playing_sources.yaml                                     │
-│   └─ news_sources.yaml      (legacy RSS list)                     │
+│   └─ now_playing_sources.yaml                                     │
 │                                                                  │
 │  state/                                                           │
 │   └─ poetic_weather.txt     latest line, read by renderer         │
@@ -102,7 +99,7 @@ Gated by `input_boolean.inkplate_publisher_enabled` (master kill-switch).
 | `device` | MQTT trigger on retained `inkplate/state/device`; HA start | battery percentage + voltage + build + wifi_rssi + epd_pwrgood |
 | `sonos` | state / `media_content_id` change on `media_player.kitchen_sonos`; HA start | Sonos entity attributes (title, artist, album, `media_content_id`, `source_indicator`, `art_url` via `/ha-proxy` same-origin route). The renderer enriches via Spotify+MusicBrainz when a `media_content_id` is present. |
 | `pairing` (pool) | One-shot, operator-fired via `shell_command.generate_triplets` (SSH → triplet builder) | `corpus/_triplets/*.yaml` on the Mac (rebuilds the rotation pool) |
-| `pairing` (today) | Daily 06:00 via `shell_command.publish_today_pairing` (SSH → `python3 pairing/publish_today.py`) | Picks today's triplet by sequence rotation; writes `renderer/inputs/{pairing,news}.json` + companion/gallery/nocturne binaries. The smart-pill body is read from the summary item's YAML sidecar (`summary.smart_pill.body`) and staged as `news.json` — deterministic per-day, no runtime LLM regen. |
+| `pairing` (today) | Daily 06:00 via `shell_command.publish_today_pairing` (SSH → `python3 pairing/publish_today.py`) | Picks today's triplet by sequence rotation; writes `renderer/inputs/{pairing,smart_pill}.json` + companion/gallery/nocturne binaries. The smart-pill body is read from the summary item's YAML sidecar (`summary.smart_pill.body`) and staged as `smart_pill.json` — deterministic per-day, no runtime LLM regen. |
 
 Failure handling: HA's `rest_command` does not retry. A connection-refused
 or 5xx is logged at `warning` and the next natural trigger re-publishes.

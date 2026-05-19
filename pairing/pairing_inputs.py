@@ -78,7 +78,7 @@ def load_triplets_sorted() -> list[dict]:
 
 def prepare_renderer_inputs(triplet: dict, items: dict[str, dict]) -> dict:
     """Write `renderer/inputs/pairing.json` + companion.jpg / gallery.jpg /
-    nocturne.jpg + news.json (smart-pill body) for the given triplet.
+    nocturne.jpg + smart_pill.json (smart-pill body) for the given triplet.
 
     Returns the pairing dict written, for diagnostics."""
     summary = items.get(triplet.get("summary") or "")
@@ -228,11 +228,17 @@ def prepare_renderer_inputs(triplet: dict, items: dict[str, dict]) -> dict:
         json.dumps(pairing, indent=2, ensure_ascii=False) + "\n")
 
     # --- Smart pill body (from summary item's YAML sidecar) --------------
+    # Flat shape `{body: "..."}`; the wrapper `{count, items: [{body}]}` was
+    # residue from the dead RSS news scaffolding (drop-news-rename-smart-pill).
     sp_body = ""
     if summary and isinstance(summary.get("smart_pill"), dict):
         sp_body = (summary["smart_pill"].get("body") or "").strip()
-    news = {"count": 1, "items": [{"body": sp_body}]} if sp_body else {"count": 0, "items": []}
-    (RENDERER_INPUTS / "news.json").write_text(
-        json.dumps(news, indent=2, ensure_ascii=False) + "\n")
+    smart_pill = {"body": sp_body} if sp_body else {}
+    (RENDERER_INPUTS / "smart_pill.json").write_text(
+        json.dumps(smart_pill, indent=2, ensure_ascii=False) + "\n")
+    # Defensive: remove the old runtime file if a previous publish run wrote it,
+    # so a stale `news.json` can't shadow the new `smart_pill.json` if anyone
+    # ever readded `news` to the renderer's WRITABLE_INPUTS by accident.
+    (RENDERER_INPUTS / "news.json").unlink(missing_ok=True)
 
     return pairing

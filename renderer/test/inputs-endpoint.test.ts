@@ -23,7 +23,7 @@ beforeAll(async () => {
   workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'inkplate-inputs-'));
   // Seed the minimal set required by summary so we can exercise end-to-end.
   const fixtures = path.resolve(__dirname, 'fixtures');
-  for (const name of ['clock', 'weather', 'news', 'pairing']) {
+  for (const name of ['clock', 'weather', 'smart_pill', 'pairing']) {
     const src = path.join(fixtures, `${name}.json`);
     const dst = path.join(workDir, `${name}.json`);
     await fs.copyFile(src, dst);

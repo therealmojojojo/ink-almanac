@@ -84,7 +84,7 @@ python3 pairing/publish_today.py     # picker v2: tier-aware summary
 ```
 
 Picks today's triplet by sequence rotation and stages
-`renderer/inputs/{pairing,news}.json` plus the companion / gallery /
+`renderer/inputs/{pairing,smart_pill}.json` plus the companion / gallery /
 nocturne binaries. Smart-pill body is read deterministically from the
 summary item's YAML sidecar (`summary.smart_pill.body`) — no runtime
 LLM regen. Rotation anchor in `pairing/_state/triplet_epoch.json`.

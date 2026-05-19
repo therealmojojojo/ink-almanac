@@ -253,15 +253,7 @@
         retain: true
         qos: 0
 
-# 4. (Smart-pill / news previously published here from a live LLM regen
-#     pipeline.) Removed — the Summary face's smart pill is now sourced
-#     from the deterministic per-day sidecar field `summary.smart_pill.body`,
-#     written to renderer/inputs/news.json by `pairing/publish_today.py` at
-#     06:00 daily over the renderer-host SSH path. No HA-side publisher and
-#     no live Claude regeneration is involved any more, so the smart pill
-#     is stable across HA restarts and across the day.
-
-# 5. Device — MQTT trigger on retained `inkplate/state/device`. Re-publishes
+# 4. Device — MQTT trigger on retained `inkplate/state/device`. Re-publishes
 #    into renderer/inputs/device.json on every device wake.
 - alias: "Inkplate: publish device state"
   id: inkplate_publish_device

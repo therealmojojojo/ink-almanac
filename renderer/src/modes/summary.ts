@@ -315,16 +315,16 @@ function buildSmartPill(input: SummaryInput, _variant: SummaryVariant): string {
   // that 28u accommodates every authored pill body in the corpus without
   // dropping below the 25u readability floor. Bodies authored above 455
   // chars overflow visibly so the operator catches them at ingestion.
-  const first = input.news.items[0];
-  if (!first) {
+  const body = input.smart_pill?.body;
+  if (!body) {
     return `<section class="summary-smart-pill">
-  <div class="news"><div class="item"><div class="body placeholder-dash"></div></div></div>
+  <div class="body placeholder-dash"></div>
 </section>`;
   }
-  const safe = applyZone('news_body', first.body);
+  const safe = applyZone('smart_pill_body', body);
   const bodyHtml = boldHeadword(escapeHtml(safe));
   return `<section class="summary-smart-pill">
-  <div class="news"><div class="item"><div class="body">${bodyHtml}</div></div></div>
+  <div class="body">${bodyHtml}</div>
 </section>`;
 }
 

@@ -90,7 +90,7 @@ def main() -> int:
         return 0
 
     pairing = prepare_renderer_inputs(triplet, items)
-    print(f"  wrote: renderer/inputs/{{pairing,news}}.json + companion/gallery/nocturne.jpg")
+    print(f"  wrote: renderer/inputs/{{pairing,smart_pill}}.json + companion/gallery/nocturne.jpg")
     return 0
 
 

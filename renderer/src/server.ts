@@ -31,7 +31,7 @@ import { enrichFromSonos } from './enrichment/index.js';
 const WRITABLE_INPUTS = new Set([
   'clock',
   'weather',
-  'news',
+  'smart_pill',
   'pairing',
   'sonos',
   'device',

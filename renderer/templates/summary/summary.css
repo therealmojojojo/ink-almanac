@@ -1,9 +1,8 @@
 /*
  * Summary: three-band composition per dashboard-faces/spec.md.
- * Bottom-right supports three variants via `data-variant`:
- *   a (default) = climate + 2 HN items
- *   b           = news-only, 3 HN items with climate inline
- *   c           = climate-dominant with a single soft news line
+ * Bottom-right is the Smart pill — a single deep-dive entry bound to
+ * the day's companion text. (Historical multi-variant news layout was
+ * removed when the curated-news regen was dropped.)
  */
 
 .summary-root {
@@ -552,23 +551,14 @@
  * weight equal to the delight cell on the left. */
 .summary-smart-pill {
   gap: calc(12 * var(--u));
+  justify-content: center;
 }
 .summary-smart-pill .label {
   padding-bottom: calc(10 * var(--u));
   border-bottom: var(--rule-faint);
   margin-bottom: calc(4 * var(--u));
 }
-.summary-smart-pill .news {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: calc(12 * var(--u));
-}
-.summary-smart-pill .news .item {
-  padding-bottom: calc(8 * var(--u));
-}
-.summary-smart-pill .news .item .body {
+.summary-smart-pill .body {
   font-family: var(--font-sans);
   font-weight: 400;
   /* Fixed 28u + 1.1 line-height. Validated against the corpus via the
@@ -582,9 +572,10 @@
   text-align: justify;
   text-justify: inter-word;
   hyphens: auto;
+  padding-bottom: calc(8 * var(--u));
 }
 /* Headword (markdown `*word*` converted to <strong>) reads with extra
  * weight so it lands as the entry's anchor at glance distance. */
-.summary-smart-pill .news .item .body strong {
+.summary-smart-pill .body strong {
   font-weight: 600;
 }

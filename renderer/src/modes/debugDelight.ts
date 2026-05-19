@@ -6,7 +6,7 @@
  *
  * Not wired into the production face rotation. Loads corpus text directly,
  * synthesises a SummaryInput around it (real clock + the existing
- * weather/news/device inputs so the cell renders in real face context),
+ * weather/smart_pill/device inputs so the cell renders in real face context),
  * and post-processes the HTML to inject CSS overrides for the cell under
  * test.
  */
@@ -305,11 +305,11 @@ function toHaikuDoc(t: CorpusText, fallbackId: string): HaikuDoc | null {
 }
 
 /** Build a synthetic Summary input where the delight cell holds the supplied
- *  bilingual haiku. Other zones (weather/news/clock/device) come from the
- *  renderer's current `inputs/` so the face renders in real context. */
+ *  bilingual haiku. Other zones (weather/smart_pill/clock/device) come from
+ *  the renderer's current `inputs/` so the face renders in real context. */
 async function gatherSummaryWithDelight(haiku: HaikuDoc): Promise<unknown> {
   const weather = await requireInput('weather');
-  const news = await requireInput('news');
+  const smart_pill = await requireInput('smart_pill');
   const sonos = await loadInput('sonos');
   const device = await loadInput('device');
 
@@ -349,7 +349,7 @@ async function gatherSummaryWithDelight(haiku: HaikuDoc): Promise<unknown> {
     },
   };
 
-  return { clock: { time, date }, weather, news, pairing, sonos, device };
+  return { clock: { time, date }, weather, smart_pill, pairing, sonos, device };
 }
 
 /** Inject a `<style>` block at the end of the document head (before `</head>`)
@@ -451,10 +451,10 @@ export async function listSmartPillTexts(): Promise<Array<{ id: string; form?: s
 // --- smart-pill geometry ---------------------------------------------------
 // Mirrors `summary.ts`'s `smartPillFontSize` constants. The cell is a fixed
 // 437×408 box with IBM Plex Sans, line-height ratio 1.35 in production. The
-// `.summary-smart-pill .news .item { padding-bottom: 8u }` is the only
-// vertical-pad addition the override can claw back; with `pad=0` we strip
-// that and switch the news flex from `justify-content: center` to
-// `flex-start` so any short bodies top-align rather than visually float.
+// `.summary-smart-pill .body { padding-bottom: 8u }` is the only vertical-pad
+// addition the override can claw back; with `pad=0` we strip that and switch
+// the pill flex from `justify-content: center` to `flex-start` so any short
+// bodies top-align rather than visually float.
 const PILL_W = 437;
 const PILL_H = 408;
 // Empirical char-width factor for IBM Plex Sans rendered with text-align:
@@ -503,12 +503,13 @@ export interface SmartPillTestOptions {
   size?: number;
   /** Body line-height as a unitless ratio. Default 1.35 (production). */
   lineHeight?: number;
-  /** When false (`pad=0`), strips `.item { padding-bottom: 8u }` and switches
-   *  `.news { justify-content }` from `center` to `flex-start`. Default true. */
+  /** When false (`pad=0`), strips `.body { padding-bottom: 8u }` and switches
+   *  `.summary-smart-pill { justify-content }` from `center` to `flex-start`.
+   *  Default true. */
   pad?: boolean;
 }
 
-/** Synthesise a SummaryInput where `news.items[0].body` carries the supplied
+/** Synthesise a SummaryInput where `smart_pill.body` carries the supplied
  *  pill body. Other zones come from the renderer's current `inputs/`. */
 async function gatherSummaryWithPill(body: string): Promise<unknown> {
   const weather = await requireInput('weather');
@@ -525,11 +526,11 @@ async function gatherSummaryWithPill(body: string): Promise<unknown> {
     new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', timeZone: tz }).format(now)
   }`;
 
-  // Override news.items so the pill cell shows the body under test, regardless
-  // of what's currently in `inputs/news.json`. count=1 mirrors HA's publisher.
-  const news = { count: 1, items: [{ body }] };
+  // Override smart_pill so the pill cell shows the body under test, regardless
+  // of what's currently in `inputs/smart_pill.json`.
+  const smart_pill = { body };
 
-  return { clock: { time, date }, weather, news, pairing, sonos, device };
+  return { clock: { time, date }, weather, smart_pill, pairing, sonos, device };
 }
 
 function injectPillOverride(
@@ -541,11 +542,11 @@ function injectPillOverride(
   const padCss = pad
     ? ''
     : `
-  .summary-smart-pill .news { justify-content: flex-start !important; }
-  .summary-smart-pill .news .item { padding-bottom: 0 !important; }`;
+  .summary-smart-pill { justify-content: flex-start !important; }
+  .summary-smart-pill .body { padding-bottom: 0 !important; }`;
   const css = `
 <style data-debug="smart-pill-test">
-  .summary-smart-pill .news .item .body {
+  .summary-smart-pill .body {
     font-size: calc(${size} * var(--u)) !important;
     line-height: ${lineHeight} !important;
   }${padCss}
@@ -612,8 +613,8 @@ async function gatherSummaryWithTextAndPill(text: CorpusText, pillBody: string):
       companion,
     },
   };
-  const news = { count: 1, items: [{ body: pillBody }] };
-  return { clock: { time, date }, weather, news, pairing, sonos, device };
+  const smart_pill = { body: pillBody };
+  return { clock: { time, date }, weather, smart_pill, pairing, sonos, device };
 }
 
 export async function prepareTextSummaryTest(id: string): Promise<ModePrepared> {
@@ -931,8 +932,8 @@ function injectFaceOverride(html: string, p: FaceTestParams): string {
   const padCss = p.pillPad
     ? ''
     : `
-  .summary-smart-pill .news { justify-content: flex-start !important; }
-  .summary-smart-pill .news .item { padding-bottom: 0 !important; }`;
+  .summary-smart-pill { justify-content: flex-start !important; }
+  .summary-smart-pill .body { padding-bottom: 0 !important; }`;
   const delightSizeCss = p.delightSize
     ? `
   .summary-delight.text .body[data-form] { font-size: calc(${p.delightSize} * var(--u)) !important; }`
@@ -944,7 +945,7 @@ function injectFaceOverride(html: string, p: FaceTestParams): string {
   }${delightSizeCss}
   .summary-delight.anthology .body .ja { font-size: calc(${p.jaSize} * var(--u)) !important; }
   .summary-delight.anthology .body .en { font-size: calc(${p.enSize} * var(--u)) !important; }
-  .summary-smart-pill .news .item .body {
+  .summary-smart-pill .body {
     font-size: calc(${p.pillSize} * var(--u)) !important;
     line-height: ${p.pillLineHeight} !important;
   }${padCss}
@@ -972,7 +973,7 @@ async function gatherSummaryForTriplet(triplet: Triplet, text: CorpusText): Prom
 
   // Pill body comes from the summary slot's text on every flavor.
   const pillBody = text.smart_pill_body ?? '';
-  const news = { count: 1, items: [{ body: pillBody }] };
+  const smart_pill = { body: pillBody };
 
   // Delight: render the summary-slot text in every triplet (regardless of
   // flavor) so each card exercises both cells with real content. This
@@ -1008,7 +1009,7 @@ async function gatherSummaryForTriplet(triplet: Triplet, text: CorpusText): Prom
     gallery: galleryBlock,
   };
 
-  return { clock: { time, date }, weather, news, pairing, sonos, device };
+  return { clock: { time, date }, weather, smart_pill, pairing, sonos, device };
 }
 
 export async function prepareFaceTest(triplet_id: string, p: FaceTestParams): Promise<ModePrepared> {

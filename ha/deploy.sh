@@ -44,12 +44,6 @@ if ! ssh "${SSH_OPTS[@]}" -o ConnectTimeout=5 "$SSH_TARGET" "true"; then
   exit 3
 fi
 
-# --- Regenerate per-source news sensors from the YAML declaration ---
-if [[ -f "$HA_DIR/config/news_sources.yaml" ]]; then
-  echo "→ Regenerating news sensors"
-  python3 "$HA_DIR/scripts/generate_news_sensors.py"
-fi
-
 # --- Deploy ---
 # The HA SSH add-on doesn't include rsync, so we stream a tarball over ssh and
 # extract it on the VM. `--delete` semantics are reproduced by wiping the

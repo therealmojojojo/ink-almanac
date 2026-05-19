@@ -21,7 +21,7 @@ export const ZONES = {
   // ---- Summary ----------------------------------------------------------
   weather_cond:    { maxChars: 18, maxLines: 1, kind: 'prose' },
   forecast_cond:   { maxChars: 14, maxLines: 1, kind: 'prose' },
-  news_body:       { maxChars: 50, maxLines: 14, kind: 'prose' },
+  smart_pill_body: { maxChars: 50, maxLines: 14, kind: 'prose' },
   climate_label:   { maxChars: 12, maxLines: 1, kind: 'prose' },
   // The delight cell handles fit via metric-driven font ladder + CSS
   // `overflow: hidden` clip. The zone is now a wide prose backstop only

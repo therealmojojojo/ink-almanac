@@ -36,10 +36,6 @@ shell_command:
     bash /config/custom/inkplate/scripts/generate_astro_event.sh
     "{{ lat }}" "{{ lon }}" "{{ tz_offset }}"
 
-  # generate_curated_news removed — the Smart pill is now sourced from the
-  # day's summary item sidecar (`summary.smart_pill.body`) by
-  # pairing/publish_today.py, no live Claude regeneration.
-
   fetch_sonos_art: >-
     /usr/bin/env bash -c '
     cd /config/custom/inkplate/scripts &&
