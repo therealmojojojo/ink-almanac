@@ -1,6 +1,18 @@
 # Add Night text-clock partial refreshes (and pool-only poetic line)
 
-> **Status — 2026-05-05**: draft. No code yet. Supersedes the unimplemented `replace-poetic-llm-with-pool`.
+> **Status — 2026-05-19**: re-audited; still applicable, still no code. All preconditions hold:
+> - Night's `partial_min` is still `15` (per `ha/config/wake_schedule.yaml:65`) so the 25 partials per night still fail or no-op as described.
+> - The renderer's `GET /display/night/clock-zone.json` still returns **404**.
+> - Firmware has zero hits for `night_phrase`, `phraseForMinute`, or `bake-night-phrases`.
+> - The bake-precedent tool `renderer/src/tools/bake-clock-glyphs.ts` (400 lines) is intact; generated `firmware/src/generated/clock_glyphs.{h,cpp}` are intact.
+> - `ha/scripts/generate_poetic_weather_line.sh` still hits `api.anthropic.com/v1/messages` (model bumped to `claude-haiku-4-5-20251001` since the proposal was drafted; otherwise unchanged).
+>
+> Three small drifts since 2026-05-05:
+> 1. **Pool is already richer than the proposal targets.** Today: **8 lines × 14 buckets = 112 entries** in `ha/config/night_fallback_lines.yaml`. Proposal target was "5 × 13 = 65." The "expand pool" step is mostly done; the rename + voice-check are what's left.
+> 2. **`renderer/src/modes/night.ts::nightPhrase(h, m)` already produces the exact 25-phrase vocabulary the bake tool needs.** The proposal hardcodes the phrase list in the bake tool; the cleaner alternative is to call the renderer's existing `nightPhrase()` directly so renderer and firmware stay in lockstep. Single source of truth, no drift.
+> 3. **Flash budget is essentially unchanged: 81.9% today** (1,072,937 / 1,310,720 bytes), vs the 82.0% in the proposal. The +150 KB phrase-bitmap estimate still lands at ~93%. Headroom analysis holds.
+>
+> Supersedes the unimplemented `replace-poetic-llm-with-pool` (whose directory no longer exists in `openspec/changes/`).
 
 ## Why
 
@@ -76,6 +88,15 @@ via Playwright at the Night face's CSS-defined clock font / size /
 style, thresholds to 1-bit, packs into a binary table, and emits
 `firmware/src/generated/night_phrases.{h,cpp}` with:
 
+The bake tool SHOULD source the 25 phrases by importing
+`renderer/src/modes/night.ts::nightPhrase(h, m)` and iterating
+`for m_of_day in 22*60..(6*60+30) step 15 where m_of_day % 15 == 0`
+rather than hardcoding the phrase list. The renderer already owns
+the canonical phrase vocabulary; reusing the function keeps the
+runtime PNG and the baked bitmaps lockstep-consistent. (The proposal
+originally hardcoded the list; reuse was identified during the
+2026-05-19 audit.)
+
 - A `NightPhraseBitmap` struct (`width`, `height`, `data` ptr).
 - A `phraseForMinute(int min_of_day) → const NightPhraseBitmap*` lookup.
   Returns `nullptr` for any minute outside the 25-entry partial set.
@@ -128,10 +149,15 @@ for now means a fallback if the firmware partial path fails).
 - **Rename**: `ha/config/night_fallback_lines.yaml` →
   `ha/config/night_poetic_pool.yaml`. The file is no longer a
   "fallback"; it's the only source of truth.
-- **Replace contents**: 5 lines per bucket × 13 buckets = 65 lines,
-  English-only (drop Romanian-diacritic support), per the seed pool
-  in `examples/night_poetic_pool.yaml`. Operator may grow buckets to
-  8–15 entries later for less repetition.
+- **Pool contents — already largely in place.** As of 2026-05-19 the
+  pool holds **8 lines × 14 buckets = 112 entries** (clear_cold,
+  clear_mild, clear_warm, partly_cloudy, cloudy, cloudy_cold, fog,
+  drizzle, rain, pouring, thunderstorm, snow, sleet, windy_dry). The
+  proposal's "5 × 13 = 65" target is already exceeded. Remaining work
+  in this section is: (a) the rename; (b) drop Romanian-diacritic
+  support from the validator (no current entry uses Romanian so this
+  is a no-op for content); (c) voice-check the existing entries once
+  more before they become the only source.
 - **Slim the picker**: `ha/scripts/generate_poetic_weather_line.sh`
   becomes a ~40-LOC pool-picker — drop the API key load, request body,
   response parsing, and length-clamping. Validate length + charset

@@ -1,8 +1,10 @@
 # Tasks — Night text-clock partials + pool-only poetic line
 
+> **Status — 2026-05-19**: 0/41 complete; nothing started. Audit confirms all preconditions still apply (Night `partial_min=15`, clock-zone.json still 404, no firmware phrase code, flash at 81.9%, LLM still hourly with model = `claude-haiku-4-5-20251001`). Three drifts noted in `proposal.md` status block: pool already at 8×14=112 entries; bake tool SHOULD reuse `renderer/src/modes/night.ts::nightPhrase` (single source of truth) instead of hardcoding the phrase list; `replace-poetic-llm-with-pool` directory is already gone (§12.1 below is therefore a no-op).
+
 ## 1. Renderer — bake-night-phrases tool
 
-- [ ] 1.1 New `renderer/src/tools/bake-night-phrases.ts`. Reads the Night face's CSS for the phrase element's font-family, font-size, font-weight, color. Hardcodes the 25-entry phrase list (see `proposal.md` §A). For each phrase: render via Playwright headless Chromium, threshold to 1-bit, tight-bounding-box crop. Emit `firmware/src/generated/night_phrases.h` (struct decl + `phraseForMinute` decl) and `night_phrases.cpp` (constexpr bitmap arrays + switch-statement lookup).
+- [ ] 1.1 New `renderer/src/tools/bake-night-phrases.ts`. Reads the Night face's CSS for the phrase element's font-family, font-size, font-weight, color. **Sources the 25 phrases by importing `renderer/src/modes/night.ts::nightPhrase(h, m)` and iterating over the partial-eligible minutes** (every 15 min in the Night tier, where `min_of_day % 15 == 0`, in the 22:00–06:30 window) — keeps the runtime PNG and baked bitmaps lockstep-consistent. For each phrase: render via Playwright headless Chromium, threshold to 1-bit, tight-bounding-box crop. Emit `firmware/src/generated/night_phrases.h` (struct decl + `phraseForMinute` decl) and `night_phrases.cpp` (constexpr bitmap arrays + switch-statement lookup).
 - [ ] 1.2 1-bit threshold: pixels with luminance > 128 → 0 (white), else 1 (black). MSB-first within each byte, row-major. Pad each row to a byte boundary; no inter-row padding (height implicit from `data length / row_bytes`).
 - [ ] 1.3 Write a smoke check: bake script run with `--smoke` outputs the 25 phrases as a single contact-sheet PNG to `/tmp/night_phrases_preview.png` so the operator can eyeball the rendering before committing to a flash.
 - [ ] 1.4 Add the bake script to the renderer's `package.json` as `npm run bake-night-phrases`. Document in `renderer/README.md`.
@@ -43,9 +45,9 @@
 ## 7. HA — pool rename + content
 
 - [ ] 7.1 `git mv ha/config/night_fallback_lines.yaml ha/config/night_poetic_pool.yaml`. The file is no longer a "fallback"; it's the source of truth.
-- [ ] 7.2 Replace the file content with the seed pool from `openspec/changes/add-night-text-clock-partials/examples/night_poetic_pool.yaml` (5 lines per bucket × 13 buckets = 65 lines, English-only, ASCII subset only).
+- [ ] 7.2 **Re-audit existing entries against the new contract** (not "replace from seed"). As of 2026-05-19 the file already holds 8 × 14 = 112 entries across `clear_cold / clear_mild / clear_warm / partly_cloudy / cloudy / cloudy_cold / fog / drizzle / rain / pouring / thunderstorm / snow / sleet / windy_dry` — already past the proposal's 65-target. Walk the file once and confirm voice is consistent, no entry exceeds the budget below, no entry uses Romanian diacritics. The seed file in `examples/night_poetic_pool.yaml` is now a reference for missing buckets only, not a replacement.
 - [ ] 7.3 Verify every line passes the validator regex `[A-Za-z0-9 ,.:;!\-'"]+` and is ≤ 40 graphemes.
-- [ ] 7.4 (Operator follow-up, not blocking) Operator may extend any thin bucket toward 8–15 entries to reduce visible repetition across multi-night stretches of stable weather.
+- [ ] 7.4 (Operator follow-up, not blocking) Buckets at 8 entries already give good rotation; thin buckets can grow toward 15 if multi-night repetition becomes visible.
 
 ## 8. HA — picker script
 
@@ -79,7 +81,7 @@
 
 - [ ] 13.1 `openspec validate add-night-text-clock-partials` exits 0.
 - [ ] 13.2 Host build green; doctest 0 failed (including new night_partial_tests).
-- [ ] 13.3 PlatformIO inkplate10 build green. Verify flash usage stays under 95%.
+- [ ] 13.3 PlatformIO inkplate10 build green. Verify flash usage stays under 95%. **Baseline (2026-05-19): 81.9%** (1,072,937 / 1,310,720 B); proposal estimates ≈ 93% post-bake. If the build exceeds 95%, revisit per-phrase bitmap compression (proposal §A risk 1) before shipping.
 - [ ] 13.4 `ha/deploy.sh` succeeds.
 - [ ] 13.5 Manually invoke `service: shell_command.generate_poetic_weather_line` with `bucket: clear_cold` from HA Developer Tools. Confirm `state/poetic_weather.txt` mtime updates and content is from the `clear_cold` bucket. Sensor `inkplate_poetic_weather_line` updates within `scan_interval` (300s).
 - [ ] 13.6 Smoke test on device: flash, observe a 22:15 partial wake (or contrived equivalent at the next :15 boundary) → diag entry shows `tPN…` (Partial in Night mode) with bit4 set (partial_succeeded), no Full promotion. Visually confirm the phrase is rendered correctly.
