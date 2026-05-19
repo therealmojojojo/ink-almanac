@@ -1,6 +1,8 @@
 # Drop news infrastructure; rename smart-pill plumbing
 
-> **Status — 2026-04-27**: proposed; not started. Operator confirmed the device does not surface any news content; the residual RSS scaffolding is unused, and the smart-pill plumbing's `news` naming is misleading.
+> **Status — 2026-05-19**: re-audited against today's code; still not started. Every originally-named target is unchanged from 2026-04-27 (the HA scaffolding files all exist, `ha/deploy.sh` still has the regen block at lines 47-50, every renderer `news` reference still matches the proposal, `pairing/pairing_inputs.py` still writes `news.json` — refreshed this morning at 06:00 with today's smart-pill body — and every HA breadcrumb is intact). One scope addition since 2026-04-27: commit `e88e0b6` introduced `renderer/src/modes/debugDelight.ts` (1048 lines, wired into `server.ts`) with ~17 `news` references; those didn't exist when this change was written but are now part of the rename scope.
+>
+> Notable framing: the rename is finishing what the *spec* already says. `openspec/specs/dashboard-faces/spec.md` already uses `smart_pill_body` (zone id), `Smart pill` (cell name), and references the YAML source field as `summary.smart_pill.body`. The corpus YAML sidecar schema also uses `smart_pill.body` (read at `pairing/pairing_inputs.py:232`). Only the *downstream* surface — runtime file name, schema name, renderer field path, CSS wrapper, HA breadcrumbs and docs — still carries `news`. This change is alignment with the spec's existing nomenclature, not a redefinition.
 
 ## Why
 
@@ -30,7 +32,8 @@ The runtime field, schema name, CSS wrapper, zone id, file name, and HA referenc
 - `renderer/src/server.ts`: replace `'news'` in the inputs list with `'smart_pill'`.
 - `renderer/src/zones.ts`: rename the `news_body` zone entry to `smart_pill_body`.
 - `renderer/templates/summary/summary.css`: drop the vestigial `.news` wrapper class; rename selectors from `.summary-smart-pill .news .item .body` to `.summary-smart-pill .body`. Drop the historical "b = news-only / c = climate-dominant" comment at the file head.
-- `renderer/test/inputs-endpoint.test.ts`: `'news'` → `'smart_pill'` in the inputs list. Rename any fixture file similarly.
+- `renderer/test/inputs-endpoint.test.ts`: `'news'` → `'smart_pill'` in the inputs list. Rename `renderer/test/fixtures/news.json` (and `renderer/test/fixtures/degraded/news.json`) similarly.
+- `renderer/src/modes/debugDelight.ts` (added 2026-05-04 in commit `e88e0b6`, after this proposal was written): rename `requireInput('news')`, `input.news`, `news.items[0].body`, all `.summary-smart-pill .news` CSS selectors used by the debug preview HTML, and the synthesised fixture wrappers (`{ count: 1, items: [{ body }] }` literals — also a candidate for flattening if §1 chooses Option A). ~17 occurrences across the file.
 - `pairing/pairing_inputs.py`: write `renderer/inputs/smart_pill.json`; update the docstring on `prepare_renderer_inputs`.
 - `pairing/publish_today.py`: update the post-run print message.
 - `ha/docs/architecture.md`: update the inputs-table entry for `pairing` ("writes `{pairing,news}.json`" → "writes `{pairing,smart_pill}.json`"); drop the standalone `news` row.
