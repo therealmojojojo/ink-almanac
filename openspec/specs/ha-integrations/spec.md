@@ -12,44 +12,20 @@ HA SHALL publish the renderer's JSON inputs via `POST http://{renderer_host}:{re
 | `clock` | `time_pattern` every 1 minute | current local wall-clock formatted `{time: "HH:MM", date: "Weekday · Month D"}` |
 | `weather` | state change on any renderer-facing weather template sensor; safety republish every hour; `homeassistant.start` | `{locations: [...], astro: {...}, poetic: <line>}` composed from weather template sensors, astro sensors, and `ha/state/poetic_weather.txt` |
 | `climate` | state change on kitchen climate sensors; `homeassistant.start`; gated by a template condition checking sensor availability | `{inside: {temp, humidity?}}` (battery removed) |
-| `hn` | state change on `sensor.inkplate_hn_top5`; `homeassistant.start` | `{items: [{title, subtitle}, ...]}` |
 | `device` | MQTT trigger on `inkplate/state/device`; `homeassistant.start` | `{battery: {percentage, voltage}, build, last_seen}` sourced from the retained MQTT payload |
 
-The `sonos` and `pairing` inputs have existing writers (`fetch_sonos_art.sh` via SSH on track-change; `generate_triplets.sh` operator-fired one-shot for the full triplet pool) and are not part of this requirement's scope; they are documented in `ha/docs/architecture.md` for completeness.
+The previous `hn` row is retired together with the Hacker News and news-sources requirement removed below.
 
-All five publisher automations SHALL be gated by `input_boolean.inkplate_publisher_enabled` (default `on`) as a master kill-switch for rollback.
+The `smart_pill` and `pairing` inputs are written by `pairing/publish_today.py` (SSH-invoked daily) on the Mac host directly to `RENDERER_INPUTS_DIR`, not via this HTTP endpoint. They appear in the renderer's input contract (see `rendering-pipeline`) but not in this publishers table.
 
-HA SHALL configure the `rest_command`s with no retry — a failed POST is logged but the next natural trigger re-publishes. The renderer's 204 response is not checked; any non-2xx response is logged at `warning`.
+The `sonos` input has an existing writer (`fetch_sonos_art.sh` via SSH on track-change) and is not part of this requirement's scope; it is documented in `ha/docs/architecture.md` for completeness.
 
-#### Scenario: First boot populates every input
+All publisher automations SHALL be gated by `input_boolean.inkplate_publisher_enabled` (default `on`) as a master kill-switch for rollback.
 
-- **WHEN** HA starts fresh after a reboot and the renderer is reachable
-- **THEN** within 30 s all five publishers have issued at least one POST, and `renderer/inputs/*.json` mtimes on the Mac host are all within the last 30 s
+#### Scenario: Smart pill body lands without HA involvement
 
-#### Scenario: Clock minute-tick
-
-- **WHEN** the wall-clock minute rolls over
-- **THEN** HA POSTs a clock body with the new `HH:MM` to `/inputs/clock` within 2 s
-
-#### Scenario: Weather change republishes
-
-- **WHEN** MET.no updates ${PLACE_A_NAME}'s current temperature and the weather template sensor transitions
-- **THEN** HA POSTs a full weather body (both locations + astro + poetic) to `/inputs/weather`; no intermediate single-field updates are pushed
-
-#### Scenario: Device state republishes on every wake
-
-- **WHEN** the device publishes to retained MQTT `inkplate/state/device` on wake
-- **THEN** HA's MQTT trigger fires and POSTs the new body to `/inputs/device`, with `last_seen` set to the HA-side receive time
-
-#### Scenario: Publisher disabled
-
-- **WHEN** the operator toggles `input_boolean.inkplate_publisher_enabled` to `off`
-- **THEN** subsequent triggers do NOT POST to the renderer; the renderer continues serving from whatever files are on disk
-
-#### Scenario: Renderer unreachable
-
-- **WHEN** the renderer is down and HA's publisher fires
-- **THEN** HA logs the connection failure at `warning` level and the automation completes without raising; no retry is scheduled
+- **WHEN** `pairing/publish_today.py` runs at 06:00 and writes `renderer/inputs/smart_pill.json` directly via SSH
+- **THEN** the renderer's next `/display/summary.png` request reads the new body; HA does not POST to `/inputs/smart_pill`
 
 ### Requirement: Renderer input token
 
@@ -127,22 +103,6 @@ The entity name SHALL match the `kitchen_sonos_entity` helper value used by `now
 
 - **WHEN** the operator queries `media_player.kitchen_sonos` via the HA REST API
 - **THEN** all required attributes are present when playback is active
-
-### Requirement: Hacker News and news sources
-
-A REST sensor SHALL fetch the top N Hacker News stories every 30 minutes. The sensor SHALL expose at minimum, for each story: title, domain/subtitle, URL, score. Initial N is 5; Summary displays up to 2.
-
-Additional news sources SHALL be configurable via `ha/config/news_sources.yaml`, each with a source name, fetch URL, and a response-shape hint (JSON path or XML/RSS). At minimum, one Romanian news source SHALL be configured at initial deploy so Summary's news carries Romanian-language content.
-
-#### Scenario: HN sensor updates
-
-- **WHEN** HN has new top stories and 30 minutes have elapsed since the last refresh
-- **THEN** the HA HN sensor's state and attributes reflect the new stories
-
-#### Scenario: Adding a Romanian news source
-
-- **WHEN** the operator adds an entry to `news_sources.yaml` with `name: digi24`, `url: <rss-feed>`, and redeploys
-- **THEN** a new HA sensor is available representing that source, and Summary's renderer can reference it via its input contract
 
 ### Requirement: Astro data
 
@@ -390,8 +350,6 @@ The automation SHALL apply a 4-hour re-notification throttle (matching `inkplate
 - **WHEN** the panel stays wedged across a 12-hour window (the device keeps publishing `false` every 15-30 min)
 - **THEN** the operator receives at most one notification every 4 hours
 
-
-
 ### Requirement: HA publishes the Now-Playing track-version topic
 
 HA SHALL publish a retained MQTT message to `inkplate/state/now_playing_track` whenever the Sonos media player's `media_content_id` (or its title/artist/album fallback) changes while playing. The publish SHALL be integrated into the existing `inkplate_publish_sonos` automation (`ha/automations/publish_inputs.yaml`) as the FINAL action in its `action:` block, after the existing `rest_command.inkplate_publish_sonos` (which updates the renderer's `sonos.json`).
@@ -442,3 +400,4 @@ This mirror is what gives the device its session-aware cadence override — the 
 
 - **WHEN** Sonos has been paused, the linger timer expires, and HA's `inkplate_sonos_linger_expired` runs the restore cascade and sets `input_text.inkplate_active_override` to `schedule`
 - **THEN** the override-mirror automation fires, publishes `inkplate/state/active_override = schedule` retained; the device's next wake reads it, flips `session_now_playing` to false, and from this point pathForMinute follows the tier dispatch (Fulls + Partials only under the operator's no-daytime-Polls config)
+

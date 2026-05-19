@@ -2,7 +2,7 @@
 
 ## MODIFIED Requirements
 
-### Requirement: Per-mode input contract
+### Requirement: Inputs contract per mode
 
 Each mode SHALL declare a typed input schema. The renderer SHALL reject any render request whose inputs do not match the schema, returning 400 with a detailed message.
 
