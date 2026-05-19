@@ -243,6 +243,74 @@
         topic: inkplate/command/wake
         payload: ""
 
+- id: inkplate_sonos_ha_start_reeval
+  alias: "Inkplate: HA started → re-evaluate Now-Playing"
+  # Closes the coverage gap where Sonos cycles state during an HA restart
+  # (deploy, supervisor update, host reboot) and the playing transition is
+  # lost. Without this, the override stays on whatever value persisted
+  # across the restart — potentially `schedule` if `unavailable` flipped
+  # the linger path before HA went down. See
+  # openspec/specs/now-playing-override "HA-start reconciliation".
+  #
+  # Action body mirrors `inkplate_sonos_quiet_hours_end_reeval` (which
+  # handles the analogous "scan for missed activation at quiet-hours end"
+  # case). A future refactor could unify the three activation cascades
+  # into a shared script; out of scope here.
+  trigger:
+    - platform: homeassistant
+      event: start
+  condition:
+    # Only act if Sonos is actually playing now. If the Sonos integration
+    # is still reconnecting and reports `unavailable`, this no-ops; the
+    # subsequent `→ playing` transition is handled by `play_start`.
+    - condition: state
+      entity_id: media_player.kitchen_sonos
+      state: "playing"
+    # Only act if override is not already `now_playing`. Skipping when
+    # state already matches avoids clobbering `prior_override` on a
+    # clean restart that preserved everything correctly.
+    - condition: not
+      conditions:
+        - condition: state
+          entity_id: input_text.inkplate_active_override
+          state: now_playing
+    # Quiet-hours guard — same shape as `play_start`.
+    - condition: template
+      value_template: >-
+        {% set qs = states('input_datetime.inkplate_quiet_start') %}
+        {% set qe = states('input_datetime.inkplate_quiet_end') %}
+        {% set now_t = now().strftime('%H:%M:%S') %}
+        {% if qs <= qe %}
+          {{ not (qs <= now_t < qe) }}
+        {% else %}
+          {{ not (now_t >= qs or now_t < qe) }}
+        {% endif %}
+  action:
+    - service: input_text.set_value
+      target: { entity_id: input_text.inkplate_prior_override }
+      data: { value: "{{ states('input_text.inkplate_active_override') }}" }
+    - service: input_text.set_value
+      target: { entity_id: input_text.inkplate_active_override }
+      data: { value: now_playing }
+    - service: timer.cancel
+      target: { entity_id: timer.inkplate_now_playing_linger }
+    - service: input_text.set_value
+      target: { entity_id: input_text.inkplate_now_playing_content_id }
+      data:
+        value: >-
+          {% set s = states[states('input_text.inkplate_kitchen_sonos_entity')] %}
+          {{ s.attributes.media_content_id
+             or (s.attributes.media_title ~ '|' ~ s.attributes.media_artist ~ '|' ~ s.attributes.media_album_name) }}
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/active_mode
+        payload: now-playing
+        retain: true
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/wake
+        payload: ""
+
 - id: inkplate_sonos_art_daily_purge
   alias: "Inkplate: daily purge of stale Sonos album-art cache"
   trigger:

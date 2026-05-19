@@ -78,19 +78,30 @@ forces the operator to calibrate tap force). Two automations:
 
 - **Tap during schedule** → flip the currently-displayed face to its
   counterpart and publish. Reads the displayed face from
-  `sensor.inkplate_commanded_face` (an MQTT-mirror of
-  `inkplate/command/active_mode`) so repeat-taps in the same slot
-  toggle back and forth visibly. Does NOT touch
+  `sensor.inkplate_commanded_face` (an MQTT-mirror of the `active_mode`
+  field in `inkplate/state/device` — i.e. the face the device last
+  actually rendered, not the last face HA commanded) so repeat-taps in
+  the same slot toggle back and forth visibly. Does NOT touch
   `inkplate_alternation_offset` or `inkplate_scheduled_face` — the next
   /15 tick recomputes from the untouched offset and restores the
   schedule's a priori target, regardless of what the tap produced.
   Effectively a transient toggle lasting up to one Full interval
   (15 min Morning/Evening, 30 min Midday) before the schedule resumes.
-- **Tap during now_playing** → publish `active_mode = <tier main>`,
-  delay 60 s, then publish `active_mode = now-playing` again (peek
-  semantics). `mode: restart` so a repeated tap during the peek extends
-  the window. Defensive guard: only republishes now-playing if Sonos is
-  still playing.
+- **Tap during now_playing** → split on the displayed face (mirror sensor):
+  - **First-wake tap** (mirror != `now-playing`): publish
+    `gesture_response = now-playing` (non-retained). The screen wasn't
+    on now-playing yet — typically because the wake pulse from the
+    Sonos-started automation was lost while the device was deep-asleep.
+    This first tap is the operator's way of waking the device into the
+    now-playing session; the firmware's IMU grace window picks up the
+    response and draws now-playing.
+  - **Subsequent peek** (mirror == `now-playing`): publish
+    `active_mode = weather` retained, hold for 60 s, then publish
+    `active_mode = now-playing` to revert. Lets the operator glance at
+    the weather without leaving the music session. A tap during the
+    peek window lands in the first-wake branch (mirror is now `weather`)
+    and snaps back to now-playing — i.e., tap to peek, tap again to
+    come back.
 
 Both are no-ops during Night (no alternation) and during quiet hours.
 

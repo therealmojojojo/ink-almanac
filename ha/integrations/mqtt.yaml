@@ -60,15 +60,25 @@ mqtt:
       json_attributes_topic: "inkplate/state/device"
       json_attributes_template: "{{ {'diag_full': value_json.diag | default('')} | tojson }}"
 
-    # Mirror of the most-recent `active_mode` HA has published. The schedule
-    # tick, gesture handler, now-playing override, and any other publisher
-    # all push to this same retained topic, so this sensor is the canonical
-    # "what face was last commanded" — used by the schedule-tap handler to
-    # flip relative to the currently-displayed face (rather than the
-    # schedule's view of it, which can disagree mid-slot after a prior tap).
+    # Mirror of the face the device most recently RENDERED. Sourced from
+    # the retained `inkplate/state/device` payload that the firmware
+    # publishes at the end of every Full (`active_mode` field, set to the
+    # face that was actually drawn — see firmware/src/main_loop.cpp `tick`
+    # and battery.cpp toDeviceStateJson).
+    #
+    # Used by the schedule-tap handler to flip relative to what's actually
+    # on screen. The previous topic (`inkplate/command/active_mode`) was
+    # the *last-commanded-by-HA* face, which diverges from the displayed
+    # face whenever the device sleeps through an alternation publish (HA
+    # ticks at /15, device Full cadence is 15/30/30/60 min — so most
+    # commands are unheard until the device's next Full). On divergence
+    # the tap handler computed a flip relative to a phantom face,
+    # producing a refresh that re-rendered the same face the user was
+    # already looking at.
     - name: "Inkplate commanded face"
       unique_id: inkplate_commanded_face
-      state_topic: "inkplate/command/active_mode"
+      state_topic: "inkplate/state/device"
+      value_template: "{{ value_json.active_mode }}"
 
     # Device-side schedule hash — FNV-32 of the JSON payload that produced
     # the schedule the device is currently running on. Pair with

@@ -167,10 +167,96 @@
 
 # Tap during now-playing: peek the tier's main face for ~60 s, then revert
 # to now-playing. Triggers on either kind (single OR double).
+# Tap during now-playing — split into two automations sharing the same
+# trigger but mutually-exclusive on the mirror sensor.
+#
+# Why split: the device cannot be remotely woken from deep sleep over
+# WiFi, so when Sonos starts mid-tier, the screen typically stays on
+# whatever the previous tier had drawn until the operator double-taps
+# to wake the device. That first wake-tap should land on now-playing
+# (the operator wants to see what's playing). Subsequent taps, with
+# the screen already on now-playing, are "peek away from music to
+# glance at weather" gestures.
+#
+# Discriminator: `sensor.inkplate_commanded_face` — the truthful mirror
+# of the face the device most recently drew (sourced from
+# `inkplate/state/device.active_mode`, deployed 2026-05-08). If the
+# mirror is anything other than `now-playing`, the screen isn't on
+# now-playing yet, and this tap is the wake-up tap. If the mirror is
+# `now-playing`, this tap is a peek navigation.
+#
+# Tap during a peek (mirror = weather): naturally takes the first-wake
+# branch and snaps back to now-playing — i.e., tap to peek, tap again
+# to come back. The peek's `mode: restart` 60-s timer is still running
+# but its eventual revert publishes active_mode=now-playing, already
+# retained, so the revert is a no-op.
+#
+# See openspec/specs/now-playing-override "Tap interaction during
+# now-playing" for the canonical spec.
+
+- id: inkplate_gesture_tap_now_playing_first_wake
+  alias: "Inkplate: tap (now-playing, screen NOT on now-playing) → confirm now-playing"
+  # `single` because this handler is idempotent — multiple taps in the
+  # same wake all want the same result. The grace window is short enough
+  # (2 s) that queueing isn't a concern.
+  mode: single
+  trigger:
+    - platform: mqtt
+      topic: inkplate/state/gesture
+      payload: "double"
+      value_template: "{{ value_json.kind }}"
+    - platform: mqtt
+      topic: inkplate/state/gesture
+      payload: "single"
+      value_template: "{{ value_json.kind }}"
+  condition:
+    - condition: state
+      entity_id: input_text.inkplate_active_override
+      state: now_playing
+    # Mirror disagrees with `now-playing`: this is the first wake of the
+    # session (or a tap mid-peek; same outcome). `unavailable` and
+    # `unknown` (cold boot) also pass this condition, which is correct —
+    # cold boot also wants now-playing.
+    - condition: template
+      value_template: "{{ states('sensor.inkplate_commanded_face') != 'now-playing' }}"
+    # Quiet-hours guard.
+    - condition: template
+      value_template: >-
+        {% set qs = states('input_datetime.inkplate_quiet_start') %}
+        {% set qe = states('input_datetime.inkplate_quiet_end') %}
+        {% set now_t = now().strftime('%H:%M:%S') %}
+        {% if qs <= qe %}
+          {{ not (qs <= now_t < qe) }}
+        {% else %}
+          {{ not (now_t >= qs or now_t < qe) }}
+        {% endif %}
+    # Night-tier window (22:00–06:30) — same as the peek handler. The
+    # Sonos-started automation already gates on quiet hours, so an active
+    # now_playing override at 02:30 is rare (linger from before quiet
+    # hours), but defensive.
+    - condition: template
+      value_template: >-
+        {% set m = now().hour * 60 + now().minute %}
+        {{ not (m >= 22*60 or m < 6*60 + 30) }}
+  action:
+    # Single non-retained publish on the gesture_response event channel
+    # so the firmware's IMU grace window picks up the answer fast and
+    # draws now-playing. We do NOT publish to active_mode — it's already
+    # retained as `now-playing` by the Sonos-started automation. We do
+    # NOT publish a wake pulse — the tap already woke the device.
+    - service: mqtt.publish
+      data:
+        topic: inkplate/command/gesture_response
+        payload: now-playing
+        retain: false
+
 - id: inkplate_gesture_tap_now_playing_peek
-  alias: "Inkplate: tap (now-playing) → peek to tier main for 60 s"
-  # `restart` so a second tap during the peek resets the 60-s timer rather
-  # than queueing a stale follow-up revert.
+  alias: "Inkplate: tap (now-playing, screen on now-playing) → peek to weather for 60 s"
+  # `restart` so a second tap during the peek resets the 60-s timer
+  # rather than queueing a stale follow-up revert. Not actually
+  # reachable in practice — the second tap will be handled by the
+  # first-wake automation (mirror is now `weather` once the peek draw
+  # lands) — but kept for correctness if the mirror update lags.
   mode: restart
   trigger:
     - platform: mqtt
@@ -185,6 +271,11 @@
     - condition: state
       entity_id: input_text.inkplate_active_override
       state: now_playing
+    # Mirror == 'now-playing': screen is already on now-playing, so this
+    # tap is asking to peek away.
+    - condition: state
+      entity_id: sensor.inkplate_commanded_face
+      state: now-playing
     - condition: template
       value_template: >-
         {% set qs = states('input_datetime.inkplate_quiet_start') %}
@@ -195,33 +286,26 @@
         {% else %}
           {{ not (now_t >= qs or now_t < qe) }}
         {% endif %}
-    # Only peek to a real face — Night has no main worth peeking to.
+    # Only peek when there's a meaningful target — Night has none.
     - condition: template
       value_template: >-
         {% set m = now().hour * 60 + now().minute %}
         {{ not (m >= 22*60 or m < 6*60 + 30) }}
   action:
-    - variables:
-        # Peek target is the TIER MAIN, not the alternated face — the user
-        # explicitly wants Summary/Gallery during now-playing peek, not the
-        # Weather-alternated current schedule.
-        peek_face: >-
-          {% set m = now().hour * 60 + now().minute %}
-          {% if m < 10*60 %}summary
-          {% elif m < 22*60 %}gallery
-          {% else %}gallery{% endif %}
-    # Event channel for the in-flight IMU wake's grace window — see notes on
-    # the schedule-tap automation above for why this non-retained push is
-    # required alongside the retained active_mode update.
+    # Peek target is always weather. The original design peeked to the
+    # tier main (gallery in midday/evening, summary in morning), but the
+    # operator's actual ambient-glance use case is "what's the weather
+    # while I'm listening" — gallery items are content for the
+    # schedule, not for music-time peeks.
     - service: mqtt.publish
       data:
         topic: inkplate/command/gesture_response
-        payload: "{{ peek_face | trim }}"
+        payload: weather
         retain: false
     - service: mqtt.publish
       data:
         topic: inkplate/command/active_mode
-        payload: "{{ peek_face | trim }}"
+        payload: weather
         retain: true
     - service: mqtt.publish
       data:
