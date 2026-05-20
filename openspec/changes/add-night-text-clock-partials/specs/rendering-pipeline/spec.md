@@ -18,7 +18,7 @@ The renderer SHALL implement `GET /display/night/clock-zone.json` returning a JS
 
 The `(x, y)` is the top-left of the rectangle the firmware will blit phrase bitmaps into. `(w, h)` is the rectangle the post-Full cleanup pulses solid black + white before the over-paint. `font_size` is decorative (the firmware uses the baked phrase bitmaps' inherent dimensions); it's emitted for symmetry with the other modes' endpoints.
 
-The values SHALL be derived from the Night face's CSS layout — either hardcoded constants computed once and pinned, or measured at server startup via a Playwright probe of the rendered Night face. Either source is acceptable; the value SHALL be stable across server restarts and SHALL match the bake-time phrase rectangle (otherwise blits land at the wrong place).
+The values SHALL be measured live during the Night PNG render via Playwright's `getBoundingClientRect()` on the `.night-phrase` element, populating `clockZoneByMode['night']` (the same map other modes use). The endpoint serves the most-recent measurement; the firmware refreshes its cached rect on every Full wake via `fetchAndStoreClockZone`. (Pre-this-change, `render.ts`'s selector list did not include `.night-phrase` and the Night endpoint returned 404.)
 
 #### Scenario: Firmware fetches Night clock zone after a Night Full
 
@@ -29,16 +29,16 @@ The values SHALL be derived from the Night face's CSS layout — either hardcode
 
 The renderer repository SHALL ship `renderer/src/tools/bake-night-phrases.ts`, a build-time tool that generates the firmware's baked phrase bitmaps. The tool SHALL:
 
-- Hardcode the 25-phrase list (one per partial-eligible Night minute), in plain lowercase English with "midnight" replacing "twelve" at the 00:xx hour.
-- Read the Night face's clock font CSS (font-family, font-size, font-weight, color) at build time so the baked bitmaps match the rest of the Night face's typography.
-- For each phrase: render via Playwright (headless Chromium), threshold to 1-bit (luminance > 128 → white, else black), tight-bounding-box crop.
+- Source the 25-phrase list by importing `renderer/src/modes/night.ts::nightPhrase(h, m)` and iterating partial-eligible minutes (`min_of_day % 15 == 0 && min_of_day % 60 != 0` in the Night-tier window 22:00 to 06:30). This keeps the runtime PNG and the baked bitmaps lockstep-consistent. The current `nightPhrase` vocabulary uses "twelve" for the 00:xx hour (matching CSS rendering); switching to "midnight" later requires only updating the function and re-running the bake.
+- Inline the Night face's clock font CSS (font-family Fraunces italic, opsz 144, weight 400, font-size 96 px, line-height 1.05) so the baked bitmaps match the rest of the Night face's typography.
+- For each phrase: render via Playwright (headless Chromium, deviceScaleFactor 1), threshold to 1-bit (luminance > 240 → white, else black), tight-bounding-box crop.
 - Emit `firmware/src/generated/night_phrases.h` (struct decl + `phraseForMinute` decl) and `firmware/src/generated/night_phrases.cpp` (constexpr `uint8_t` arrays for the 25 bitmaps + a switch-statement lookup keyed by minute-of-day).
 - Bitmap data SHALL live in `.rodata` (constexpr) so it's flash, not RAM.
-- Total flash footprint SHALL be ≤ 200 KB (target: ~150 KB at 600×80 px per phrase).
+- Total flash footprint SHALL be ≤ 200 KB. Empirical bake on 2026-05-20: ~150 KB (max bitmap 684×94 px, ~6 KB/phrase).
 
-The tool SHALL accept a `--smoke` flag that emits a single contact-sheet PNG at `/tmp/night_phrases_preview.png` for the operator to eyeball before committing to a flash.
+The tool SHALL accept a `--smoke` flag that emits a single contact-sheet PNG at `/tmp/night_phrases_preview.png` for the operator to eyeball before committing to a flash. The smoke path SHALL NOT emit the C++ output.
 
-The PlatformIO `inkplate10` build environment SHALL invoke the bake tool as a pre-build step when `firmware/src/generated/night_phrases.cpp` is missing or older than (a) the bake script itself, (b) the Night face's CSS, or (c) the phrase list inside the bake script. The CMake host build SHALL mirror via `add_custom_command` so simulator tests compile against the same generated file.
+Build-time regeneration via a pre-build hook is a future improvement (deferred from this change). For now the generated files are committed to git alongside the existing `clock_glyphs.{h,cpp}` so contributors do not need Playwright + Chromium installed to compile the firmware; re-baking is done by hand via `npm run bake:night-phrases` whenever the phrase list, the Night CSS, or the bake script itself changes.
 
 #### Scenario: Bake produces a 25-entry table
 

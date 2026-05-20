@@ -13,20 +13,23 @@ Bitmap format: 1-bit, MSB-first within each byte, row-major, padded to a byte bo
 `doPartial` Night branch:
 
 - Look up the phrase bitmap for `local_min_of_day`. Null → return `false` (caller decides).
-- Seed-then-draw: re-blit the previous-frame phrase (tracked in `Persisted::last_drawn_phrase_min`) to seed the library's `DMemoryNew`, then blit the new phrase, `partialUpdate1Bit`. Match the existing seed-then-draw pattern used by digit-clock partials.
-- Update `last_drawn_phrase_min`.
+- **Cold state** (`Persisted::last_drawn_phrase_min == 0xffff` — the post-Full or post-cold-boot state where the 3-bit PNG text still occupies the phrase zone): pulse the zone solid black via `fillRect1Bit` + `partialUpdate1Bit` to overwrite the PNG's 3-bit AA pixels with a known 1-bit pattern, then blit the new phrase bitmap at its vertically-centered position + `partialUpdate1Bit`.
+- **Warm state** (`last_drawn_phrase_min != 0xffff` — a previous partial drew a phrase): seed-then-draw — re-blit the previous-frame phrase to seed the library's `DMemoryNew`, then blit the new phrase, `partialUpdate1Bit`. Matches the existing seed-then-draw pattern used by digit-clock partials.
+- Update `last_drawn_phrase_min` to the current minute.
 
-`doFull` post-Full cleanup, Night branch: if and only if the Full happened to land on a partial-eligible minute, pulse the phrase rectangle solid black + white-with-phrase, mirroring the existing digit-clock cleanup. Top-of-hour Full minutes (which are NOT in the 25-entry table) get no over-paint — the 3-bit PNG's time text stands.
+`doFull` post-Full cleanup, Night branch: if and only if the Full happened to land on a partial-eligible minute (edge cases like an IMU tap forcing a Full at :15), pulse the phrase rectangle solid black + blit the phrase, mirroring the digit-clock cleanup pattern, and set `last_drawn_phrase_min` to the current minute. Top-of-hour Night Fulls (which are NOT in the 25-entry table) get no over-paint — the 3-bit PNG's time text stands until the first partial wipes it — and `last_drawn_phrase_min` is set to `0xffff` so the next partial knows it's in the cold state.
+
+Vertical centering: each phrase bitmap is tight-bbox-cropped around its ink pixels. The firmware blits at `(clock_zone_x, clock_zone_y + (clock_zone_h - bitmap.height) / 2)` so phrases of differing ink heights (e.g. ascender-heavy "quarter past eleven" vs lowercase-only "half past two") sit in the centered position within the renderer's 220u flex container.
 
 #### Scenario: Partial wake at 22:15 in Night blits "quarter past ten"
 
-- **WHEN** the device is in Night mode (current_mode = Night), the schedule has `night: 60/0/15`, and a Timer wake fires at 22:15
-- **THEN** `planWake` returns `Path::Partial`; the Night branch of `doPartial` calls `phraseForMinute(22*60+15)` and gets the "quarter past ten" bitmap; seeds with the prior phrase if `last_drawn_phrase_min != 0xffff`, blits the new bitmap, runs `partialUpdate1Bit`; updates `last_drawn_phrase_min` to `1335`; returns `true`. The Full path is NOT promoted
+- **WHEN** the device is in Night mode (current_mode = Night), the schedule has `night: 120/0/15` (Fulls every 2 hours, partials every other 15-min boundary), and a Timer wake fires at 22:15
+- **THEN** `planWake` returns `Path::Partial`; the Night branch of `doPartial` calls `phraseForMinute(22*60+15)` and gets the "quarter past ten" bitmap; if cold state (last_drawn_phrase_min == 0xffff) pulses zone black first, otherwise seeds with the prior phrase; blits the new bitmap; runs `partialUpdate1Bit`; updates `last_drawn_phrase_min` to `1335`; returns `true`. The Full path is NOT promoted
 
 #### Scenario: Non-partial-eligible minute returns null
 
 - **WHEN** a Timer wake fires at 03:07 in Night (not a 15/30/45 boundary)
-- **THEN** `planWake` returns `Path::Skip` (Night `60/0/15` has no cadence at :07); `doPartial` is never called. As a defensive check, if a contrived path did call `phraseForMinute(3*60+7)`, it returns `nullptr` and `doPartial` returns false
+- **THEN** `planWake` returns `Path::Skip` (Night `120/0/15` has no cadence at :07); `doPartial` is never called. As a defensive check, if a contrived path did call `phraseForMinute(3*60+7)`, it returns `nullptr` and `doPartial` returns false
 
 #### Scenario: Top-of-hour Night Full does not over-paint
 
@@ -45,4 +48,4 @@ Bitmap format: 1-bit, MSB-first within each byte, row-major, padded to a byte bo
 #### Scenario: First Night partial after cold boot has no seed
 
 - **WHEN** the device cold-boots, RTC slow memory is wiped, `last_drawn_phrase_min == 0xffff`, then runs a Full at 22:00 followed by a partial at 22:15
-- **THEN** the 22:00 Full's PNG renders "ten o'clock"; the post-cleanup is skipped (22:00 is not in the 25-phrase set); on the 22:15 partial, `doPartial` sees `last_drawn_phrase_min == 0xffff`, skips the seed step, blits "quarter past ten" once, runs `partialUpdate1Bit`. May produce a one-time visible smudge on the 22:15 transition; subsequent partials are clean
+- **THEN** the 22:00 Full's PNG renders "ten o'clock" in 3-bit; the post-cleanup sets `last_drawn_phrase_min = 0xffff` and does no over-paint (22:00 is not in the 25-phrase set). On the 22:15 partial, `doPartial` sees the cold state, pulses the phrase zone solid black via `fillRect1Bit + partialUpdate1Bit` to wipe the 3-bit AA pixels, then blits "quarter past ten" + `partialUpdate1Bit`. The cold-state wipe adds one extra ~150 ms partial update once per Night cycle (first partial after every Full). Subsequent partials use the seed-then-draw warm path

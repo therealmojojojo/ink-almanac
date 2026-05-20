@@ -1,51 +1,43 @@
-# Hourly poetic-weather-line generation for Night mode.
-# Active window: 21:00 → 07:00 (an hour-ahead of Night mode's start, so the first
-# render after 22:00 already has a fresh line).
+# Night-mode poetic-weather-line picker — triggers on weather-bucket
+# changes (not hourly), gated by the publisher kill-switch and night
+# hours.
+#
+# Before 2026-05-20 this fired hourly between 21:00-07:00 and called
+# Claude Haiku to generate a short observation, with the pool as a
+# fallback. The LLM occasionally produced Romanian misspellings and
+# the pool was already curated to the same voice, so
+# add-night-text-clock-partials dropped the LLM, renamed
+# `night_fallback_lines.yaml` → `night_poetic_pool.yaml`, and switched
+# the trigger to bucket-change so stable weather doesn't churn the
+# panel.
 
-- id: inkplate_poetic_weather_hourly
-  alias: "Inkplate: poetic-weather-line hourly"
+- id: inkplate_poetic_weather_bucket_change
+  alias: "Inkplate: poetic-weather-line on bucket change"
   trigger:
-    - platform: time_pattern
-      minutes: "0"
+    - platform: state
+      entity_id: sensor.inkplate_night_poetic_bucket
+      # `not_to` ignores transient unknown/unavailable when sensors
+      # restart; the next valid state-change fires the action.
+      not_to:
+        - unknown
+        - unavailable
+        - ""
+    # Safety republish on HA start so a fresh boot lands a line in
+    # state/poetic_weather.txt even if the bucket sensor's value
+    # hasn't changed since the prior shutdown.
+    - platform: homeassistant
+      event: start
   condition:
-    - condition: template
-      value_template: >-
-        {% set h = now().hour %}
-        {{ h >= 21 or h < 7 }}
-  variables:
-    condition: "{{ states('sensor.${PLACE_A_SLUG}_condition') }}"
-    temp_c: "{{ states('sensor.${PLACE_A_SLUG}_temperature_c') | int(0) }}"
-    wind_kph: "{{ state_attr('weather.${PLACE_A_SLUG}_primary','wind_speed') | default(0) }}"
-    wind_desc: >-
-      {% if wind_kph | float(0) >= 25 %}windy
-      {% elif wind_kph | float(0) >= 10 %}breeze
-      {% else %}still{% endif %}
-    # Bucket computation — emits one of the keys defined in
-    # ha/config/night_fallback_lines.yaml. Unknown buckets fall through
-    # to `cloudy` in generate_poetic_weather_line.sh.
-    bucket: >-
-      {% set c = condition %}
-      {% set t = temp_c | int(0) %}
-      {%- if c in ['clear-night','sunny','clear'] -%}
-        {% if t <= 5 %}clear_cold
-        {%- elif t <= 18 %}clear_mild
-        {%- else %}clear_warm{% endif %}
-      {%- elif c == 'partlycloudy' -%}partly_cloudy
-      {%- elif c in ['cloudy','overcast'] -%}
-        {% if t <= 5 %}cloudy_cold{% else %}cloudy{% endif %}
-      {%- elif c == 'fog' -%}fog
-      {%- elif c == 'rainy' -%}rain
-      {%- elif c == 'pouring' -%}pouring
-      {%- elif c in ['lightning','lightning-rainy','hail','exceptional'] -%}thunderstorm
-      {%- elif c == 'snowy' -%}snow
-      {%- elif c == 'snowy-rainy' -%}sleet
-      {%- elif c in ['windy','windy-variant'] -%}windy_dry
-      {%- else -%}cloudy
-      {%- endif %}
+    - condition: state
+      entity_id: input_boolean.inkplate_publisher_enabled
+      state: "on"
+    # No time-of-day gate. The panel only shows the Night face between
+    # 22:00 and 06:30, so a daytime write doesn't affect what the user
+    # sees — but it DOES guarantee `state/poetic_weather.txt` is fresh
+    # before the next Night Full. The original automation had a 21:00–
+    # 07:00 condition to avoid burning Anthropic API calls during the
+    # day; the pool-only picker has no API cost so the gate is gone.
   action:
     - service: shell_command.generate_poetic_weather_line
       data:
-        summary: "{{ condition }}"
-        temp_c: "{{ temp_c }}"
-        wind: "{{ wind_desc }}"
-        bucket: "{{ bucket | trim }}"
+        bucket: "{{ states('sensor.inkplate_night_poetic_bucket') }}"

@@ -1,0 +1,47 @@
+# Bucket sensor for the Night-mode poetic weather line.
+#
+# State is one of the keys defined in ha/config/night_poetic_pool.yaml:
+# clear_{cold,mild,warm}, partly_cloudy, cloudy{,_cold}, fog, drizzle,
+# rain, pouring, thunderstorm, snow, sleet, windy_dry. Unknown weather
+# conditions fall through to `cloudy`; the picker script falls back to
+# `cloudy` again if a bucket has no entries.
+#
+# Drives `ha/automations/poetic_weather.yaml` — bucket-change events
+# trigger a fresh pool pick. During stable weather the bucket stays
+# the same and the panel keeps the same line without churn (the
+# previous design re-picked hourly even when nothing changed).
+#
+# The bucket logic was lifted verbatim from the variable block of the
+# pre-2026-05-20 hourly automation; the only behavioural change is the
+# wind-magnitude path that activates `windy_dry` even when the weather
+# integration doesn't emit `windy` / `windy-variant` (which Met.no and
+# Open-Meteo don't — confirmed from 30 days of history).
+
+- platform: template
+  sensors:
+    inkplate_night_poetic_bucket:
+      friendly_name: "Inkplate Night poetic bucket"
+      value_template: >-
+        {% set condition = states('sensor.${PLACE_A_SLUG}_condition') %}
+        {% set t = states('sensor.${PLACE_A_SLUG}_temperature_c') | int(0) %}
+        {% set wind_kph = state_attr('weather.${PLACE_A_SLUG}_primary', 'wind_speed') | float(0) %}
+        {% set c = condition %}
+        {%- if c in ['clear-night', 'sunny', 'clear'] -%}
+          {%- if t <= 5 -%}clear_cold
+          {%- elif t <= 18 -%}clear_mild
+          {%- else -%}clear_warm{%- endif -%}
+        {%- elif c == 'partlycloudy' -%}
+          {%- if wind_kph >= 25 -%}windy_dry{%- else -%}partly_cloudy{%- endif -%}
+        {%- elif c in ['cloudy', 'overcast'] -%}
+          {%- if wind_kph >= 25 -%}windy_dry
+          {%- elif t <= 5 -%}cloudy_cold
+          {%- else -%}cloudy{%- endif -%}
+        {%- elif c == 'fog' -%}fog
+        {%- elif c == 'rainy' -%}rain
+        {%- elif c == 'pouring' -%}pouring
+        {%- elif c in ['lightning', 'lightning-rainy', 'hail', 'exceptional'] -%}thunderstorm
+        {%- elif c == 'snowy' -%}snow
+        {%- elif c == 'snowy-rainy' -%}sleet
+        {%- elif c in ['windy', 'windy-variant'] -%}windy_dry
+        {%- else -%}cloudy
+        {%- endif -%}

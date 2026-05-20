@@ -21,10 +21,15 @@ shell_command:
     ./publish_today_pairing.sh
     '
 
+  # Picks a random line from `ha/config/night_poetic_pool.yaml` for the
+  # given bucket and writes it to state/poetic_weather.txt. The script
+  # still accepts the legacy 4-arg invocation (summary, temp_c, wind,
+  # bucket) and ignores the first three; the new automation passes only
+  # `bucket`.
   generate_poetic_weather_line: >-
     /usr/bin/env bash -c '
     cd /config/custom/inkplate/scripts &&
-    ./generate_poetic_weather_line.sh "{{ summary }}" "{{ temp_c }}" "{{ wind }}" "{{ bucket }}"
+    ./generate_poetic_weather_line.sh "{{ bucket }}"
     '
 
   # SSH-invokes the renderer host (where Skyfield + DE421 + the Anthropic

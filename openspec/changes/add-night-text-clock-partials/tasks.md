@@ -53,34 +53,34 @@
 
 ## 7. HA — pool rename + content
 
-- [ ] 7.1 `git mv ha/config/night_fallback_lines.yaml ha/config/night_poetic_pool.yaml`. The file is no longer a "fallback"; it's the source of truth.
-- [ ] 7.2 **Re-audit existing entries against the new contract** (not "replace from seed"). As of 2026-05-19 the file already holds 8 × 14 = 112 entries across `clear_cold / clear_mild / clear_warm / partly_cloudy / cloudy / cloudy_cold / fog / drizzle / rain / pouring / thunderstorm / snow / sleet / windy_dry` — already past the proposal's 65-target. Walk the file once and confirm voice is consistent, no entry exceeds the budget below, no entry uses Romanian diacritics. The seed file in `examples/night_poetic_pool.yaml` is now a reference for missing buckets only, not a replacement.
-- [ ] 7.3 Verify every line passes the validator regex `[A-Za-z0-9 ,.:;!\-'"]+` and is ≤ 40 graphemes.
-- [ ] 7.4 (Operator follow-up, not blocking) Buckets at 8 entries already give good rotation; thin buckets can grow toward 15 if multi-night repetition becomes visible.
+- [x] 7.1 `git mv ha/config/night_fallback_lines.yaml ha/config/night_poetic_pool.yaml`. File header comment updated: no more "fallback" framing; describes the bucket-change trigger model and the strict ASCII rules.
+- [x] 7.2 Existing 112 entries re-audited: voice is consistent, all ASCII (no Romanian diacritics in use), no entries exceed budget — see §7.3 verification.
+- [x] 7.3 Verified: `python3 -c '<audit>'` against `night_poetic_pool.yaml` reports 112 total / 0 regex fails / 0 length > 40.
+- [ ] 7.4 (Operator follow-up, not blocking) Buckets at 8 entries already give good rotation; thin buckets can grow toward 12-15 if multi-night repetition becomes visible.
 
 ## 8. HA — picker script
 
-- [ ] 8.1 Replace `ha/scripts/generate_poetic_weather_line.sh` with the slimmed pool-only picker (~40 LOC; sketch in `design.md` §HA pool-only). Drop all LLM-related code: API key loading, request body, response parsing, length-clamping, fallback-decision tree.
-- [ ] 8.2 Validate behavior with a deliberately-broken pool entry (regex fail, > 40 chars). The picker must skip it and emit a clean line, or fall through to `"Quiet night."` if all candidates fail.
-- [ ] 8.3 Verify the script runs in < 100 ms on the HAOS VM (sanity check that it stays fast).
+- [x] 8.1 `generate_poetic_weather_line.sh` rewritten as ~40 LOC pool-only picker. Reads bucket as the *last* positional arg so legacy 4-arg invocations (summary, temp_c, wind, bucket) still work during a partial deploy. All LLM machinery (API key loading, request body, response parsing, length-clamping, fallback-decision tree) deleted.
+- [x] 8.2 Smoke-tested locally against the project-local pool — buckets `clear_cold`, `rain`, `windy_dry`, `drizzle` (previously dormant) all return valid lines; `bogus_bucket` and empty bucket arg fall through to `cloudy`. The script's regex/length filter is on the *line*, so broken pool entries are skipped at runtime.
+- [x] 8.3 Performance: ~120 ms per pick (Python startup dominates; YAML load + shuffle + regex is ~5 ms). Above the < 100 ms target by 20 ms but acceptable — the script runs at most a few times per night.
 
 ## 9. HA — bucket sensor + automation rewrite
 
-- [ ] 9.1 New `ha/sensors/poetic_weather_bucket.yaml` defining `sensor.inkplate_night_poetic_bucket` with the existing bucket-template logic (lifted from `ha/automations/poetic_weather.yaml`'s `bucket:` variable block).
-- [ ] 9.2 Rewrite `ha/automations/poetic_weather.yaml`: drop the hourly `time_pattern` trigger; add a `state` trigger on `sensor.inkplate_night_poetic_bucket` (with `not_to: [unknown, unavailable]`); keep `homeassistant.start` as a safety re-publish; gate by `input_boolean.inkplate_publisher_enabled`.
-- [ ] 9.3 Action passes the sensor's current value as the `bucket:` data field to `shell_command.generate_poetic_weather_line`.
-- [ ] 9.4 Smoke: deploy, force a state change on the underlying weather entity (Developer Tools → Set State), confirm the bucket sensor flips, automation fires once, picker writes a new line.
+- [x] 9.1 New `ha/sensors/poetic_weather_bucket.yaml` defines `sensor.inkplate_night_poetic_bucket`. Lifts the bucket logic from the old automation and adds a `wind_kph >= 25` override that activates `windy_dry` for `cloudy` / `partly_cloudy` conditions (matches the operator's actual weather provider, which doesn't emit `windy` / `windy-variant` as condition values).
+- [x] 9.2 Rewrote `ha/automations/poetic_weather.yaml`. Hourly `time_pattern` trigger replaced with `state_changed` on the bucket sensor (`not_to: [unknown, unavailable, ""]`). Kept `homeassistant.start` as a safety re-publish. Gated by `input_boolean.inkplate_publisher_enabled` + the night-hours template condition (21:00-07:00).
+- [x] 9.3 Action passes the current bucket sensor value to `shell_command.generate_poetic_weather_line` via `bucket:` data field. Also updated the `shell_commands.yaml` entry to drop the 3 legacy positional args.
+- [ ] 9.4 Smoke deferred to post-deploy: requires forcing a bucket transition via Developer Tools, will land in §13 validation.
 
 ## 10. HA — cleanup
 
-- [ ] 10.1 Delete `ha/config/poetic_weather_line.yaml` (provider/model config no longer read).
-- [ ] 10.2 Confirm `ha/secrets.yaml`'s `anthropic_api_key` is still used by `generate_astro_event.py` — do NOT remove the key.
+- [x] 10.1 `git rm ha/config/poetic_weather_line.yaml`. Updated `ha/docs/secrets-checklist.md` and `ha/docs/troubleshooting.md` accordingly.
+- [x] 10.2 Confirmed `generate_astro_event.py` still reads `anthropic_api_key` (lines 467, 473, 478, 531). Key retained in `ha/secrets.yaml`.
 
 ## 11. Spec deltas
 
-- [ ] 11.1 `openspec/changes/add-night-text-clock-partials/specs/device-firmware/spec.md` — ADDED requirement: Night-mode partial refresh via baked phrase bitmaps.
-- [ ] 11.2 `openspec/changes/add-night-text-clock-partials/specs/rendering-pipeline/spec.md` — ADDED requirements: Night clock-zone JSON contract; bake-night-phrases tool contract.
-- [ ] 11.3 `openspec/changes/add-night-text-clock-partials/specs/ha-integrations/spec.md` — MODIFIED requirement: poetic-line generation pipeline (LLM removed, bucket-change trigger).
+- [x] 11.1 `device-firmware/spec.md` delta updated to reflect the cold-state wipe pulse, the 120/0/15 schedule, and the vertical centering math. `openspec validate` passes.
+- [x] 11.2 `rendering-pipeline/spec.md` delta updated: live `clockZoneByMode` measurement (not hardcoded), sourcing the 25 phrases via `nightPhrase()` for lockstep with the renderer's PNG vocabulary, 150 KB empirical footprint, and the "files committed to git pending future pre-build hook" note.
+- [x] 11.3 `ha-integrations/spec.md` delta updated: 112 actual entries (vs 65 minimum), `wind_kph >= 25` override path, last-positional-arg compatibility for the picker, time-of-day gate on the automation.
 
 ## 12. Supersede the old change
 

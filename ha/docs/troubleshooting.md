@@ -41,8 +41,10 @@ precedence override is active. This is by design; see `architecture.md`.
 
 **Poetic-weather-line cache file stale.** Check HA logs: `tail -f /config/home-assistant.log | grep poetic_weather`. Common causes:
 
-- `ANTHROPIC_API_KEY` missing → falls back to pool (intended)
-- Hourly automation condition wrong (only runs 21:00–07:00)
+- `sensor.inkplate_night_poetic_bucket` is `unknown` (upstream weather sensor unavailable) → automation skips its trigger; next valid state change re-fires it
+- Automation condition: only runs 21:00–07:00 (night-tier hours)
+- Stale weather hasn't crossed a bucket boundary in days → the line stays the same on purpose; bucket-change is the trigger, not a timer
+- All entries in the picked bucket fail the regex / length checks → script writes the hardcoded `Quiet night.` safety string
 
 ## Low-battery flood
 

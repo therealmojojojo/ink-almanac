@@ -1,19 +1,32 @@
-# Curated pool for the Night-mode poetic weather line.
+# Curated pool for the Night-mode poetic weather line — the sole source.
 #
-# The hourly automation (ha/automations/poetic_weather.yaml) computes a bucket
-# from the current weather state and asks generate_poetic_weather_line.sh to
-# render a line.
+# The automation `ha/automations/poetic_weather.yaml` watches
+# `sensor.inkplate_night_poetic_bucket` and, on every bucket change, asks
+# `ha/scripts/generate_poetic_weather_line.sh` to pick a random line from
+# the matching bucket below and write it to `state/poetic_weather.txt`.
+# The renderer reads that text via the `inkplate_poetic_weather_line`
+# command_line sensor and bakes it into the Night PNG.
 #
-# When an Anthropic API key is configured, the script attempts an LLM call
-# first and falls back to this pool on any failure or rejection. When no key
-# is set, the script goes straight to the pool. Bucket-not-in-pool falls back
-# to `cloudy`, then to the hardcoded "Quiet night." safety string.
+# History: this file used to be a fallback for an hourly Claude Haiku
+# call that generated short observational lines. The LLM occasionally
+# produced Romanian with misspellings, and the pool's coverage and voice
+# were strong enough to stand on their own. `add-night-text-clock-
+# partials` (2026-05-20) removed the LLM, renamed the file from
+# `night_fallback_lines.yaml` to its current name, and made the pool the
+# only path. Bucket-not-in-pool falls back to `cloudy`, then to the
+# hardcoded "Quiet night." safety string inside the picker script.
 #
 # Rules for every line:
-#   * ≤ 32 graphemes (including punctuation)
-#   * ASCII + Romanian diacritics only (ĂÂÎȘȚăâîșț); no emoji, no em-dash, no curly quotes
+#   * ≤ 40 graphemes (including punctuation)
+#   * ASCII only: `[A-Za-z0-9 ,.:;!\-'"]+`. No Romanian diacritics, no
+#     em-dash, no curly quotes, no emoji.
 #   * End with a period or no punctuation
-#   * House voice: plain, observational, slightly melancholy; avoid clever-clever
+#   * House voice: plain, observational, slightly melancholy; avoid
+#     clever-clever
+#
+# Add lines by appending to the relevant bucket. Buckets currently hold
+# 8 entries each; growing to 12-15 reduces visible repetition across
+# multi-night stretches of stable weather.
 
 # --- clear sky --------------------------------------------------------------
 

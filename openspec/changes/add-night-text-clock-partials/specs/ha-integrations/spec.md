@@ -6,19 +6,24 @@
 
 An HA automation SHALL produce a short observational weather line for Night mode by selecting from a hardcoded pool keyed by weather bucket. There is NO LLM call — the line is always picked deterministically from `ha/config/night_poetic_pool.yaml` (renamed from `night_fallback_lines.yaml`; the file is no longer a "fallback" since it's the only source of truth).
 
-The pool SHALL contain at minimum 5 lines per bucket × 13 weather buckets = 65 lines. Operators MAY extend any bucket toward 8–15 entries to reduce visible repetition during multi-night stretches of stable weather. Each line SHALL match the validator regex `[A-Za-z0-9 ,.:;!\-'"]+` (English ASCII subset, no diacritics, no emoji, no curly quotes, no em-dashes) and SHALL be ≤ 40 graphemes.
+The pool SHALL contain at minimum 5 lines per bucket × 13 weather buckets = 65 lines, with 8 entries per bucket × 14 buckets = 112 lines as the current operator-curated content. Operators MAY extend any bucket toward 12-15 entries to reduce visible repetition during multi-night stretches of stable weather. Each line SHALL match the validator regex `^[A-Za-z0-9 ,.:;!\-'"]+$` (English ASCII subset, no diacritics, no emoji, no curly quotes, no em-dashes) and SHALL be ≤ 40 graphemes.
+
+Bucket keys are: `clear_{cold,mild,warm}`, `partly_cloudy`, `cloudy{,_cold}`, `fog`, `drizzle`, `rain`, `pouring`, `thunderstorm`, `snow`, `sleet`, `windy_dry`.
 
 The picker script `ha/scripts/generate_poetic_weather_line.sh` SHALL:
 
-1. Read the bucket arg.
+1. Read the bucket from its **last** positional arg (so legacy 4-arg invocations like `script.sh "{{ summary }}" "{{ temp_c }}" "{{ wind }}" "{{ bucket }}"` keep working during partial deploys — the first three positional args are ignored).
 2. Open `night_poetic_pool.yaml`.
-3. `random.choice(pool[bucket] or pool['cloudy'] or ['Quiet night.'])` with retry on charset/length validation failure.
-4. Write the chosen line to `state/poetic_weather.txt`.
+3. Shuffle `pool[bucket] or pool['cloudy'] or []`, walk the shuffled list, skip entries that fail the regex or length check, print the first that passes.
+4. If all candidates fail (or both buckets are empty), print the hardcoded safety string `"Quiet night."`.
+5. Write the chosen line to `state/poetic_weather.txt`.
 
-The trigger model SHALL be **bucket-change**, not hourly. A new template sensor `sensor.inkplate_night_poetic_bucket` exposes the current bucket key (computed from the primary weather entity + temperature). The `inkplate_poetic_weather_*` automation fires on:
+The trigger model SHALL be **bucket-change**, not hourly. A new template sensor `sensor.inkplate_night_poetic_bucket` exposes the current bucket key (computed from the primary weather entity's condition + temperature + wind_speed; `wind_kph >= 25` overrides `cloudy` and `partly_cloudy` to `windy_dry`). The `inkplate_poetic_weather_bucket_change` automation fires on:
 
-- `state_changed` of `sensor.inkplate_night_poetic_bucket` (with `not_to: [unknown, unavailable]`).
+- `state_changed` of `sensor.inkplate_night_poetic_bucket` with `not_to: [unknown, unavailable, ""]`.
 - `homeassistant.start` (safety re-publish).
+
+Gated by `input_boolean.inkplate_publisher_enabled` (master kill-switch) and a time-of-day template condition that limits firing to night hours (21:00-07:00 local).
 
 As long as the bucket stays the same (e.g., 8 hours of `clear_cold`), the same line stays on the panel. When weather shifts to a new bucket, one new line is picked from that bucket and stays until the next bucket change.
 
