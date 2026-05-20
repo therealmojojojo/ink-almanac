@@ -42,7 +42,7 @@
     - **Case 1**: cold-boot into Night at 22:00 → Full draws → post-cleanup pulses phrase zone (no phrase at 22:00 since it's not in the partial set; verify post-cleanup no-op for top-of-hour).
     - **Case 2**: 22:15 Timer wake in Night mode → Partial path → `phraseForMinute(22*60+15)` returns "quarter past ten" bitmap → blit + partialUpdate1Bit → return true (no Full promotion).
     - **Case 3**: 22:00 Full → 22:15 Partial → 22:30 Partial. Assert the 22:30 partial's seed step uses the 22:15 phrase as the previous-frame, i.e., `last_drawn_phrase_min == 22*60+15` going into 22:30.
-    - **Case 4**: 03:07 Timer wake in Night (NOT a partial-eligible minute) → planWake returns Skip (Night `60/0/15` has no cadence at :07) → tick re-arms and sleeps. (Sanity check that the planner doesn't accidentally call doPartial for non-:00/:15/:30/:45 minutes.)
+    - **Case 4**: 03:07 Timer wake in Night (NOT a partial-eligible minute) → planWake returns Skip (Night `120/0/15` has no cadence at :07) → tick re-arms and sleeps. (Sanity check that the planner doesn't accidentally call doPartial for non-Full/non-:15/:30/:45 minutes.)
     - **Case 5**: bake-time check — the generated `night_phrases.cpp` exposes 25 entries for the expected (h, m) tuples. Static assert in the test that `phraseForMinute` returns non-null for each of the 25 expected minutes and null for at least one non-partial minute (e.g., 03:07).
 - [ ] 6.2 Update `firmware/test/scenarios/clock_render_tests.cpp` if needed — the existing tests assert digit-glyph composition for Night which won't apply once Night uses phrases. Either delete those cases or pin them to the digit-glyph faces explicitly.
 

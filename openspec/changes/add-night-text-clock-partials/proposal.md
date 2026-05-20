@@ -23,20 +23,32 @@ together.
 ### 1. Night has no clock partial cadence today
 
 The schedule planner now supports per-tier `partial_min`
-(`add-pushable-wake-schedule`) and the operator's live config sets
-**Night to `60/0/15`** — Full at the top of every hour, partial at
-:15 / :30 / :45. But the Night face's clock is rendered as a **text
-phrase** ("quarter to three"), not "HH:MM" digits. The existing
-partial-refresh path (`firmware/src/clock_render.cpp` +
+(`add-pushable-wake-schedule`). As of 2026-05-20 the operator's live
+config sets **Night to `120/0/15`** (Full every 2 hours — at 22:00,
+00:00, 02:00, 04:00, 06:00 — partial at every other :15 / :30 / :45;
+shipped via `ha/config/wake_schedule.yaml`). But the Night face's
+clock is rendered as a **text phrase** ("quarter to three"), not
+"HH:MM" digits. The existing partial-refresh path
+(`firmware/src/clock_render.cpp` +
 `firmware/src/generated/clock_glyphs.{h,cpp}`) composes the clock from
 **baked Fraunces digit glyphs** — 0..9 plus colon. That pipeline
 cannot render English-language fuzzy-time phrases.
 
-So today, `60/0/15` produces 25 partial wakes per night that fail —
-`doPartial` returns false (no baked preset for Night's clock font),
-and the wake either skips silently (Poll path with no preset) or
-falls through to a Full (Partial path). Either way, Night gets no
-benefit from its 15-min partial cadence.
+So today, every partial wake in Night fails — `doPartial` returns
+false (no baked preset for Night's clock font), and the wake falls
+through to a Full (per `main_loop.cpp` "Promote to Full if mode lacks
+a baked partial zone"). The clock visibly updates at each :15/:30/:45
+boundary, but at full-refresh battery cost (~3 mAh per wake instead of
+~0.06 mAh) and with a full WiFi + MQTT + render-fetch round-trip each
+time. Night currently burns roughly 4× the battery this schedule was
+designed for.
+
+Earlier `60/0/15` setting produced even more wasted Fulls (9 per night
+vs today's 5). The 2026-05-20 schedule edit dropped Fulls from 9 → 5
+without firmware changes, saving ~12 mAh/night immediately while still
+serving Fulls every 2 hours so the midnight weekday-string update
+lands. The firmware-half of this change finishes the job by making
+the 29 partials per night actually do partial work.
 
 ### 2. The poetic-line LLM call is overkill
 
@@ -192,12 +204,16 @@ for now means a fallback if the firmware partial path fails).
 
 ## Why now
 
-The `60/0/15` schedule was deployed today (2026-05-05). The 15-min
-partial cadence currently does no useful work in Night mode (no baked
-clock zone). Either fix it forward (this change) or revert Night to
-`60/0/0` to avoid empty wakes. Fixing forward is the right move —
-the Night clock is the most-watched face in the kitchen at the time
-the operator is most likely to glance at it.
+The Night partial cadence currently does no useful work — every
+partial wake promotes-to-Full because the phrase clock has no baked
+preset. The 2026-05-20 schedule edit (`120/0/15`) halved the wasted
+Fulls already (9 → 5 per night, −12 mAh) but the 29 surviving partials
+per night still promote-to-Full until the firmware-half of this change
+ships. Fix-it-forward is the right move — the Night clock is the
+most-watched face in the kitchen at the times the operator is most
+likely to glance at it, and partial-only at :15/:30/:45 cuts another
+~8 mAh/night for a total saving of ~85 mAh/night vs the pre-2026-05-20
+60/0/15-with-promotion path (~102 mAh → ~17 mAh).
 
 The poetic-line cleanup is bundled because the same review +
 deploy + flash cycle covers both, and the LLM removal has been a

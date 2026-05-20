@@ -60,7 +60,13 @@ version: 1
 tiers:
   night:
     start: "22:00"
-    full_min: 60
+    # Night Fulls every 2 hours: 22:00, 00:00 (refreshes weekday at midnight),
+    # 02:00, 04:00, 06:00. Partials at every other :15/:30/:45 boundary.
+    # Once add-night-text-clock-partials lands the partial path on Night
+    # (today they promote-to-Full because the phrase clock has no baked
+    # preset), this gives 5 Fulls + 29 Partials per night ≈ 17 mAh vs the
+    # ~102 mAh the old 60/0/15 path actually consumed.
+    full_min: 120
     poll_min: 0
     partial_min: 15
   morning:
