@@ -397,12 +397,25 @@ inline int16_t nightBlitY(const fw::night_phrases::Bitmap& bm) {
   return static_cast<int16_t>(zy + offset);
 }
 
-// Blit a 1-bit phrase bitmap at (x, y). Bitmap layout matches the
-// IDisplay::drawBitmap1Bit contract: 1bpp, MSB-first, row-padded to byte
-// boundary. Tight ink bbox (no centering padding inside the bitmap).
+// Blit a 1-bit phrase bitmap at (x, y), with a zone-wide white clear first
+// so partialUpdate's diff includes pixels that must transition black→white
+// (old ink the new bitmap doesn't cover). drawBitmap1Bit is additive
+// (sets ink bits, leaves cleared bits alone), so without the clear the
+// next partialUpdate diff would only ever ADD pixels — never REMOVE them
+// — and a phrase-change from "quarter past one" → "half past one" would
+// either leave old ink behind or, when the new bitmap is a subset of the
+// old, produce a zero-diff and `cycles=0` (a 22:30 wake on 2026-05-20
+// reproduced this; my doPartialNight returned false and the wake promoted
+// to Full instead of staying offline). Mirrors the existing
+// `fw::clock::draw` pattern in clock_render.cpp.
 inline void nightBlit(hal::IDisplay& display,
                       const fw::night_phrases::Bitmap& bm,
                       int16_t x, int16_t y) {
+  const auto& p = wake::persisted();
+  display.fillRect1Bit(p.clock_zone_x, p.clock_zone_y,
+                       static_cast<int16_t>(p.clock_zone_w),
+                       static_cast<int16_t>(p.clock_zone_h),
+                       /*white=*/0);
   display.drawBitmap1Bit(x, y, bm.data,
                          static_cast<int16_t>(bm.width),
                          static_cast<int16_t>(bm.height));

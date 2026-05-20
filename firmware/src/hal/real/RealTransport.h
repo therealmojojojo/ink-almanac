@@ -9,6 +9,7 @@
 
 #include <string>
 
+#include "config.h"
 #include "hal/ITransport.h"
 #include "secrets.h"
 
@@ -40,14 +41,58 @@ class RealTransport : public hal::ITransport {
       ensureTimeSynced();
       return true;
     }
+    // First attempt — generous budget covers DHCP renegotiation after a
+    // deep-sleep wake. 1–3 s on a healthy AP; up to ~15 s under load.
+    if (wifiAttempt(fw::config::kWifiConnectTimeoutMs, "1st")) {
+      ensureTimeSynced();
+      return true;
+    }
+    // Clean-state retry: ESP32's WiFi stack can wedge half-associated
+    // after a partial handshake (no `WL_CONNECT_FAILED` event, just
+    // perpetual `WL_DISCONNECTED`). Disconnect + WIFI_OFF clears the
+    // driver's internal state machine; the brief delay lets the radio
+    // settle before the next association attempt.
+    WiFi.disconnect(/*wifioff=*/true);
+    WiFi.mode(WIFI_OFF);
+    delay(200);
+    if (wifiAttempt(fw::config::kWifiConnectRetryTimeoutMs, "retry")) {
+      ensureTimeSynced();
+      return true;
+    }
+    return false;
+  }
+
+  // Internal: single association attempt with diagnostic logging on
+  // timeout. Returns true iff WL_CONNECTED reached within budget_ms.
+  bool wifiAttempt(int budget_ms, const char* tag) {
     WiFi.mode(WIFI_STA);
     WiFi.begin(INKPLATE_WIFI_SSID, INKPLATE_WIFI_PASSWORD);
-    uint32_t start = millis();
-    while (WiFi.status() != WL_CONNECTED && (millis() - start) < 10000) {
+    const uint32_t start = millis();
+    while (WiFi.status() != WL_CONNECTED && (millis() - start) < budget_ms) {
       delay(100);
     }
-    if (WiFi.status() == WL_CONNECTED) ensureTimeSynced();
-    return WiFi.status() == WL_CONNECTED;
+    const auto status = WiFi.status();
+    if (status == WL_CONNECTED) {
+      Serial.printf("[wifi] %s connected in %u ms, rssi=%d\n",
+                    tag, (unsigned)(millis() - start),
+                    static_cast<int>(WiFi.RSSI()));
+      return true;
+    }
+    // Decode WL_STATUS into a name the operator can recognise. The
+    // numeric values come from <esp32-hal.h>'s WiFiType.h enum and are
+    // stable across Arduino-ESP32 versions.
+    const char* name =
+        status == WL_IDLE_STATUS     ? "IDLE_STATUS"     :
+        status == WL_NO_SSID_AVAIL   ? "NO_SSID_AVAIL"   :
+        status == WL_SCAN_COMPLETED  ? "SCAN_COMPLETED"  :
+        status == WL_CONNECT_FAILED  ? "CONNECT_FAILED"  :
+        status == WL_CONNECTION_LOST ? "CONNECTION_LOST" :
+        status == WL_DISCONNECTED    ? "DISCONNECTED"    :
+        status == 255                ? "NO_SHIELD"       :
+                                       "UNKNOWN";
+    Serial.printf("[wifi] %s timed out after %d ms, status=%d (%s)\n",
+                  tag, budget_ms, static_cast<int>(status), name);
+    return false;
   }
 
   int wifiRssi() override {

@@ -220,8 +220,14 @@ TEST_CASE("Consecutive Night partials seed DMemoryNew with previous phrase") {
   // Warm state at 22:30: seed (previous phrase blit) + draw (new phrase
   // blit) = 2 partialUpdate1Bit calls.
   CHECK(s.display().partialUpdate1BitCount() - partial_before_30 == 2);
-  // Two bitmap blits (seed + draw), no fillRect (we're past the cold state).
-  CHECK(s.display().bitmapBlits().size() - blits_before_30 == 2);
+  // Each nightBlit() does a zone-wide fillRect1Bit(white) clear before
+  // drawBitmap1Bit, so the diff against the prior DMemoryNew includes
+  // both old-only pixels (transition black→white) and new-only pixels
+  // (white→black) in one waveform cycle. The MockDisplay records both
+  // the fillRect and the drawBitmap into bitmap_blits_, so a warm-state
+  // partial produces 2 × 2 = 4 entries (seed-clear + seed-draw +
+  // new-clear + new-draw). No black-wipe fillRect (we're past cold state).
+  CHECK(s.display().bitmapBlits().size() - blits_before_30 == 4);
   CHECK(fw::wake::persisted().last_drawn_phrase_min == 22 * 60 + 30);
 }
 

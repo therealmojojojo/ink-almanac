@@ -87,7 +87,17 @@ constexpr int kSonosStartHour  = 7;
 constexpr int kSonosEndHour    = 20;
 
 // Network
-constexpr int kWifiConnectTimeoutMs = 10000;
+// First WiFi-association attempt budget. Healthy post-deep-sleep reconnects
+// complete in 1–3 s; the 15 s ceiling covers DHCP renegotiation, AP load
+// spikes, and marginal RSSI. Previously 10 s, but a 2026-05-20 Night-tier
+// Full saw a 10 s timeout that aborted the whole wake — the budget had no
+// headroom for transient AP slowness. On failure, `wifiConnect()` does one
+// clean-state retry (see `kWifiConnectRetryTimeoutMs`).
+constexpr int kWifiConnectTimeoutMs      = 15000;
+// Retry budget after a clean WiFi state reset (`WiFi.disconnect(true)` +
+// brief WIFI_OFF). Shorter than the first attempt because the AP has by now
+// either responded to the prior association or won't.
+constexpr int kWifiConnectRetryTimeoutMs = 10000;
 constexpr int kHttpTimeoutMs        = 3000;
 constexpr int kRendererMaxRetries   = 3;
 constexpr int kRendererBackoffSec[] = {2, 8, 30};
