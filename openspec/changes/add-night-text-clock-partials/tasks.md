@@ -32,19 +32,24 @@
 
 ## 5. Firmware — partial dispatch for Night
 
-- [ ] 5.1 `firmware/src/main_loop.cpp::doPartial` Night branch: if `current_mode == Night`, call `fw::night_phrases::phraseForMinute(local_min_of_day)`. Null → return false (caller decides). Non-null → seed-then-draw using the cached `last_drawn_phrase_min`'s bitmap as the seed, then blit the new phrase, partialUpdate1Bit, update `last_drawn_phrase_min`.
-- [ ] 5.2 `firmware/src/main_loop.cpp::doFull` post-Full cleanup, Night branch: if `active == Night` and `phraseForMinute(local_min_of_day)` is non-null (i.e., the Full happened to land at a partial-eligible minute, e.g., a manual wake at :15), pulse the phrase rect black + white, blit phrase, update `last_drawn_phrase_min`. Else (top-of-hour Full): no over-paint; the PNG's time-text stands.
-- [ ] 5.3 New helper `blitBitmap1Bit(panel, bitmap, x, y)` in `firmware/src/clock_render.cpp` (or a new `firmware/src/night_phrases.cpp`). Iterates the bitmap's MSB-first 1-bit data and calls `panel.fillRect1Bit` for each black pixel — or, if `IDisplay` exposes a more efficient blit primitive, use that. Verify the existing `MockDisplay` records 1-bit blits in a way the host tests can assert.
+- [x] 5.1 `doPartial` dispatches to a new `doPartialNight` when `current_mode == Night`. Cold state (post-Full, sentinel `last_drawn_phrase_min == 0xffff`): pulse zone solid black once to wipe the PNG's 3-bit phrase pixels, then blit the new bitmap. Warm state (consecutive partials): seed-blit the previously-drawn phrase at its centered position, then blit the new one. The library's `partialUpdate1Bit` diff handles old→white and new→black in a single waveform cycle. Updates `last_drawn_phrase_min` to current `min_of_day`. Returns false when phrase set doesn't include the minute (caller promotes to Full per existing pattern).
+- [x] 5.2 `doFull` post-Full cleanup has a Night branch ahead of the existing digit-clock cleanup. At a partial-eligible Full minute (edge cases like IMU tap at :15), pulses zone black + blits phrase + updates `last_drawn_phrase_min`. At top-of-hour Fulls (the normal cadence, :00 not in the phrase set), no over-paint — sets `last_drawn_phrase_min = 0xffff` so the next partial's cold-state wipe knows to fire. Also resets `last_drawn_hh/mm = 0xff` defensively in case the prior mode left them set.
+- [N/A] 5.3 No separate `blitBitmap1Bit` helper file. The existing `IDisplay::drawBitmap1Bit(x, y, data, w, h)` primitive matches the bake tool's bitmap layout exactly (1bpp, MSB-first, row-padded). Used directly via two inline helpers (`nightBlitY` for vertical centering, `nightBlit` for the call). MockDisplay records the blit into its `bitmap_blits_` vector; host tests assert on the vector size + delta.
+
+**Sidecar — extends Persisted with `clock_zone_w` / `clock_zone_h`** (uint16_t each, default 0) so the Night blit can vertically-center inside the renderer's 220u flex container. `fetchAndStoreClockZone` now parses `w` and `h` from the JSON. Pre-existing modes ignore the new fields (digit-clock path derives its rect from the baked Preset).
 
 ## 6. Firmware — host tests
 
-- [ ] 6.1 New `firmware/test/scenarios/night_partial_tests.cpp`:
-    - **Case 1**: cold-boot into Night at 22:00 → Full draws → post-cleanup pulses phrase zone (no phrase at 22:00 since it's not in the partial set; verify post-cleanup no-op for top-of-hour).
-    - **Case 2**: 22:15 Timer wake in Night mode → Partial path → `phraseForMinute(22*60+15)` returns "quarter past ten" bitmap → blit + partialUpdate1Bit → return true (no Full promotion).
-    - **Case 3**: 22:00 Full → 22:15 Partial → 22:30 Partial. Assert the 22:30 partial's seed step uses the 22:15 phrase as the previous-frame, i.e., `last_drawn_phrase_min == 22*60+15` going into 22:30.
-    - **Case 4**: 03:07 Timer wake in Night (NOT a partial-eligible minute) → planWake returns Skip (Night `120/0/15` has no cadence at :07) → tick re-arms and sleeps. (Sanity check that the planner doesn't accidentally call doPartial for non-Full/non-:15/:30/:45 minutes.)
-    - **Case 5**: bake-time check — the generated `night_phrases.cpp` exposes 25 entries for the expected (h, m) tuples. Static assert in the test that `phraseForMinute` returns non-null for each of the 25 expected minutes and null for at least one non-partial minute (e.g., 03:07).
-- [ ] 6.2 Update `firmware/test/scenarios/clock_render_tests.cpp` if needed — the existing tests assert digit-glyph composition for Night which won't apply once Night uses phrases. Either delete those cases or pin them to the digit-glyph faces explicitly.
+- [x] 6.1 `firmware/test/scenarios/night_partial_tests.cpp` shipped with 6 test cases (all pass; total host suite 104/104):
+    - "phraseForMinute exposes exactly the 25 partial-eligible minutes" + spot-check non-partial minutes return null.
+    - "baked phrase bitmaps have reasonable dimensions" — width/height/data ptr sanity.
+    - "Night cold-boot Full at 22:00 leaves phrase-min sentinel for first partial" — post-cleanup no-op at top-of-hour; clock_zone_h=220 / clock_zone_w=900 confirmed parsed from JSON.
+    - "Timer @ Night 22:15 → Partial blits phrase bitmap, no Full promotion" — exact partialUpdate count (2: wipe + draw), no MQTT publish, last_drawn_phrase_min advances to 1335.
+    - "Consecutive Night partials seed DMemoryNew with previous phrase" — 22:00 cold → 22:15 → 22:30, asserts last_drawn_phrase_min == 1335 entering 22:30 and 1350 after; warm-state path produces 2 partialUpdates + 2 bitmap blits (no fillRect after cold state).
+    - "Timer @ Night :07 under 120/0/15 → Skip — sanity" — off-cadence guard.
+- [x] 6.2 `clock_render_tests.cpp` already pins assertions to specific font_size presets (corner/compact/summary) — never asserts Night digit composition. No edit needed; confirmed by re-reading.
+
+**Sidecar — discovered a 2-hour off-by-one in main_loop_tests.cpp's `kApr14_0800`**: the comment claims `1744617600 + 2*3600 = 08:00 UTC`, but 1744617600 is itself 08:00 UTC, so the constant is actually 10:00 UTC. Existing tests don't notice (they only check cadence-modulo behavior). night_partial_tests defines its own `localTime` helper with a corrected base so absolute min-of-day assertions land on the intended wall-clock values.
 
 ## 7. HA — pool rename + content
 

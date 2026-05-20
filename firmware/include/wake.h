@@ -46,6 +46,14 @@ struct Persisted {
   int16_t  clock_zone_x = 0;
   int16_t  clock_zone_y = 0;
   uint16_t clock_zone_font_size = 0;
+  // Zone width/height in panel-px (= u). Stored only when the renderer's
+  // `/display/<mode>/clock-zone.json` includes `w` and `h` fields (which the
+  // Night phrase clock uses for vertical centering — `clock_zone_h` is the
+  // 220u flex container the bitmap centers inside). The digit-clock partial
+  // path doesn't use these because it derives dimensions from the baked
+  // Preset's font_size; zero is a safe sentinel for "not measured."
+  uint16_t clock_zone_w = 0;
+  uint16_t clock_zone_h = 0;
   // Last "HH:MM" the firmware drew (either via Full's seed or via a Partial).
   // The next Partial wake re-draws these digits first, runs a partialUpdate
   // (visually a no-op — those pixels are already black on the panel), and

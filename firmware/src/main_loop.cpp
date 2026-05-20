@@ -21,6 +21,7 @@
 #include "gestures.h"
 #include "modes.h"
 #include "wake.h"
+#include "generated/night_phrases.h"
 
 #ifdef ARDUINO
 #include <Arduino.h>
@@ -321,6 +322,13 @@ void fetchAndStoreClockZone(hal::ITransport& t, fw::modes::Mode mode) {
   const int x = pickInt(body, "x", -1);
   const int y = pickInt(body, "y", -1);
   const int fs = pickInt(body, "font_size", -1);
+  // `w` / `h` are required for the Night phrase blit (vertical centering of
+  // tight-bbox bitmaps inside the renderer's 220u flex container). For
+  // digit-clock modes the firmware derives its rect from the baked Preset
+  // and ignores these; they're stored unconditionally so any future face
+  // that wants the renderer's full bounding box has it.
+  const int w = pickInt(body, "w", -1);
+  const int h = pickInt(body, "h", -1);
   if (x < 0 || y < 0 || fs <= 0) {
     FW_LOG("clock-zone parse failed body='%s'", body.c_str());
     wake::persisted().clock_zone_font_size = 0;
@@ -329,7 +337,9 @@ void fetchAndStoreClockZone(hal::ITransport& t, fw::modes::Mode mode) {
   wake::persisted().clock_zone_x = static_cast<int16_t>(x);
   wake::persisted().clock_zone_y = static_cast<int16_t>(y);
   wake::persisted().clock_zone_font_size = static_cast<uint16_t>(fs);
-  FW_LOG("clock-zone stored x=%d y=%d fs=%d", x, y, fs);
+  wake::persisted().clock_zone_w = (w > 0) ? static_cast<uint16_t>(w) : 0;
+  wake::persisted().clock_zone_h = (h > 0) ? static_cast<uint16_t>(h) : 0;
+  FW_LOG("clock-zone stored x=%d y=%d w=%d h=%d fs=%d", x, y, w, h, fs);
 }
 
 bool backoffFetch(hal::ITransport& t,
@@ -373,7 +383,121 @@ bool backoffFetch(hal::ITransport& t,
 // skipped — first partial after a Full smudges, but only that first one;
 // the Full path also runs a one-shot seed (see doFull) so even that case
 // is clean as long as the renderer published a zone.
+// Vertical-center blit position for a Night phrase bitmap inside the
+// renderer's 220u flex container. The CSS rule
+// `.night-phrase { align-items: center; min-height: 220u }` centers the
+// span vertically; mirroring that math here keeps the firmware over-paint
+// pixel-aligned with what the production night.png renders, so subsequent
+// partials don't drift relative to the most recent Full.
+inline int16_t nightBlitY(const fw::night_phrases::Bitmap& bm) {
+  const int16_t zy = wake::persisted().clock_zone_y;
+  const uint16_t zh = wake::persisted().clock_zone_h;
+  if (zh == 0) return zy;  // pre-Full / parse-fail: blit at top, accept small offset
+  const int offset = (static_cast<int>(zh) - static_cast<int>(bm.height)) / 2;
+  return static_cast<int16_t>(zy + offset);
+}
+
+// Blit a 1-bit phrase bitmap at (x, y). Bitmap layout matches the
+// IDisplay::drawBitmap1Bit contract: 1bpp, MSB-first, row-padded to byte
+// boundary. Tight ink bbox (no centering padding inside the bitmap).
+inline void nightBlit(hal::IDisplay& display,
+                      const fw::night_phrases::Bitmap& bm,
+                      int16_t x, int16_t y) {
+  display.drawBitmap1Bit(x, y, bm.data,
+                         static_cast<int16_t>(bm.width),
+                         static_cast<int16_t>(bm.height));
+}
+
+// Night-mode partial dispatch. Returns true if the partial actually drove
+// the panel; false means the minute is outside the 25-phrase set and the
+// caller should fall through to Full (matching the existing
+// no-baked-preset behavior).
+//
+// First partial after a Full (`last_drawn_phrase_min == 0xffff`):
+//   The PNG's 3-bit phrase rendering is still on the panel. A naive
+//   partialUpdate over it would overlap two phrases (the 3-bit Full's
+//   "ten o'clock" plus the new 1-bit "quarter past ten") — a smudgy
+//   mess. We pulse the zone solid black first to wipe the 3-bit AA
+//   pixels, THEN blit the new phrase. The library's partialUpdate's
+//   diff handles the white-where-no-ink correctly.
+//
+// Warm partial (`last_drawn_phrase_min != 0xffff`):
+//   Seed-then-draw: re-blit the previously-drawn phrase to seed
+//   DMemoryNew, then blit the new phrase. partialUpdate's diff cleans
+//   old-only pixels to white and draws new-only pixels to black in a
+//   single waveform cycle.
+bool doPartialNight(hal::HAL& h, hal::Epoch local_now,
+                    fw::diag::Entry* diag) {
+  auto& p = wake::persisted();
+  const std::time_t t = static_cast<std::time_t>(local_now);
+  std::tm* gm = std::gmtime(&t);
+  if (!gm) return false;
+  const int min_of_day = gm->tm_hour * 60 + gm->tm_min;
+  const auto* bm = fw::night_phrases::phraseForMinute(min_of_day);
+  if (!bm) {
+    FW_LOG("partial: no night phrase for min_of_day=%d", min_of_day);
+    return false;
+  }
+  if (p.clock_zone_h == 0) {
+    FW_LOG("partial: night phrase has no cached zone (cold boot, pre-Full)%s", "");
+    return false;
+  }
+
+  const int16_t zx = p.clock_zone_x;
+  const int16_t zy = p.clock_zone_y;
+  const int16_t zw = static_cast<int16_t>(p.clock_zone_w);
+  const int16_t zh = static_cast<int16_t>(p.clock_zone_h);
+
+  h.display.setDisplayMode(hal::IDisplay::DisplayMode::OneBit);
+
+  if (p.last_drawn_phrase_min == 0xffff) {
+    // Cold state — wipe the PNG's 3-bit phrase pixels with one solid-black
+    // pulse before drawing the new 1-bit phrase. One extra partialUpdate
+    // (~150 ms) only fires on the FIRST partial after every Full.
+    h.display.fillRect1Bit(zx, zy, zw, zh, /*value=black=*/1);
+    h.display.partialUpdate1Bit();
+  } else {
+    // Warm state — seed DMemoryNew with the previously-drawn phrase at
+    // its actual blit position. If we can't find the previous bitmap
+    // (impossible unless the bake set drifted across a redeploy), fall
+    // back to the cold-state pulse-black path so we don't ghost.
+    const auto* prev = fw::night_phrases::phraseForMinute(p.last_drawn_phrase_min);
+    if (prev) {
+      nightBlit(h.display, *prev, zx, nightBlitY(*prev));
+      h.display.partialUpdate1Bit();
+    } else {
+      h.display.fillRect1Bit(zx, zy, zw, zh, /*value=black=*/1);
+      h.display.partialUpdate1Bit();
+    }
+  }
+
+  nightBlit(h.display, *bm, zx, nightBlitY(*bm));
+  const uint32_t cycles = h.display.partialUpdate1Bit();
+  h.display.setDisplayMode(hal::IDisplay::DisplayMode::ThreeBit);
+
+  p.last_drawn_phrase_min = static_cast<uint16_t>(min_of_day);
+
+  FW_LOG("partial night min=%d phrase=%dx%d at (%d,%d) cycles=%u",
+         min_of_day,
+         static_cast<int>(bm->width), static_cast<int>(bm->height),
+         zx, nightBlitY(*bm),
+         static_cast<unsigned>(cycles));
+
+  if (diag) {
+    diag->cycles = static_cast<uint16_t>(cycles > 0xFFFF ? 0xFFFF : cycles);
+    if (cycles > 0) diag->flags |= 0x10;  // partial_succeeded
+  }
+  return cycles > 0;
+}
+
 bool doPartial(hal::HAL& h, hal::Epoch local_now, fw::diag::Entry* diag = nullptr) {
+  // Night uses pre-baked phrase bitmaps rather than the digit-glyph
+  // composition. Handled by a sibling path that uses the same `IDisplay`
+  // 1-bit primitives but a different content source. See doPartialNight.
+  if (wake::persisted().current_mode == fw::modes::Mode::Night) {
+    return doPartialNight(h, local_now, diag);
+  }
+
   const auto& p = wake::persisted();
   if (p.clock_zone_font_size == 0) {
     FW_LOG("partial skipped (no zone cached for mode=%s)",
@@ -562,7 +686,53 @@ void doFull(hal::HAL& h,
     // second cleans the zone to white where the new digits aren't.
     // Subsequent partial wakes diff against last_drawn (set here to the
     // current minute) and produce ghost-free updates until the next Full.
-    const auto* preset = presetByFontSize(wake::persisted().clock_zone_font_size);
+    // Night's clock is a baked phrase bitmap, not a digit composition, so
+    // the post-Full cleanup is a sibling path that runs only when the Full
+    // happened to land at a partial-eligible minute (typically: an IMU tap
+    // forces a Full at :15/:30/:45). For top-of-hour Night Fulls — the
+    // normal cadence — `phraseForMinute` returns null and we let the PNG's
+    // own 3-bit phrase rendering stand until the first partial wipes and
+    // over-paints it. We also reset `last_drawn_phrase_min` so the next
+    // partial knows we're in the "cold state" (PNG content on the panel,
+    // not a previously-drawn 1-bit phrase to seed from).
+    if (active == fw::modes::Mode::Night) {
+      std::time_t tn = static_cast<std::time_t>(local_now);
+      std::tm* gmn = std::gmtime(&tn);
+      const int min_of_day_n = gmn ? (gmn->tm_hour * 60 + gmn->tm_min) : -1;
+      const auto* bm = (min_of_day_n >= 0)
+                           ? fw::night_phrases::phraseForMinute(min_of_day_n)
+                           : nullptr;
+      if (bm && wake::persisted().clock_zone_h > 0) {
+        const int16_t zx = wake::persisted().clock_zone_x;
+        const int16_t zy = wake::persisted().clock_zone_y;
+        const int16_t zw = static_cast<int16_t>(wake::persisted().clock_zone_w);
+        const int16_t zh = static_cast<int16_t>(wake::persisted().clock_zone_h);
+
+        h.display.setDisplayMode(hal::IDisplay::DisplayMode::OneBit);
+        // Pulse 1: solid black over zone — overwrites the 3-bit AA pixels.
+        h.display.fillRect1Bit(zx, zy, zw, zh, /*value=*/1);
+        h.display.partialUpdate1Bit();
+        // Pulse 2: white + new phrase bitmap (centered).
+        nightBlit(h.display, *bm, zx, nightBlitY(*bm));
+        h.display.partialUpdate1Bit();
+        h.display.setDisplayMode(hal::IDisplay::DisplayMode::ThreeBit);
+
+        wake::persisted().last_drawn_phrase_min =
+            static_cast<uint16_t>(min_of_day_n);
+      } else {
+        // Normal top-of-hour Full: PNG's text stands; first partial cleans up.
+        wake::persisted().last_drawn_phrase_min = 0xffff;
+      }
+      // Reset the digit-clock seed (it's not used by Night, but a previous
+      // mode might have left it set — the next mode change would otherwise
+      // re-blit stale digits).
+      wake::persisted().last_drawn_hh = 0xff;
+      wake::persisted().last_drawn_mm = 0xff;
+    }
+
+    const auto* preset = (active == fw::modes::Mode::Night)
+                             ? nullptr
+                             : presetByFontSize(wake::persisted().clock_zone_font_size);
     if (preset) {
       std::time_t t = static_cast<std::time_t>(local_now);
       std::tm* gm = std::gmtime(&t);
