@@ -55,6 +55,15 @@ struct Persisted {
   // 0xff means "nothing drawn yet" — cold boot before first Full lands.
   uint8_t last_drawn_hh = 0xff;
   uint8_t last_drawn_mm = 0xff;
+  // Night-mode phrase clock — the partial path uses pre-baked phrase
+  // bitmaps (`fw::night_phrases::phraseForMinute`) keyed by min-of-day, so
+  // the seed-then-draw pattern needs to remember the *minute of day* that
+  // was last drawn (not the hh:mm tuple above, which encodes wall-clock
+  // digits the digit-clock path uses). 0xffff means "nothing drawn yet";
+  // the next partial's seed step uses the previously-drawn phrase bitmap
+  // to seed the library's `DMemoryNew` buffer the same way the digit path
+  // re-blits last_drawn_hh:mm. See add-night-text-clock-partials.
+  uint16_t last_drawn_phrase_min = 0xffff;
   // FNV-32 of the last seen `inkplate/state/now_playing_track` payload.
   // Updated by `doFull` after a successful NowPlaying draw; checked by the
   // Poll handler to decide whether the current track has changed since

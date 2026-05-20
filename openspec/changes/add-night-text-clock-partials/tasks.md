@@ -1,30 +1,34 @@
 # Tasks — Night text-clock partials + pool-only poetic line
 
-> **Status — 2026-05-19**: 0/41 complete; nothing started. Audit confirms all preconditions still apply (Night `partial_min=15`, clock-zone.json still 404, no firmware phrase code, flash at 81.9%, LLM still hourly with model = `claude-haiku-4-5-20251001`). Three drifts noted in `proposal.md` status block: pool already at 8×14=112 entries; bake tool SHOULD reuse `renderer/src/modes/night.ts::nightPhrase` (single source of truth) instead of hardcoding the phrase list; `replace-poetic-llm-with-pool` directory is already gone (§12.1 below is therefore a no-op).
+> **Status — 2026-05-20**: 5/41 complete — foundation shipped today (bake tool + renderer clock-zone + Persisted scaffolding). Generated `firmware/src/generated/night_phrases.{h,cpp}` exist; both host sim and ESP32 builds green; smoke contact-sheet rendering verified. Flash is **still at 81.9%** because the linker drops the new ~150 KB of phrase data as dead code until §5 (firmware dispatch) calls `phraseForMinute()` — the proposal's ≈93% projection will only materialize then.
+>
+> Two implementation choices worth recording:
+> - **§4.2 is skipped (no-op).** The clock-glyphs precedent doesn't use a separate `firmware/include/<name>.h` shim header; the bake tool's generated `firmware/src/generated/night_phrases.h` is the public API surface. Future callers `#include "generated/night_phrases.h"` directly. Marking 4.2 closed.
+> - **Bake tool reuses `renderer/src/modes/night.ts::nightPhrase(h, m)`** as the single source of truth for the 25 phrases. Today that gives "twelve o'clock" / "quarter to twelve" / "half past twelve" at h=0; the proposal originally aspired to "midnight" variants instead. Lockstep with the renderer's PNG render wins out — if the operator ever wants "midnight" in the vocabulary, update `nightPhrase()` and the bake's output re-syncs automatically.
 
 ## 1. Renderer — bake-night-phrases tool
 
-- [ ] 1.1 New `renderer/src/tools/bake-night-phrases.ts`. Reads the Night face's CSS for the phrase element's font-family, font-size, font-weight, color. **Sources the 25 phrases by importing `renderer/src/modes/night.ts::nightPhrase(h, m)` and iterating over the partial-eligible minutes** (every 15 min in the Night tier, where `min_of_day % 15 == 0`, in the 22:00–06:30 window) — keeps the runtime PNG and baked bitmaps lockstep-consistent. For each phrase: render via Playwright headless Chromium, threshold to 1-bit, tight-bounding-box crop. Emit `firmware/src/generated/night_phrases.h` (struct decl + `phraseForMinute` decl) and `night_phrases.cpp` (constexpr bitmap arrays + switch-statement lookup).
-- [ ] 1.2 1-bit threshold: pixels with luminance > 128 → 0 (white), else 1 (black). MSB-first within each byte, row-major. Pad each row to a byte boundary; no inter-row padding (height implicit from `data length / row_bytes`).
-- [ ] 1.3 Write a smoke check: bake script run with `--smoke` outputs the 25 phrases as a single contact-sheet PNG to `/tmp/night_phrases_preview.png` so the operator can eyeball the rendering before committing to a flash.
-- [ ] 1.4 Add the bake script to the renderer's `package.json` as `npm run bake-night-phrases`. Document in `renderer/README.md`.
+- [x] 1.1 New `renderer/src/tools/bake-night-phrases.ts`. Reads the Night face's CSS for the phrase element's font-family, font-size, font-weight, color. **Sources the 25 phrases by importing `renderer/src/modes/night.ts::nightPhrase(h, m)` and iterating over the partial-eligible minutes** (every 15 min in the Night tier, where `min_of_day % 15 == 0`, in the 22:00–06:30 window) — keeps the runtime PNG and baked bitmaps lockstep-consistent. For each phrase: render via Playwright headless Chromium, threshold to 1-bit, tight-bounding-box crop. Emit `firmware/src/generated/night_phrases.h` (struct decl + `phraseForMinute` decl) and `night_phrases.cpp` (constexpr bitmap arrays + switch-statement lookup).
+- [x] 1.2 1-bit threshold: pixels with luminance > 128 → 0 (white), else 1 (black). MSB-first within each byte, row-major. Pad each row to a byte boundary; no inter-row padding (height implicit from `data length / row_bytes`). Verified: bake produces 25 entries, max bitmap 684×94 px, total 149.4 KB.
+- [x] 1.3 Smoke check: `npm run bake:night-phrases -- --smoke` writes a 5×5 contact-sheet PNG to `/tmp/night_phrases_preview.png`. Visually verified on 2026-05-20; all 25 render cleanly with no clipping or font-fallback artefacts.
+- [x] 1.4 Added `bake:night-phrases` script to `renderer/package.json` next to `bake:clock-glyphs`. (README documentation deferred to validation §13.)
 
 ## 2. Build wiring
 
 - [ ] 2.1 PlatformIO `inkplate10` build: pre-build hook runs `npm run bake-night-phrases` in the renderer/ directory IF `firmware/src/generated/night_phrases.cpp` is missing OR older than the bake script OR older than the Night face CSS. Use a small `extra_scripts` Python step in `platformio.ini`.
 - [ ] 2.2 CMake host build: parallel `add_custom_command` so `firmware_sim` includes the same generated file when running tests. (Tests don't actually exercise the bitmap content, but the build needs to compile.)
-- [ ] 2.3 Confirm `.gitignore` already excludes `firmware/src/generated/*` (it should, per the existing `clock_glyphs.{h,cpp}` pattern).
+- [x] 2.3 Confirmed the **opposite** convention: `firmware/src/generated/clock_glyphs.{h,cpp}` ARE tracked (the proposal's expectation that they were gitignored was wrong). Tracking the generated `night_phrases.{h,cpp}` the same way so CI / contributors don't need Playwright + Chromium installed to compile the firmware. Re-run the bake only when the bake script, the renderer's Night CSS, or the `nightPhrase()` vocabulary changes — that workflow lands with §2.1's pre-build hook.
 
 ## 3. Renderer — Night clock-zone JSON
 
-- [ ] 3.1 `renderer/src/server.ts` (or wherever per-mode `clock-zone.json` lives): add a Night case that returns `{x, y, w, h, font_size}` for the phrase rectangle. Coordinates derived from the Night face's CSS layout — measure once and hardcode constants OR use a Playwright probe at server start to read the rendered element's bounding box.
+- [x] 3.1 `renderer/src/render.ts`'s clock-zone selector extended to include `.night-phrase`. The existing infrastructure populates `clockZoneByMode` on every Full render of `night.png`, so `GET /display/night/clock-zone.json` will now return the live rectangle (no hardcoding needed). Stale comment about "Night splits hh/mm into two elements" replaced.
 - [ ] 3.2 Verify `GET /display/night/clock-zone.json` returns 200 with the expected schema (no longer 404).
 - [ ] 3.3 Update `firmware/docs/wake-protocol.md`'s per-face partial table — Night row no longer says "n/a — tier has no Partial cadence and renderer returns 404"; instead "yes — phrase bitmap blitted via `night_phrases::phraseForMinute`".
 
 ## 4. Firmware — types and storage
 
-- [ ] 4.1 `firmware/include/wake.h::Persisted`: add `uint16_t last_drawn_phrase_min = 0xffff` (sentinel: nothing drawn yet). Persists across deep sleep so the next partial's seed step can re-blit the prior phrase to seed `DMemoryNew`.
-- [ ] 4.2 New file `firmware/include/night_phrases.h` — declarations only (the header generated by the bake tool lives at `firmware/src/generated/night_phrases.h` and is included from this header). Public API: `const Bitmap* phraseForMinute(int min_of_day)`.
+- [x] 4.1 `firmware/include/wake.h::Persisted`: added `uint16_t last_drawn_phrase_min = 0xffff` next to `last_drawn_hh` / `last_drawn_mm`. Cold-boot value-initialised to 0xffff; preserved across deep sleep via the existing `RTC_DATA_ATTR volatile Persisted g_persisted{}` mechanism.
+- [N/A] 4.2 No separate shim header. Following the `clock_glyphs` precedent, the bake tool's generated `firmware/src/generated/night_phrases.h` is the public API surface directly — `namespace fw::night_phrases { struct Bitmap; const Bitmap* phraseForMinute(int); }`. Future callers `#include "generated/night_phrases.h"`.
 
 ## 5. Firmware — partial dispatch for Night
 

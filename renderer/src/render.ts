@@ -56,11 +56,14 @@ export async function renderToPng(_req: RenderRequest & { url: string }): Promis
     //   gallery-visual (split layout)             → .gv-clock
     //   gallery-text                              → .gt-corner-time
     //   now-playing                               → .np-clock
-    // Night splits the time across two elements (.hh / .mm) that the
-    // partial path can't drive as a single zone, so it returns null.
+    //   night                                     → .night-phrase
+    // Night's `.night-phrase` carries the full fuzzy-time string (e.g.
+    // "quarter past two"); the firmware blits a pre-baked 1-bit bitmap
+    // for the phrase per add-night-text-clock-partials. We surface the
+    // bounding rectangle here so the firmware knows where to paint.
     const clockZone = await page.evaluate(() => {
       const el = document.querySelector(
-        '.clock, .gv-clock, .gt-corner-time, .np-clock',
+        '.clock, .gv-clock, .gt-corner-time, .np-clock, .night-phrase',
       ) as HTMLElement | null;
       if (!el) return null;
       const r = el.getBoundingClientRect();
