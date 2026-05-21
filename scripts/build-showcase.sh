@@ -31,9 +31,17 @@ PORT_TEST=8585
 PID_FILE="$STAGE/renderer.pid"
 
 cleanup() {
+  # `npm start` spawns tsx as a grandchild that holds the port. Killing the
+  # npm wrapper alone leaves the grandchild running. pkill -P kills the
+  # whole subtree; the explicit lsof step is belt-and-braces in case the
+  # renderer drifted from the wrapper's process tree.
   if [[ -f "$PID_FILE" ]]; then
+    pkill -P "$(cat "$PID_FILE")" 2>/dev/null || true
     kill "$(cat "$PID_FILE")" 2>/dev/null || true
   fi
+  local listener
+  listener="$(lsof -ti :"$PORT_TEST" 2>/dev/null || true)"
+  [[ -n "$listener" ]] && kill -9 $listener 2>/dev/null || true
   rm -f "$REPO/renderer/inputs/showcase-"*.{jpg,png}
   rm -rf "$STAGE"
 }
@@ -73,7 +81,7 @@ cat > "$STAGE/pairing-night.json" <<'JSON'
 {"date":"2026-04-14","theme":"stillness","gallery":{"flavor":"text","text":{"form":"haiku","body":"an old silent pond\na frog leaps into water\nsplash, then silence","title":"Old pond","poet":"Bashō","language":"en"}},"night":{"image_path":"/inputs/showcase-nocturne.jpg","title":"Moon Pine at Ueno","fragment":"HIROSHIGE · 1857"}}
 JSON
 cat > "$STAGE/sonos-classical.json" <<'JSON'
-{"state":"playing","title":"Symphony No. 3","artist":"Henryk Górecki","album":"Symphony No. 3 (Symphony of Sorrowful Songs)","source":"spotify","art_url":"/inputs/showcase-art-classical.jpg","classical":true,"composer":"Henryk Górecki","work":"Symphony No. 3","movement":"I. Lento — Sostenuto tranquillo ma cantabile","performers":[{"name":"Dawn Upshaw","role":"Soprano"},{"name":"London Sinfonietta","role":"Orchestra"},{"name":"David Zinman","role":"Conductor"}],"first_release_year":"1992"}
+{"state":"playing","title":"Symphony No. 3","artist":"Henryk Górecki","album":"Symphony No. 3 (Symphony of Sorrowful Songs)","source":"spotify","art_url":"/inputs/showcase-art-classical.jpg","classical":true,"composer":"Henryk Górecki","work":"Symphony No. 3","movement":"I. Lento — Sostenuto tranquillo ma cantabile","performers":[{"name":"Dawn Upshaw","role":"Sop."},{"name":"London Sinfonietta","role":""},{"name":"David Zinman","role":"Cond."}],"first_release_year":"1992"}
 JSON
 cat > "$STAGE/sonos-rock.json" <<'JSON'
 {"state":"playing","title":"Heroes","artist":"David Bowie","album":"\"Heroes\"","source":"spotify","art_url":"/inputs/showcase-art-rock.png","classical":false,"first_release_year":"1977"}
