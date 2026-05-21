@@ -24,10 +24,17 @@ A literary kitchen-fridge dashboard on an Inkplate 10 e-ink panel. Each day pick
 
 All faces rendered at the panel's native 1200 × 825 from the project's test pipeline. Battery / clocks reflect the fixture values, not real time. Regen with `scripts/build-showcase.sh` (spins a separate test renderer on port 8585 so it doesn't disturb the live device).
 
-| Summary (morning main) | Weather (alternates in every tier) |
-|---|---|
-| ![Summary face](renderer/test/__golden__/showcase/summary.png) | ![Weather face](renderer/test/__golden__/weather.png) |
-| Real-day capture (taken from the live device): clock, current conditions + nowcast ("clearing in 21 min"), 3-day forecast strip, and the delight pair — a four-line Dickinson excerpt on the left, and on the right a smart-pill body that etymologises *anodyne* (the word Dickinson uses in line 3). The smart pill is curated alongside the companion text in the same triplet sidecar, so the gloss is always bound to a word in the poem above. | Two-location current conditions (here: Cluj + Reykjavík fixtures), per-location 5-day forecast, sun/moon, plus an astronomy "what's happening this week" cell. |
+<table>
+<tr><th width="50%">Summary (morning main)</th><th width="50%">Weather (alternates in every tier)</th></tr>
+<tr>
+<td width="50%"><img alt="Summary face" src="renderer/test/__golden__/showcase/summary.png"></td>
+<td width="50%"><img alt="Weather face" src="renderer/test/__golden__/weather.png"></td>
+</tr>
+<tr>
+<td width="50%">Real-day capture (taken from the live device): clock, current conditions + nowcast ("clearing in 21 min"), 3-day forecast strip, and the delight pair — a four-line Dickinson excerpt on the left, and on the right a smart-pill body that etymologises <em>anodyne</em> (the word Dickinson uses in line 3). The smart pill is curated alongside the companion text in the same triplet sidecar, so the gloss is always bound to a word in the poem above.</td>
+<td width="50%">Two-location current conditions (here: Cluj + Reykjavík fixtures), per-location 5-day forecast, sun/moon, plus an astronomy "what's happening this week" cell.</td>
+</tr>
+</table>
 
 | Night |
 |---|
@@ -38,10 +45,17 @@ All faces rendered at the panel's native 1200 × 825 from the project's test pip
 
 The Gallery face dispatches between a text layout and image layouts based on the day's slot. The image layout is picked from the source aspect ratio: `gv-native` (panel-aspect ~1.35–1.70, full-bleed with a thin caption strip), and a **split layout** for portrait images (image on the left at its natural aspect ratio, caption on the right). A `gv-square` matted-pillarbox layout also exists for near-square images; it's a corner case in the curated pool so it's not shown here.
 
-| Text (typeset poem / aphorism / fragment) | Visual — landscape (`gv-native`, full-bleed) |
-|---|---|
-| ![Gallery text](renderer/test/__golden__/showcase/gallery-text.png) | ![Gallery landscape](renderer/test/__golden__/showcase/gallery-landscape.png) |
-| Bashō's old-pond haiku in haiku-form CSS. The renderer picks one of six form layouts (haiku, sonnet, free-verse, aphorism, quote, fragment) by the sidecar's `form:` field. | Charles Marville's *Rue de Constantine, Paris* (1866), AR 1.35 — sits in the panel's native band, drawn full-bleed with a thin caption strip below. |
+<table>
+<tr><th width="50%">Text (typeset poem / aphorism / fragment)</th><th width="50%">Visual — landscape (<code>gv-native</code>, full-bleed)</th></tr>
+<tr>
+<td width="50%"><img alt="Gallery text" src="renderer/test/__golden__/showcase/gallery-text.png"></td>
+<td width="50%"><img alt="Gallery landscape" src="renderer/test/__golden__/showcase/gallery-landscape.png"></td>
+</tr>
+<tr>
+<td width="50%">Bashō's old-pond haiku in haiku-form CSS. The renderer picks one of six form layouts (haiku, sonnet, free-verse, aphorism, quote, fragment) by the sidecar's <code>form:</code> field.</td>
+<td width="50%">Charles Marville's <em>Rue de Constantine, Paris</em> (1866), AR 1.35 — sits in the panel's native band, drawn full-bleed with a thin caption strip below.</td>
+</tr>
+</table>
 
 | Visual — portrait (split layout) |
 |---|
@@ -52,10 +66,17 @@ The Gallery face dispatches between a text layout and image layouts based on the
 
 Sonos override. When a track is playing the renderer enriches Spotify track ids via MusicBrainz; classical recordings get a composer-anchored layout (work / movement / performers with role chips), everything else falls back to artist / title / album / year. Album art is fetched from the HA media-player proxy at render time; if the lookup fails the renderer falls back to a stock "NOW PLAYING" plinth.
 
-| Classical (composer-anchored) | Rock / pop (artist-anchored) |
-|---|---|
-| ![Now-Playing classical](renderer/test/__golden__/showcase/nowplaying-classical.png) | ![Now-Playing rock](renderer/test/__golden__/showcase/nowplaying-rock.png) |
-| Górecki's Symphony No. 3 (Symphony of Sorrowful Songs), first movement, Dawn Upshaw (soprano) / London Sinfonietta / David Zinman, Nonesuch 1992. Composer in caps on top, work title in the big slot, movement subtitle in italic, performers with role chips below. | David Bowie, *Heroes* (RCA, 1977). Same template, different field routing: artist in caps, track title in the big slot, album row underneath, year on its own line. |
+<table>
+<tr><th width="50%">Classical (composer-anchored)</th><th width="50%">Rock / pop (artist-anchored)</th></tr>
+<tr>
+<td width="50%"><img alt="Now-Playing classical" src="renderer/test/__golden__/showcase/nowplaying-classical.png"></td>
+<td width="50%"><img alt="Now-Playing rock" src="renderer/test/__golden__/showcase/nowplaying-rock.png"></td>
+</tr>
+<tr>
+<td width="50%">Górecki's Symphony No. 3 (Symphony of Sorrowful Songs), first movement, Dawn Upshaw (soprano) / London Sinfonietta / David Zinman, Nonesuch 1992. Composer in caps on top, work title in the big slot, movement subtitle in italic, performers with role chips below.</td>
+<td width="50%">David Bowie, <em>Heroes</em> (RCA, 1977). Same template, different field routing: artist in caps, track title in the big slot, album row underneath, year on its own line.</td>
+</tr>
+</table>
 
 ## Hardware
 
