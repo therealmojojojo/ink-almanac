@@ -60,13 +60,19 @@ version: 1
 tiers:
   night:
     start: "22:00"
-    # Night Fulls every 2 hours: 22:00, 00:00 (refreshes weekday at midnight),
-    # 02:00, 04:00, 06:00. Partials at every other :15/:30/:45 boundary.
-    # Once add-night-text-clock-partials lands the partial path on Night
-    # (today they promote-to-Full because the phrase clock has no baked
-    # preset), this gives 5 Fulls + 29 Partials per night ≈ 17 mAh vs the
-    # ~102 mAh the old 60/0/15 path actually consumed.
-    full_min: 120
+    # Night Fulls every hour (22:00, 23:00, ..., 06:00) + partials at the
+    # :15/:30/:45 marks. 2026-05-21 walked back from `full_min: 120` after
+    # discovering a stale assumption in the phrase-bake tool: it excluded
+    # :00 minutes from the partial-eligible set on the (now-wrong) premise
+    # that every :00 is a Full. Under 120/0/15 only every-other :00 was a
+    # Full, so 23:00 / 01:00 / 03:00 / 05:00 wanted to be Partials but had
+    # no baked phrase → promoted to Full anyway. Same 9 Fulls/night either
+    # way (28 mAh); 60/0/15 just makes the planner intent match reality.
+    # The "true" 5-Fulls-per-night design needs ~36 KB of :00 phrases that
+    # don't fit under the 95% flash safety cap; deferred until either
+    # add-night-text-clock-partials gains an RLE encoder or we trim
+    # something else off the flash budget.
+    full_min: 60
     poll_min: 0
     partial_min: 15
   morning:

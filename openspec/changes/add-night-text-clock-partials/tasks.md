@@ -46,7 +46,7 @@
     - "Night cold-boot Full at 22:00 leaves phrase-min sentinel for first partial" — post-cleanup no-op at top-of-hour; clock_zone_h=220 / clock_zone_w=900 confirmed parsed from JSON.
     - "Timer @ Night 22:15 → Partial blits phrase bitmap, no Full promotion" — exact partialUpdate count (2: wipe + draw), no MQTT publish, last_drawn_phrase_min advances to 1335.
     - "Consecutive Night partials seed DMemoryNew with previous phrase" — 22:00 cold → 22:15 → 22:30, asserts last_drawn_phrase_min == 1335 entering 22:30 and 1350 after; warm-state path produces 2 partialUpdates + 2 bitmap blits (no fillRect after cold state).
-    - "Timer @ Night :07 under 120/0/15 → Skip — sanity" — off-cadence guard.
+    - "Timer @ Night :07 under 60/0/15 → Skip — sanity" — off-cadence guard. (Test applies the 120/0/15 schedule explicitly via `apply120015NightSchedule()` in its setup, but the assertion holds under either cadence — :07 is not a multiple of 15 or any of {15, 30, 60, 120}.)
 - [x] 6.2 `clock_render_tests.cpp` already pins assertions to specific font_size presets (corner/compact/summary) — never asserts Night digit composition. No edit needed; confirmed by re-reading.
 
 **Sidecar — discovered a 2-hour off-by-one in main_loop_tests.cpp's `kApr14_0800`**: the comment claims `1744617600 + 2*3600 = 08:00 UTC`, but 1744617600 is itself 08:00 UTC, so the constant is actually 10:00 UTC. Existing tests don't notice (they only check cadence-modulo behavior). night_partial_tests defines its own `localTime` helper with a corrected base so absolute min-of-day assertions land on the intended wall-clock values.
@@ -78,7 +78,7 @@
 
 ## 11. Spec deltas
 
-- [x] 11.1 `device-firmware/spec.md` delta updated to reflect the cold-state wipe pulse, the 120/0/15 schedule, and the vertical centering math. `openspec validate` passes.
+- [x] 11.1 `device-firmware/spec.md` delta updated to reflect the cold-state wipe pulse, the 60/0/15 schedule (walked back from 120/0/15 — see proposal "Deferred: :00 phrases" section), and the vertical centering math. `openspec validate` passes.
 - [x] 11.2 `rendering-pipeline/spec.md` delta updated: live `clockZoneByMode` measurement (not hardcoded), sourcing the 25 phrases via `nightPhrase()` for lockstep with the renderer's PNG vocabulary, 150 KB empirical footprint, and the "files committed to git pending future pre-build hook" note.
 - [x] 11.3 `ha-integrations/spec.md` delta updated: 112 actual entries (vs 65 minimum), `wind_kph >= 25` override path, last-positional-arg compatibility for the picker, time-of-day gate on the automation.
 

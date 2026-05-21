@@ -23,13 +23,13 @@ Vertical centering: each phrase bitmap is tight-bbox-cropped around its ink pixe
 
 #### Scenario: Partial wake at 22:15 in Night blits "quarter past ten"
 
-- **WHEN** the device is in Night mode (current_mode = Night), the schedule has `night: 120/0/15` (Fulls every 2 hours, partials every other 15-min boundary), and a Timer wake fires at 22:15
+- **WHEN** the device is in Night mode (current_mode = Night), the schedule has `night: 60/0/15` (Full at every :00, partial at :15/:30/:45), and a Timer wake fires at 22:15
 - **THEN** `planWake` returns `Path::Partial`; the Night branch of `doPartial` calls `phraseForMinute(22*60+15)` and gets the "quarter past ten" bitmap; if cold state (last_drawn_phrase_min == 0xffff) pulses zone black first, otherwise seeds with the prior phrase; blits the new bitmap; runs `partialUpdate1Bit`; updates `last_drawn_phrase_min` to `1335`; returns `true`. The Full path is NOT promoted
 
 #### Scenario: Non-partial-eligible minute returns null
 
 - **WHEN** a Timer wake fires at 03:07 in Night (not a 15/30/45 boundary)
-- **THEN** `planWake` returns `Path::Skip` (Night `120/0/15` has no cadence at :07); `doPartial` is never called. As a defensive check, if a contrived path did call `phraseForMinute(3*60+7)`, it returns `nullptr` and `doPartial` returns false
+- **THEN** `planWake` returns `Path::Skip` (Night `60/0/15` has no cadence at :07); `doPartial` is never called. As a defensive check, if a contrived path did call `phraseForMinute(3*60+7)`, it returns `nullptr` and `doPartial` returns false
 
 #### Scenario: Top-of-hour Night Full does not over-paint
 

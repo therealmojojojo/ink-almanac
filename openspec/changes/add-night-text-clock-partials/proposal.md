@@ -23,28 +23,34 @@ together.
 ### 1. Night has no clock partial cadence today
 
 The schedule planner now supports per-tier `partial_min`
-(`add-pushable-wake-schedule`). As of 2026-05-20 the operator's live
-config sets **Night to `120/0/15`** (Full every 2 hours — at 22:00,
-00:00, 02:00, 04:00, 06:00 — partial at every other :15 / :30 / :45;
-shipped via `ha/config/wake_schedule.yaml`). But the Night face's
-clock is rendered as a **text phrase** ("quarter to three"), not
-"HH:MM" digits. The existing partial-refresh path
+(`add-pushable-wake-schedule`). The operator's live config sets
+**Night to `60/0/15`** (Full at the top of each hour 22:00–06:00,
+partial at :15 / :30 / :45; shipped via `ha/config/wake_schedule.yaml`).
+A short-lived `120/0/15` setting on 2026-05-20 was walked back on
+2026-05-21 after the :00-phrase issue described in §"What changes
+deferred" below: under `120/0/15` only every-other :00 was a Full
+and the planner scheduled the others as Partials, but the bake tool
+hadn't generated "X o'clock" bitmaps so those partials promoted to
+Full anyway — same 9 Fulls/night either way, just with the planner
+intent diverging from runtime behavior.
+
+The Night face's clock is rendered as a **text phrase** ("quarter to
+three"), not "HH:MM" digits. The existing partial-refresh path
 (`firmware/src/clock_render.cpp` +
 `firmware/src/generated/clock_glyphs.{h,cpp}`) composes the clock from
 **baked Fraunces digit glyphs** — 0..9 plus colon. That pipeline
 cannot render English-language fuzzy-time phrases.
 
-So today, every partial wake in Night fails — `doPartial` returns
-false (no baked preset for Night's clock font), and the wake falls
-through to a Full (per `main_loop.cpp` "Promote to Full if mode lacks
-a baked partial zone"). The clock visibly updates at each :15/:30/:45
-boundary, but at full-refresh battery cost (~3 mAh per wake instead of
-~0.06 mAh) and with a full WiFi + MQTT + render-fetch round-trip each
-time. Night currently burns roughly 4× the battery this schedule was
-designed for.
+So before this change, every partial wake in Night fell through to a
+Full (per `main_loop.cpp` "Promote to Full if mode lacks a baked
+partial zone"). The clock updated at each :15/:30/:45 boundary, but
+at full-refresh battery cost (~3 mAh per wake instead of ~0.06 mAh)
+and with a full WiFi + MQTT + render-fetch round-trip each time —
+roughly 4× the battery this schedule was designed for.
 
-Earlier `60/0/15` setting produced even more wasted Fulls (9 per night
-vs today's 5). The 2026-05-20 schedule edit dropped Fulls from 9 → 5
+Under 60/0/15 + the firmware-half of this change, the :00 minutes
+are Fulls (no phrase needed at :00) and the :15/:30/:45 minutes
+become real Partials. 9 Fulls + 24 Partials per night ≈ 28 mAh.
 without firmware changes, saving ~12 mAh/night immediately while still
 serving Fulls every 2 hours so the midnight weekday-string update
 lands. The firmware-half of this change finishes the job by making
@@ -204,16 +210,76 @@ for now means a fallback if the firmware partial path fails).
 
 ## Why now
 
-The Night partial cadence currently does no useful work — every
-partial wake promotes-to-Full because the phrase clock has no baked
-preset. The 2026-05-20 schedule edit (`120/0/15`) halved the wasted
-Fulls already (9 → 5 per night, −12 mAh) but the 29 surviving partials
-per night still promote-to-Full until the firmware-half of this change
-ships. Fix-it-forward is the right move — the Night clock is the
-most-watched face in the kitchen at the times the operator is most
-likely to glance at it, and partial-only at :15/:30/:45 cuts another
-~8 mAh/night for a total saving of ~85 mAh/night vs the pre-2026-05-20
-60/0/15-with-promotion path (~102 mAh → ~17 mAh).
+Before this change, every partial wake promoted-to-Full because the
+phrase clock had no baked preset. Per-night cost was ~102 mAh in
+the Night tier (34 promote-to-Full wakes × 3 mAh). After this change,
+the :15/:30/:45 partials do real partial work (~0.06 mAh each), and
+the :00 Fulls happen on schedule (~3 mAh each). Per-night cost drops
+to ~28 mAh — a saving of ~75 mAh/night against the pre-change baseline.
+
+Under the briefly-deployed `120/0/15` schedule, the projected cost was
+even lower (~17 mAh — 5 Fulls + 28 Partials), but realising that
+required baking 9 additional "X o'clock" bitmaps for the partial-set
+of :00 minutes that aren't tier-boundary Fulls. Those 36 KB don't fit
+under the 95% flash safety cap (current 93.7%). The schedule was
+reverted to `60/0/15` until either flash compression or a structural
+trim opens that headroom; see "Deferred: :00 phrases under
+120/0/15" below.
+
+Fix-it-forward is the right move — the Night clock is the most-watched
+face in the kitchen at the times the operator is most likely to
+glance at it.
+
+## Deferred: :00 phrases under 120/0/15
+
+The proposal originally targeted `night: 120/0/15` (Fulls every 2
+hours) for the maximum power saving (~85 mAh/night). Tonight's audit
+exposed that the bake tool's `eligibleMinutes()` filter excludes
+all `:00` minutes from the partial-eligible set:
+
+```typescript
+if (minOfDay % 60 === 0) continue;   // :00 is a Full, not a partial
+```
+
+That assumption was correct under the pre-existing `60/0/15` schedule
+(every :00 was a Full) but wrong under `120/0/15` (only every-other
+:00 — 22:00, 00:00, 02:00, 04:00, 06:00 — is a Full). Under
+`120/0/15`, the planner correctly schedules 23:00 / 01:00 / 03:00 /
+05:00 as Partials, but `phraseForMinute(min)` returns nullptr for
+those minutes (no baked bitmap) and `doPartialNight` returns false,
+promoting to Full. Same 9 Fulls/night as `60/0/15`, just with the
+schedule's intent (5 Fulls) diverging from runtime behavior.
+
+The fix is to bake 9 additional "X o'clock" bitmaps (10, 11, 12, 1,
+2, 3, 4, 5, 6 o'clock) and drop the `% 60 === 0` exclusion from
+`eligibleMinutes()`. Estimated flash impact: ~36 KB at current
+encoding, pushing flash from 93.7% to ~97% — over the 95% safety
+cap.
+
+Two structural paths to unlock this saving:
+
+1. **RLE compression of night_phrase bitmaps.** Phrase ink covers
+   only ~10% of the tight-bbox area; the rest is white runs that
+   compress 2-4× with a trivial run-length encoder. Bake tool gains
+   ~50 LOC encoder; firmware gains ~30 LOC decoder. Estimated net
+   saving: ~75 KB. Frees the headroom and leaves 60+ KB for future
+   growth. The proper long-term answer.
+
+2. **`CONFIG_NEWLIB_NANO_FORMAT=y` in a custom arduino-esp32
+   framework build.** Drops the float-printf variants we don't use
+   (~30 KB). Higher setup cost (fork the framework dependency);
+   would prevent us from ever using `%f` without a framework rebuild.
+
+The simpler `-Wl,--wrap=vfprintf` approach was tried on 2026-05-21
+and produced a clean +34 KB byte saving at link time but the
+resulting binary crashed at runtime in `_svfiprintf_r` during the
+first cold-boot draw cycle — the integer-only siblings aren't a
+drop-in replacement for the float variants in this framework. See
+2026-05-21 transcript.
+
+The operator chose to defer the :00 phrases and run `60/0/15`
+indefinitely. The ~12 mAh/night gap is small enough that the
+RLE-compression investment can wait for a clearer cost signal.
 
 The poetic-line cleanup is bundled because the same review +
 deploy + flash cycle covers both, and the LLM removal has been a
