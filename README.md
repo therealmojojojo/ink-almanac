@@ -31,8 +31,8 @@ All faces rendered at the panel's native 1200 × 825 from the project's test pip
 
 | Night |
 |---|
-| ![Night face](renderer/test/__golden__/night.png) |
-| Italic Fraunces fuzzy-time clock ("quarter to ten"), weekday, weather bucket label, and the pool-picked poetic line at the bottom. The quarter-hour ticks refresh partially (offline) via baked phrase bitmaps. |
+| ![Night face](renderer/test/__golden__/showcase/night.png) |
+| Italic Fraunces fuzzy-time clock ("quarter to five") on the left with weekday + weather strip; on the right, a portrait nocturne — here Hiroshige's *Moon Pine at Ueno* (1857, *One Hundred Famous Views of Edo*) framing the full moon through the curved pine. The quarter-hour ticks refresh partially (offline) via baked phrase bitmaps. |
 
 ### Gallery — three layout variants
 
