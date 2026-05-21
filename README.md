@@ -31,7 +31,7 @@ All faces rendered at the panel's native 1200 × 825 from the project's test pip
 <td width="50%"><img alt="Weather face" src="renderer/test/__golden__/weather.png"></td>
 </tr>
 <tr>
-<td width="50%">Real-day capture (taken from the live device): clock, current conditions + nowcast ("clearing in 21 min"), 3-day forecast strip, and the delight pair — a four-line Dickinson excerpt on the left, and on the right a smart-pill body that etymologises <em>anodyne</em> (the word Dickinson uses in line 3). The smart pill is curated alongside the companion text in the same triplet sidecar, so the gloss is always bound to a word in the poem above.</td>
+<td width="50%">Giant Didone clock, current conditions, 3-day forecast strip, and the delight pair: a 2-line Marcus Aurelius aphorism on the left, and on the right a smart pill that etymologises the Greek <em>baptetai</em> (the root behind "dyed" in the aphorism — and the same root as "baptism"). The smart pill is curated alongside the companion text in the same triplet sidecar, so the gloss is always bound to a word in the text above.</td>
 <td width="50%">Two-location current conditions (here: Cluj + Reykjavík fixtures), per-location 5-day forecast, sun/moon, plus an astronomy "what's happening this week" cell.</td>
 </tr>
 </table>

@@ -5,14 +5,13 @@
 #
 # Why this script exists separately from `npm test`: the canonical snapshot
 # test exercises one fixture per face. The README needs multiple fixtures
-# per face (gallery layouts, classical vs pop now-playing) and a real-day
-# Summary render. This stand-alone harness:
-#
-#   • For Summary — curls the *prod* renderer on :8575 so the screenshot
-#     reflects the live device's triplet (Dickinson + smart-pill etc.).
-#     Run this when the live triplet is one you want to immortalise.
-#   • For Gallery + Now-Playing — spins a *test* renderer on :8585 with a
-#     temp staging dir so the prod renderer's inputs are never touched.
+# per face (gallery layouts, classical vs pop now-playing, a summary with a
+# bound smart-pill demonstration). This stand-alone harness spins a *test*
+# renderer on :8585 with a temp staging dir so the prod renderer on :8575
+# (and the live device it serves) are never touched. The Summary fixture
+# reads body + smart-pill from the operator's corpus sidecar at runtime
+# (corpus/texts/marcus-aurelius-dye-of-thoughts.yaml) so the demo always
+# shows the same content regardless of what today's published triplet is.
 #
 # The PD images and album-art thumbnails fetched here:
 #   • Charles Marville — Rue de Constantine, Paris (1866). CC0 via Wikimedia.
@@ -29,7 +28,6 @@ REPO="$(cd "$(dirname "$0")/.." && pwd)"
 STAGE="$(mktemp -d -t inkplate-showcase.XXXXXX)"
 OUT="$REPO/renderer/test/__golden__/showcase"
 PORT_TEST=8585
-PORT_PROD=8575
 PID_FILE="$STAGE/renderer.pid"
 
 cleanup() {
@@ -82,6 +80,43 @@ cat > "$STAGE/sonos-rock.json" <<'JSON'
 JSON
 cp "$STAGE/sonos-classical.json" "$STAGE/sonos.json"  # default for gallery renders
 
+# Summary fixture — read the Marcus Aurelius "Dye of Thoughts" item from the
+# operator's corpus to populate both the companion text and the smart pill.
+# Doing it this way means we don't duplicate the operator's curator-written
+# prose into the script; the body and the pill stay sourced from a single
+# YAML sidecar. (Requires corpus/texts/marcus-aurelius-dye-of-thoughts.yaml
+# to exist locally; the sidecars are gitignored so this script only works on
+# the operator's machine, which is the design intent — the rendered PNGs
+# are what ships in the repo.)
+python3 - <<PY
+import json, yaml, pathlib
+src = pathlib.Path("$REPO/corpus/texts/marcus-aurelius-dye-of-thoughts.yaml")
+d = yaml.safe_load(src.read_text())
+body = (d.get("text_variants") or {}).get("en", "").rstrip("\n")
+pill = ((d.get("smart_pill") or {}).get("body") or "").rstrip("\n")
+pairing = {
+  "date": "2026-04-14",
+  "theme": d.get("themes", ["self-shaping"])[0],
+  "gallery": {
+    "flavor": "visual",
+    "visual": {
+      "image_path": "/inputs/showcase-landscape.jpg",
+      "title": "Rue de Constantine", "artist": "Marville", "year": "1866",
+      "pixel_width": 3812, "pixel_height": 2828,
+    },
+    "companion": {
+      "kind": "text", "form": d.get("form", "aphorism"),
+      "body": body, "poet": d.get("author", "Marcus Aurelius"),
+      "title": d.get("title", ""), "language": "en",
+    },
+  },
+}
+pathlib.Path("$STAGE/pairing-summary.json").write_text(
+  json.dumps(pairing, ensure_ascii=False, indent=2))
+pathlib.Path("$STAGE/smart_pill.json").write_text(
+  json.dumps({"body": pill}, ensure_ascii=False, indent=2))
+PY
+
 # Boot the test renderer on $PORT_TEST, inputs pointed at the staging dir.
 (
   cd "$REPO/renderer"
@@ -102,8 +137,9 @@ render() {
   printf '  %-26s %8d bytes\n' "$name.png" "$(wc -c < "$OUT/$name.png")"
 }
 
-echo "=== Summary (live, from prod renderer :$PORT_PROD) ==="
-render "summary" summary "$PORT_PROD"
+echo "=== Summary (test renderer, Marcus Aurelius fixture) ==="
+cp "$STAGE/pairing-summary.json" "$STAGE/pairing.json"
+render "summary" summary
 
 echo "=== Night ==="
 cp "$STAGE/pairing-night.json" "$STAGE/pairing.json"
