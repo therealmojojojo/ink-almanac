@@ -69,7 +69,7 @@ Sonos override. When a track is playing the renderer enriches Spotify track ids 
 <td width="50%"><img alt="Now-Playing rock" src="renderer/test/__golden__/showcase/nowplaying-rock.png"></td>
 </tr>
 <tr>
-<td width="50%">Górecki's Symphony No. 3 (Symphony of Sorrowful Songs), first movement, Dawn Upshaw (soprano) / London Sinfonietta / David Zinman, Nonesuch 1992. Composer in caps on top, work title in the big slot, movement subtitle in italic, performers with role chips below.</td>
+<td width="50%">Bach's Goldberg Variations, Glenn Gould's 1981 re-recording (CBS Masterworks). Composer in caps on top, work title in the big slot, movement subtitle in italic, performer with role chip below. Single-performer recordings keep the strip terse; multi-performer recordings (concertos, opera, lieder cycles) populate the same template with additional rows.</td>
 <td width="50%">David Bowie, <em>Heroes</em> (RCA, 1977). Same template, different field routing: artist in caps, track title in the big slot, album row underneath, year on its own line.</td>
 </tr>
 </table>
