@@ -27,35 +27,35 @@ All faces rendered at the panel's native 1200 × 825 from the project's test pip
 | Summary (morning main) | Weather (alternates in every tier) |
 |---|---|
 | ![Summary face](renderer/test/__golden__/showcase/summary.png) | ![Weather face](renderer/test/__golden__/weather.png) |
-| Giant Didone clock, current conditions, 5-day forecast strip, smart-pill word study, and a delight cell holding a short text — here Bashō's haiku. The delight cell is **always** text; image companions were dropped from the curation pool (every production summary slot is a poem / aphorism / fragment). | Two-location current conditions (here: Cluj + Reykjavík fixtures), per-location 5-day forecast, sun/moon, plus an astronomy "what's happening this week" cell. |
+| Real-day capture (taken from the live device): clock, current conditions + nowcast ("clearing in 21 min"), 3-day forecast strip, and the delight pair — a four-line Dickinson excerpt on the left, and on the right a smart-pill body that etymologises *anodyne* (the word Dickinson uses in line 3). The smart pill is curated alongside the companion text in the same triplet sidecar, so the gloss is always bound to a word in the poem above. | Two-location current conditions (here: Cluj + Reykjavík fixtures), per-location 5-day forecast, sun/moon, plus an astronomy "what's happening this week" cell. |
 
 | Night |
 |---|
 | ![Night face](renderer/test/__golden__/night.png) |
 | Italic Fraunces fuzzy-time clock ("quarter to ten"), weekday, weather bucket label, and the pool-picked poetic line at the bottom. The quarter-hour ticks refresh partially (offline) via baked phrase bitmaps. |
 
-### Gallery — four layout variants
+### Gallery — three layout variants
 
-The Gallery face dispatches between a text layout and three image layouts based on the day's slot. Image layouts are picked from the source aspect ratio: `gv-native` (panel-aspect ~1.5, full-bleed), `gv-square` (near-square, matted pillarbox), and a **split layout** for portrait images (image left at natural AR, caption right).
+The Gallery face dispatches between a text layout and image layouts based on the day's slot. The image layout is picked from the source aspect ratio: `gv-native` (panel-aspect ~1.35–1.70, full-bleed with a thin caption strip), and a **split layout** for portrait images (image on the left at its natural aspect ratio, caption on the right). A `gv-square` matted-pillarbox layout also exists for near-square images; it's a corner case in the curated pool so it's not shown here.
 
 | Text (typeset poem / aphorism / fragment) | Visual — landscape (`gv-native`, full-bleed) |
 |---|---|
 | ![Gallery text](renderer/test/__golden__/showcase/gallery-text.png) | ![Gallery landscape](renderer/test/__golden__/showcase/gallery-landscape.png) |
-| Bashō haiku. CSS picks one of six form layouts (haiku, sonnet, free-verse, aphorism, quote, fragment) by the sidecar's `form:` field. | Whistler's *Rotherhithe* (1860), AR 1.50 — sits in the panel's native band, drawn full-bleed with a thin caption strip below. |
+| Bashō's old-pond haiku in haiku-form CSS. The renderer picks one of six form layouts (haiku, sonnet, free-verse, aphorism, quote, fragment) by the sidecar's `form:` field. | Charles Marville's *Rue de Constantine, Paris* (1866), AR 1.35 — sits in the panel's native band, drawn full-bleed with a thin caption strip below. |
 
-| Visual — square (`gv-square`, matted pillarbox) | Visual — portrait (split layout) |
-|---|---|
-| ![Gallery square](renderer/test/__golden__/showcase/gallery-square.png) | ![Gallery portrait](renderer/test/__golden__/showcase/gallery-portrait.png) |
-| Ma Yuan's *Scholar by Waterfall* (ca. 1200), AR 1.14 — outside panel-native, matted pillarbox so the image renders at full height without cropping. | Beardsley's *Peacock Skirt* (1893), AR 0.72 — image holds the left column at its natural aspect ratio; title + attribution flow on the right. |
+| Visual — portrait (split layout) |
+|---|
+| ![Gallery portrait](renderer/test/__golden__/showcase/gallery-portrait.png) |
+| Dorothea Lange's *Migrant Mother* (FSA, 1936), AR 0.77 — image holds the left column at its natural aspect ratio; title + attribution flow on the right. |
 
 ### Now-Playing — two layout variants
 
-Sonos override. When a track is playing the renderer enriches Spotify track ids via MusicBrainz; classical recordings get a composer-anchored layout (work / movement / performers with role chips), everything else falls back to artist / title / album / year. The "NOW PLAYING" plinth is the operator's stock fallback art that ships with the renderer; production usually shows real album art via the HA media-player proxy.
+Sonos override. When a track is playing the renderer enriches Spotify track ids via MusicBrainz; classical recordings get a composer-anchored layout (work / movement / performers with role chips), everything else falls back to artist / title / album / year. Album art is fetched from the HA media-player proxy at render time; if the lookup fails the renderer falls back to a stock "NOW PLAYING" plinth.
 
 | Classical (composer-anchored) | Rock / pop (artist-anchored) |
 |---|---|
 | ![Now-Playing classical](renderer/test/__golden__/showcase/nowplaying-classical.png) | ![Now-Playing rock](renderer/test/__golden__/showcase/nowplaying-rock.png) |
-| Arvo Pärt's *Spiegel im Spiegel*, performed by Spivakov (violin) and Bezrodny (piano), 1999. Composer in caps on top; work title in the big slot; performers with role chips below. | David Bowie, *Heroes* (1977). Artist in caps; track title in the big slot; album row underneath; year on its own line. Same template, different field routing. |
+| Górecki's Symphony No. 3 (Symphony of Sorrowful Songs), first movement, Dawn Upshaw (soprano) / London Sinfonietta / David Zinman, Nonesuch 1992. Composer in caps on top, work title in the big slot, movement subtitle in italic, performers with role chips below. | David Bowie, *Heroes* (RCA, 1977). Same template, different field routing: artist in caps, track title in the big slot, album row underneath, year on its own line. |
 
 ## Hardware
 

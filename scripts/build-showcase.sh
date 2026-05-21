@@ -1,15 +1,24 @@
 #!/usr/bin/env bash
 # Render the showcase variants used in README.md's "Faces" section.
 #
-# Output: renderer/test/__golden__/showcase/{gallery-{text,landscape,square,portrait},nowplaying-{classical,rock},summary}.png
+# Output: renderer/test/__golden__/showcase/{gallery-{text,landscape,portrait},nowplaying-{classical,rock},summary}.png
 #
 # Why this script exists separately from `npm test`: the canonical snapshot
 # test exercises one fixture per face. The README needs multiple fixtures
-# per face (4 gallery layouts, 2 now-playing flavors, a text-companion
-# summary). Rather than fork the fixture set or expand the test surface,
-# this is a stand-alone harness that spins up a *test* renderer on port
-# 8585 (so it doesn't collide with the prod renderer on 8575) and drives
-# it through a temp staging dir.
+# per face (gallery layouts, classical vs pop now-playing) and a real-day
+# Summary render. This stand-alone harness:
+#
+#   • For Summary — curls the *prod* renderer on :8575 so the screenshot
+#     reflects the live device's triplet (Dickinson + smart-pill etc.).
+#     Run this when the live triplet is one you want to immortalise.
+#   • For Gallery + Now-Playing — spins a *test* renderer on :8585 with a
+#     temp staging dir so the prod renderer's inputs are never touched.
+#
+# The PD photos and album-art thumbnails fetched here:
+#   • Charles Marville — Rue de Constantine, Paris (1866). CC0 via Wikimedia.
+#   • Dorothea Lange — Migrant Mother (FSA, 1936). PD via Wikimedia / LoC.
+#   • Górecki — Symphony No. 3 cover (1992 Nonesuch). Wikipedia fair-use.
+#   • Bowie — "Heroes" cover (RCA, 1977). Wikipedia fair-use.
 #
 # Re-run whenever the gallery / now-playing / summary layouts change.
 
@@ -18,86 +27,83 @@ set -euo pipefail
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 STAGE="$(mktemp -d -t inkplate-showcase.XXXXXX)"
 OUT="$REPO/renderer/test/__golden__/showcase"
-PORT=8585
+PORT_TEST=8585
+PORT_PROD=8575
 PID_FILE="$STAGE/renderer.pid"
 
 cleanup() {
   if [[ -f "$PID_FILE" ]]; then
     kill "$(cat "$PID_FILE")" 2>/dev/null || true
   fi
-  rm -f "$REPO/renderer/inputs/showcase-"*.jpg
+  rm -f "$REPO/renderer/inputs/showcase-"*.{jpg,png}
   rm -rf "$STAGE"
 }
 trap cleanup EXIT
 
 mkdir -p "$OUT"
 
-# Stage base fixtures (clock / device / weather / smart_pill) — unchanged.
+# Base fixtures (clock / device / weather / smart_pill) — unchanged.
 cp "$REPO/renderer/test/fixtures/"{clock,device,weather,smart_pill}.json "$STAGE/"
 
-# Stage showcase images into renderer/inputs/ with non-colliding names so the
-# prod renderer's /inputs/<file> route can serve them without clobbering any
-# of the live HA-published files (clock.json, gallery.jpg, etc.).
-cp "$REPO/corpus/images/whistler-rotherhithe.jpg"          "$REPO/renderer/inputs/showcase-landscape.jpg"
-cp "$REPO/corpus/images/ma-yuan-scholar-by-waterfall.jpg"  "$REPO/renderer/inputs/showcase-square.jpg"
-cp "$REPO/corpus/images/beardsley-peacock-skirt.jpg"       "$REPO/renderer/inputs/showcase-portrait.jpg"
+# Fetch PD photos + album-cover thumbnails into renderer/inputs/ under
+# non-colliding showcase-* names so the prod renderer's /inputs/<file>
+# route can serve them without touching live HA-published files.
+echo "Fetching showcase assets…"
+curl -sf -o "$REPO/renderer/inputs/showcase-landscape.jpg" \
+  "https://upload.wikimedia.org/wikipedia/commons/c/c1/Rue_de_Constantine%2C_Paris%2C_by_Charles_Marville.JPG"
+curl -sf -o "$REPO/renderer/inputs/showcase-portrait.jpg" \
+  "https://upload.wikimedia.org/wikipedia/commons/5/54/Lange-MigrantMother02.jpg"
+curl -sf -o "$REPO/renderer/inputs/showcase-art-classical.jpg" \
+  "https://upload.wikimedia.org/wikipedia/en/8/86/Symphony_of_Sorrowful_Songs.jpg"
+curl -sf -o "$REPO/renderer/inputs/showcase-art-rock.png" \
+  "https://upload.wikimedia.org/wikipedia/en/7/7b/David_Bowie_-_Heroes.png"
 
-# Write per-variant pairing / sonos fixtures into the staging dir.
+# Per-variant pairing / sonos fixtures.
 cat > "$STAGE/pairing-text.json" <<'JSON'
 {"date":"2026-04-14","theme":"stillness","gallery":{"flavor":"text","text":{"form":"haiku","body":"an old silent pond\na frog leaps into water\nsplash, then silence","title":"Old pond","poet":"Bashō","dates":"1644–1694","language":"en"}},"night":{"fragment":"the night is long, the moon keeps watch"}}
 JSON
 cat > "$STAGE/pairing-landscape.json" <<'JSON'
-{"date":"2026-04-14","theme":"river","gallery":{"flavor":"visual","visual":{"image_path":"/inputs/showcase-landscape.jpg","title":"Rotherhithe","artist":"Whistler","year":"1860","pixel_width":3806,"pixel_height":2541}}}
-JSON
-cat > "$STAGE/pairing-square.json" <<'JSON'
-{"date":"2026-04-14","theme":"stillness","gallery":{"flavor":"visual","visual":{"image_path":"/inputs/showcase-square.jpg","title":"Scholar by Waterfall","artist":"Ma Yuan","year":"ca. 1200","pixel_width":3407,"pixel_height":3000}}}
+{"date":"2026-04-14","theme":"city","gallery":{"flavor":"visual","visual":{"image_path":"/inputs/showcase-landscape.jpg","title":"Rue de Constantine","artist":"Marville","year":"1866","pixel_width":3812,"pixel_height":2828}}}
 JSON
 cat > "$STAGE/pairing-portrait.json" <<'JSON'
-{"date":"2026-04-14","theme":"ornament","gallery":{"flavor":"visual","visual":{"image_path":"/inputs/showcase-portrait.jpg","title":"Peacock Skirt","artist":"Beardsley","year":"1893","pixel_width":1855,"pixel_height":2560}}}
-JSON
-cat > "$STAGE/pairing-summary.json" <<'JSON'
-{"date":"2026-04-14","theme":"stillness","gallery":{"flavor":"visual","visual":{"image_path":"/inputs/showcase-landscape.jpg","title":"Rotherhithe","artist":"Whistler","year":"1860","pixel_width":3806,"pixel_height":2541},"companion":{"kind":"text","form":"haiku","body":"an old silent pond\na frog leaps into water\nsplash, then silence","poet":"Bashō","title":"Old pond","dates":"1644–1694","language":"en"}}}
+{"date":"2026-04-14","theme":"depression","gallery":{"flavor":"visual","visual":{"image_path":"/inputs/showcase-portrait.jpg","title":"Migrant Mother","artist":"Lange","year":"1936","pixel_width":6205,"pixel_height":8066}}}
 JSON
 cat > "$STAGE/sonos-classical.json" <<'JSON'
-{"state":"playing","title":"Spiegel im Spiegel","artist":"Arvo Pärt","album":"Alina","source":"spotify","classical":true,"composer":"Arvo Pärt","work":"Spiegel im Spiegel","movement":"","performers":[{"name":"Vladimir Spivakov","role":"Violin"},{"name":"Sergej Bezrodny","role":"Piano"}],"first_release_year":"1999"}
+{"state":"playing","title":"Symphony No. 3","artist":"Henryk Górecki","album":"Symphony No. 3 (Symphony of Sorrowful Songs)","source":"spotify","art_url":"/inputs/showcase-art-classical.jpg","classical":true,"composer":"Henryk Górecki","work":"Symphony No. 3","movement":"I. Lento — Sostenuto tranquillo ma cantabile","performers":[{"name":"Dawn Upshaw","role":"Soprano"},{"name":"London Sinfonietta","role":"Orchestra"},{"name":"David Zinman","role":"Conductor"}],"first_release_year":"1992"}
 JSON
 cat > "$STAGE/sonos-rock.json" <<'JSON'
-{"state":"playing","title":"Heroes","artist":"David Bowie","album":"\"Heroes\"","source":"spotify","classical":false,"first_release_year":"1977"}
+{"state":"playing","title":"Heroes","artist":"David Bowie","album":"\"Heroes\"","source":"spotify","art_url":"/inputs/showcase-art-rock.png","classical":false,"first_release_year":"1977"}
 JSON
-# default sonos for the gallery / summary renders (idle, so no override leaks in)
-cp "$STAGE/sonos-classical.json" "$STAGE/sonos.json"
+cp "$STAGE/sonos-classical.json" "$STAGE/sonos.json"  # default for gallery renders
 
-# Boot the test renderer on $PORT, inputs pointed at the staging dir.
+# Boot the test renderer on $PORT_TEST, inputs pointed at the staging dir.
 (
   cd "$REPO/renderer"
-  RENDERER_PORT="$PORT" RENDERER_INPUTS_DIR="$STAGE" npm start \
+  RENDERER_PORT="$PORT_TEST" RENDERER_INPUTS_DIR="$STAGE" npm start \
     >"$STAGE/renderer.log" 2>&1 &
   echo $! > "$PID_FILE"
 )
-
-# Wait for it.
 for _ in $(seq 1 60); do
-  if [[ "$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT/healthz")" == "200" ]]; then
+  if [[ "$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT_TEST/healthz")" == "200" ]]; then
     break
   fi
   sleep 1
 done
 
 render() {
-  local name="$1" face="$2"
-  curl -sf -o "$OUT/$name.png" "http://127.0.0.1:$PORT/display/$face.png"
-  printf '  %-22s %8d bytes\n' "$name.png" "$(wc -c < "$OUT/$name.png")"
+  local name="$1" face="$2" port="${3:-$PORT_TEST}"
+  curl -sf -o "$OUT/$name.png" "http://127.0.0.1:$port/display/$face.png"
+  printf '  %-26s %8d bytes\n' "$name.png" "$(wc -c < "$OUT/$name.png")"
 }
 
+echo "=== Summary (live, from prod renderer :$PORT_PROD) ==="
+render "summary" summary "$PORT_PROD"
+
 echo "=== Gallery variants ==="
-for v in text landscape square portrait; do
+for v in text landscape portrait; do
   cp "$STAGE/pairing-$v.json" "$STAGE/pairing.json"
   render "gallery-$v" gallery
 done
-
-echo "=== Summary (text companion) ==="
-cp "$STAGE/pairing-summary.json" "$STAGE/pairing.json"
-render "summary" summary
 
 echo "=== Now-Playing variants ==="
 cp "$STAGE/sonos-classical.json" "$STAGE/sonos.json"
