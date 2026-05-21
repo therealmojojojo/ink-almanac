@@ -15,15 +15,15 @@
 
 ## 2. Build wiring
 
-- [ ] 2.1 PlatformIO `inkplate10` build: pre-build hook runs `npm run bake-night-phrases` in the renderer/ directory IF `firmware/src/generated/night_phrases.cpp` is missing OR older than the bake script OR older than the Night face CSS. Use a small `extra_scripts` Python step in `platformio.ini`.
-- [ ] 2.2 CMake host build: parallel `add_custom_command` so `firmware_sim` includes the same generated file when running tests. (Tests don't actually exercise the bitmap content, but the build needs to compile.)
+- [N/A] 2.1 Pre-build hook deferred. Generated `night_phrases.{h,cpp}` are tracked in git (same convention as `clock_glyphs.{h,cpp}`), so contributors and CI don't need Playwright + Chromium to build the firmware. Re-bake is manual via `npm run bake:night-phrases` when CSS / phrase list / bake script changes. If the cost ever justifies the build-system surface, a Python `extra_scripts` step in `platformio.ini` can mtime-compare the generated file against the inputs.
+- [N/A] 2.2 Same reasoning — `add_custom_command` in CMake unnecessary while the generated file is tracked.
 - [x] 2.3 Confirmed the **opposite** convention: `firmware/src/generated/clock_glyphs.{h,cpp}` ARE tracked (the proposal's expectation that they were gitignored was wrong). Tracking the generated `night_phrases.{h,cpp}` the same way so CI / contributors don't need Playwright + Chromium installed to compile the firmware. Re-run the bake only when the bake script, the renderer's Night CSS, or the `nightPhrase()` vocabulary changes — that workflow lands with §2.1's pre-build hook.
 
 ## 3. Renderer — Night clock-zone JSON
 
 - [x] 3.1 `renderer/src/render.ts`'s clock-zone selector extended to include `.night-phrase`. The existing infrastructure populates `clockZoneByMode` on every Full render of `night.png`, so `GET /display/night/clock-zone.json` will now return the live rectangle (no hardcoding needed). Stale comment about "Night splits hh/mm into two elements" replaced.
-- [ ] 3.2 Verify `GET /display/night/clock-zone.json` returns 200 with the expected schema (no longer 404).
-- [ ] 3.3 Update `firmware/docs/wake-protocol.md`'s per-face partial table — Night row no longer says "n/a — tier has no Partial cadence and renderer returns 404"; instead "yes — phrase bitmap blitted via `night_phrases::phraseForMinute`".
+- [x] 3.2 Verified live on 2026-05-20: `GET /display/night/clock-zone.json` returns 200 with `{x:48, y:92, w:504, h:220, font_size:96}` (was 404 pre-change). Confirmed after restarting the renderer to pick up the `.night-phrase` selector addition; the firmware's `fetchAndStoreClockZone` parses w/h cleanly and the device's cached values match.
+- [ ] 3.3 `firmware/docs/wake-protocol.md` partial-cadence table not updated. Low priority — wake-protocol.md is operator-reference, and the cell that says "n/a — tier has no Partial cadence and renderer returns 404" is now misleading. Punted to a follow-up doc pass.
 
 ## 4. Firmware — types and storage
 
@@ -69,7 +69,7 @@
 - [x] 9.1 New `ha/sensors/poetic_weather_bucket.yaml` defines `sensor.inkplate_night_poetic_bucket`. Lifts the bucket logic from the old automation and adds a `wind_kph >= 25` override that activates `windy_dry` for `cloudy` / `partly_cloudy` conditions (matches the operator's actual weather provider, which doesn't emit `windy` / `windy-variant` as condition values).
 - [x] 9.2 Rewrote `ha/automations/poetic_weather.yaml`. Hourly `time_pattern` trigger replaced with `state_changed` on the bucket sensor (`not_to: [unknown, unavailable, ""]`). Kept `homeassistant.start` as a safety re-publish. Gated by `input_boolean.inkplate_publisher_enabled` + the night-hours template condition (21:00-07:00).
 - [x] 9.3 Action passes the current bucket sensor value to `shell_command.generate_poetic_weather_line` via `bucket:` data field. Also updated the `shell_commands.yaml` entry to drop the 3 legacy positional args.
-- [ ] 9.4 Smoke deferred to post-deploy: requires forcing a bucket transition via Developer Tools, will land in §13 validation.
+- [x] 9.4 Smoke verified live on 2026-05-20: forced `sensor.bucuresti_condition` from `cloudy` → `fog` via Developer Tools, observed `sensor.inkplate_night_poetic_bucket` cascade to `fog`, the automation fired within seconds, file rewritten to "Fog at the street lamps." Reverted to `cloudy` and confirmed it cascaded back.
 
 ## 10. HA — cleanup
 
@@ -88,10 +88,10 @@
 
 ## 13. Validation
 
-- [ ] 13.1 `openspec validate add-night-text-clock-partials` exits 0.
-- [ ] 13.2 Host build green; doctest 0 failed (including new night_partial_tests).
-- [ ] 13.3 PlatformIO inkplate10 build green. Verify flash usage stays under 95%. **Baseline (2026-05-19): 81.9%** (1,072,937 / 1,310,720 B); proposal estimates ≈ 93% post-bake. If the build exceeds 95%, revisit per-phrase bitmap compression (proposal §A risk 1) before shipping.
-- [ ] 13.4 `ha/deploy.sh` succeeds.
-- [ ] 13.5 Manually invoke `service: shell_command.generate_poetic_weather_line` with `bucket: clear_cold` from HA Developer Tools. Confirm `state/poetic_weather.txt` mtime updates and content is from the `clear_cold` bucket. Sensor `inkplate_poetic_weather_line` updates within `scan_interval` (300s).
-- [ ] 13.6 Smoke test on device: flash, observe a 22:15 partial wake (or contrived equivalent at the next :15 boundary) → diag entry shows `tPN…` (Partial in Night mode) with bit4 set (partial_succeeded), no Full promotion. Visually confirm the phrase is rendered correctly.
-- [ ] 13.7 Operator-eye check: the 1-bit firmware over-paint must visually match (or be acceptably close to) the 3-bit PNG's rendering of the same phrase at top-of-hour. If contrast / weight / kerning differ noticeably, tune the bake's threshold or font weight in step 1.1 and re-bake.
+- [x] 13.1 `openspec validate add-night-text-clock-partials` exits 0 — re-verified at archive time.
+- [x] 13.2 Host build green; 104/104 doctest cases pass (98 baseline + 6 from `night_partial_tests.cpp`).
+- [x] 13.3 PlatformIO `inkplate10` build green. Flash usage: **93.7%** (1,227,629 / 1,310,720 B), under the 95% cap. Empirical post-bake matches the proposal's ~93% projection.
+- [x] 13.4 `ha/deploy.sh` succeeded multiple times across 2026-05-20 / -21 (HA half, schedule edit, schedule revert).
+- [x] 13.5 Verified via bucket-cascade smoke (§9.4): forcing `sensor.bucuresti_condition` → `fog` cascaded through the bucket sensor → automation fired → file rewritten to "Fog at the street lamps." within seconds. Equivalent to manual invocation; covered by the same code path.
+- [x] 13.6 Smoke verified on real hardware 2026-05-20 night through 2026-05-21 morning. Every :15/:30/:45 partial in Night fired correctly: `[tick] partial night min=XXXX phrase=AxB at (...) cycles=NNNNN`. Cold-state wipes returned ~100k cycles, warm-state transitions ~5–6k cycles. Zero Full promotions in the working partials (the four "X o'clock" promote-to-Full cases at :00 are documented as deferred — see proposal "Deferred: :00 phrases under 120/0/15"). 24 successful Night partials across the night.
+- [ ] 13.7 Operator-eye check — pending the operator's overnight observation. Will be reviewed after the 2026-05-21 night cycle; if kerning / weight / contrast look acceptably close to the 3-bit PNG render, this is closed. If not, retune the bake's luminance threshold or font weight in `bake-night-phrases.ts` and re-bake.
