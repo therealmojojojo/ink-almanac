@@ -72,8 +72,8 @@ not publish active_mode.
 ## Tap handler
 
 `automations/gesture_override.yaml` listens on `inkplate/state/gesture` and
-treats `single` and `double` as the same intent (the wire-tied frame
-mount can latch either depending on tap force; distinguishing them
+treats `single` and `double` as the same intent (the toothpick-and-tape
+frame mount can latch either depending on tap force; distinguishing them
 forces the operator to calibrate tap force). Two automations:
 
 - **Tap during schedule** → flip the currently-displayed face to its

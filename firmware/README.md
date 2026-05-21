@@ -187,7 +187,7 @@ tap costs ~0.0036 % of capacity.
 | Constant | Value | Purpose |
 |---|---|---|
 | `kTzOffsetSec` | 3 × 3600 | local time offset from UTC. Fixed compile-time; no DST. |
-| `kTapThreshold` | 1 | LSM6DSO tap threshold in 1/32 g (≈62.5 mg). Lowered for the wire-tied frame mount. |
+| `kTapThreshold` | 1 | LSM6DSO tap threshold in 1/32 g (≈62.5 mg). Lowered for the toothpick-and-tape frame mount. |
 | `kTapDurationMs` | 40 | LSM6DSO shock duration cap. |
 | `kDoubleTapWindowMs` | 350 | LSM6DSO double-tap timing window. |
 | `kGestureGraceMs` | 2000 | how long the firmware waits for HA's `active_mode` reply after publishing a gesture. |

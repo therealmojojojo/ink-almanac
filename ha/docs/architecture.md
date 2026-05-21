@@ -137,7 +137,7 @@ wakes keep rendering it until the schedule alternation overrides.
 
 Two separate rules (origin: `openspec/changes/archive/2026-04-27-revise-tap-override-semantics`; later refined by `2026-05-09-fix-tap-during-now-playing-first-wake` and the per-tier alternation engine).
 
-**Activation** — explicit beats ambient. Both single and double tap drive the same handlers (the wire-tied frame mount can latch either depending on tap force; distinguishing them would force the operator to calibrate, so HA treats both as the same intent):
+**Activation** — explicit beats ambient. Both single and double tap drive the same handlers (the toothpick-and-tape frame mount can latch either depending on tap force; distinguishing them would force the operator to calibrate, so HA treats both as the same intent):
 
 - **Tap during schedule** (outside Night, outside quiet hours): flip the *currently-displayed* face to its counterpart and publish (`active_mode = <flip>`, retained, plus `gesture_response = <flip>` non-retained for the firmware's IMU grace window). The flip is read from `sensor.inkplate_commanded_face` (a mirror of the device's last-drawn face) rather than recomputed from the schedule, so repeat taps in the same slot toggle visibly. `active_override` is NOT touched; the next /15 schedule tick republishes the schedule's a priori target, overwriting the tap-driven flip — so a tap is a transient peek lasting up to one Full interval.
 - **Tap during now_playing**, branched on `sensor.inkplate_commanded_face`:

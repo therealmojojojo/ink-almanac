@@ -166,7 +166,7 @@ The PNG path exercises the entire pipeline (schema → templates → fonts → C
 | Test | What it catches | Command | Expected |
 |---|---|---|---|
 | **L5.1** `bash -n` after the deploy.sh edit | Bash syntax error in the regen-block removal | `bash -n ha/deploy.sh` | exit 0 |
-| **L5.2** Local deploy dry-check | HA config still parses with the news-sensor files removed | `HA_HOST=192.168.1.212 ./ha/deploy.sh` ends with `ha core check` passing | no `ha core check` errors in the script's tail-log |
+| **L5.2** Local deploy dry-check | HA config still parses with the news-sensor files removed | `HA_HOST=${HA_HOST} ./ha/deploy.sh` ends with `ha core check` passing | no `ha core check` errors in the script's tail-log |
 | **L5.3** Breadcrumb-comment removal didn't break YAML | The four files in §5.4–5.7 still parse | implicit via L5.2 (HA's `core check` parses every YAML in the package) | covered by L5.2 |
 
 ### Layer 6 — Post-deploy device verification

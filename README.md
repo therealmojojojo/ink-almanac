@@ -7,34 +7,115 @@ A literary kitchen-fridge dashboard on an Inkplate 10 e-ink panel. Each day pick
 ## What it does
 
 - **Six faces**, picked by a per-tier 3:1 main:weather alternation engine in Home Assistant. Each tier has a `main` face that fills three of every four slots, with Weather landing on the fourth:
-  - **Summary** (06:30–10:00 main) — giant Didone clock + delight cell + smart-pill word study.
-  - **Weather** — current conditions for two locations, 5-day forecast, "poetic weather line" (LLM-generated daily), astronomy events.
+  - **Summary** (06:30–10:00 main) — giant Didone clock + delight cell (always a short text — poem, aphorism, or fragment, regardless of what the day's gallery is) + smart-pill word study.
+  - **Weather** — current conditions for two locations, 5-day forecast, astronomy events.
   - **Gallery (visual / text)** (10:00–22:00 main) — full-bleed image OR a typeset poem / aphorism / fragment, with title/attribution caption.
-  - **Night** (22:00–06:30) — natural-language clock + nocturne thumbnail.
+  - **Night** (22:00–06:30) — natural-language clock ("quarter past two") + nocturne thumbnail + a short poetic weather line picked from a curated bucketed pool.
   - **Now-Playing** — Sonos album art + track info, takes priority while music plays. The renderer enriches Spotify tracks via MusicBrainz so classical recordings get a composer-anchored layout (work / movement / performers with role chips) instead of the generic artist/title/album.
 - **Daily triplet pipeline**: a curated corpus of images and texts (sidecared YAML, public-domain + personal-library tiers) is paired off-line into ~1000 triplets; one is published each day at 06:00.
 - **Smart pill**: a 400-character word/concept gloss, baked into the summary item's YAML sidecar at curation time — deterministic across the day, no runtime LLM regen.
 - **Operator-pushable wake schedule**: per-tier `full_min` / `poll_min` / `partial_min` lives in `ha/config/wake_schedule.yaml`. HA validates and republishes to retained MQTT on every edit; the firmware picks it up on the next wake.
-- **Partial-refresh clock**: every minute the clock zone updates via an offline 1-bit partial pulse — no WiFi, no full-screen flash.
+- **Partial-refresh clock**: every minute the clock zone updates via an offline 1-bit partial pulse — no WiFi, no full-screen flash. Daytime faces use baked Fraunces digit glyphs; the Night face uses a separate set of 25 baked English fuzzy-time phrase bitmaps so quarter-hour ticks ("half past two") also refresh fully offline.
+- **Pool-only poetic line**: the Night face's weather mood line is picked from a hand-curated 8-line × 14-bucket YAML pool, triggered on bucket change rather than on a clock. No LLM call at runtime.
 - **Tap acknowledgment**: tap the frame, a small dot badge appears next to the battery indicator within ~450 ms — well before the face change lands.
 - **Always-fresh time**: NTP re-syncs on every WiFi-up, so the panel can't drift.
 
+## Faces
+
+All faces rendered at the panel's native 1200 × 825 from the project's test pipeline. Battery / clocks reflect the fixture values, not real time. Regen with `scripts/build-showcase.sh` (spins a separate test renderer on port 8585 so it doesn't disturb the live device).
+
+| Summary (morning main) | Weather (alternates in every tier) |
+|---|---|
+| ![Summary face](renderer/test/__golden__/showcase/summary.png) | ![Weather face](renderer/test/__golden__/weather.png) |
+| Giant Didone clock, current conditions, 5-day forecast strip, smart-pill word study, and a delight cell holding a short text — here Bashō's haiku. The delight cell is **always** text; image companions were dropped from the curation pool (every production summary slot is a poem / aphorism / fragment). | Two-location current conditions (here: Cluj + Reykjavík fixtures), per-location 5-day forecast, sun/moon, plus an astronomy "what's happening this week" cell. |
+
+| Night |
+|---|
+| ![Night face](renderer/test/__golden__/night.png) |
+| Italic Fraunces fuzzy-time clock ("quarter to ten"), weekday, weather bucket label, and the pool-picked poetic line at the bottom. The quarter-hour ticks refresh partially (offline) via baked phrase bitmaps. |
+
+### Gallery — four layout variants
+
+The Gallery face dispatches between a text layout and three image layouts based on the day's slot. Image layouts are picked from the source aspect ratio: `gv-native` (panel-aspect ~1.5, full-bleed), `gv-square` (near-square, matted pillarbox), and a **split layout** for portrait images (image left at natural AR, caption right).
+
+| Text (typeset poem / aphorism / fragment) | Visual — landscape (`gv-native`, full-bleed) |
+|---|---|
+| ![Gallery text](renderer/test/__golden__/showcase/gallery-text.png) | ![Gallery landscape](renderer/test/__golden__/showcase/gallery-landscape.png) |
+| Bashō haiku. CSS picks one of six form layouts (haiku, sonnet, free-verse, aphorism, quote, fragment) by the sidecar's `form:` field. | Whistler's *Rotherhithe* (1860), AR 1.50 — sits in the panel's native band, drawn full-bleed with a thin caption strip below. |
+
+| Visual — square (`gv-square`, matted pillarbox) | Visual — portrait (split layout) |
+|---|---|
+| ![Gallery square](renderer/test/__golden__/showcase/gallery-square.png) | ![Gallery portrait](renderer/test/__golden__/showcase/gallery-portrait.png) |
+| Ma Yuan's *Scholar by Waterfall* (ca. 1200), AR 1.14 — outside panel-native, matted pillarbox so the image renders at full height without cropping. | Beardsley's *Peacock Skirt* (1893), AR 0.72 — image holds the left column at its natural aspect ratio; title + attribution flow on the right. |
+
+### Now-Playing — two layout variants
+
+Sonos override. When a track is playing the renderer enriches Spotify track ids via MusicBrainz; classical recordings get a composer-anchored layout (work / movement / performers with role chips), everything else falls back to artist / title / album / year. The "NOW PLAYING" plinth is the operator's stock fallback art that ships with the renderer; production usually shows real album art via the HA media-player proxy.
+
+| Classical (composer-anchored) | Rock / pop (artist-anchored) |
+|---|---|
+| ![Now-Playing classical](renderer/test/__golden__/showcase/nowplaying-classical.png) | ![Now-Playing rock](renderer/test/__golden__/showcase/nowplaying-rock.png) |
+| Arvo Pärt's *Spiegel im Spiegel*, performed by Spivakov (violin) and Bezrodny (piano), 1999. Composer in caps on top; work title in the big slot; performers with role chips below. | David Bowie, *Heroes* (1977). Artist in caps; track title in the big slot; album row underneath; year on its own line. Same template, different field routing. |
+
 ## Hardware
+
+The panel, accelerometer, and battery were all bought from [soldered.com](https://soldered.com) (the Inkplate manufacturer). The IMU breakout plugs into the Inkplate's onboard easyC / Qwiic connector for I²C, the battery into the JST-PH socket — but **one extra wire has to be soldered by hand** to make tap-to-wake work. See [Build](#build) below.
 
 | Part | Notes |
 |---|---|
-| **Inkplate 10 (Soldered)** | 1200 × 825, 3-bit greyscale (8 shades), no hue. Custom HAL wraps Soldered's library. |
-| ESP32-WROVER (built-in to Inkplate 10) | PSRAM required for 3-bit framebuffer + image decode. |
-| **LSM6DSO IMU** | I²C 0x6B. Tap detector wakes ESP32 via INT1 → GPIO 36 (shared with the wake button). |
-| Li-ion battery | Tested with 5000 mAh; ~3 months between charges depending on tier cadence. |
+| **[Inkplate 10](https://soldered.com/products/inkplate-10)** (Soldered) | 9.7″ e-ink, 1200 × 825, 3-bit greyscale (8 shades), no hue. Custom HAL wraps Soldered's library. |
+| ESP32-WROVER (built into Inkplate 10) | PSRAM required for 3-bit framebuffer + image decode. |
+| **[LSM6DSO 6-DoF IMU breakout](https://soldered.com/product/accelerometer-gyroscope-lsm6dso-6-dof-breakout/)** (Soldered easyC) | I²C 0x6B over easyC for register access; **INT1 manually soldered to GPIO 36** (the SW3 wake-button net) for ext0 deep-sleep wake on tap. See [Build](#build). |
+| **[5000 mAh Li-ion battery](https://soldered.com/product/li-ion-battery-5000mah-3-7v/)** (Soldered, JST-PH) | ~3 months between charges depending on tier cadence. |
+| **[IKEA RÖDALM frame](https://www.ikea.com/us/en/p/roedalm-frame-birch-effect-20548895/)** | RÖDALM is a shadow-box frame whose acrylic front can sit flush at the front, leaving the full inner depth empty behind it. The Inkplate PCB + 5000 mAh battery fit behind the panel cleanly. Tap-coupling mount for the LSM6DSO: glue a toothpick to the back of the breakout and tape the toothpick to the inner frame surface — the rigid wooden lever transmits a finger tap on the frame straight into the IMU without damping. The 12×16″ (~30×40 cm) size matches the Inkplate 10's 9.7″ active area with comfortable margin; smaller RÖDALM sizes will not fit. |
 | Mac (always-on) | Hosts the Node renderer (Playwright + Chromium) and runs the daily pairing script. |
 | HAOS VM (e.g. Synology, Pi) | Home Assistant + Mosquitto broker + the Advanced SSH add-on. |
+
+## Build
+
+Two physical steps go beyond plug-in assembly: a single solder joint to wire the IMU's tap interrupt into a GPIO the ESP32 can wake on, and a small mechanical detail that lets a finger tap on the frame actually reach the accelerometer.
+
+### 1. Solder the IMU INT1 pin to GPIO 36
+
+**What:** run a thin wire from the **INT1** pad on the [LSM6DSO breakout](https://soldered.com/product/accelerometer-gyroscope-lsm6dso-6-dof-breakout/) to the inboard side of the **SW3** wake-button footprint on the Inkplate 10 PCB (that net is ESP32 **GPIO 36**, with the on-board R41 pull-up to 3V3).
+
+**Why this can't be skipped:** the easyC / Qwiic connector carries only `SDA`, `SCL`, `3V3`, `GND` — fine for reading and writing the LSM6DSO's registers over I²C, but the chip's tap-detection *interrupt output* (INT1) isn't on that bus. The ESP32 in deep sleep can't poll I²C; it can only wake on a physical level change on a designated GPIO (`esp_sleep_enable_ext0_wakeup`). Without an INT1 → GPIO wire, every tap would have to wait for the next scheduled timer wake to be noticed — minutes of latency, defeating the whole point.
+
+**Why GPIO 36 specifically:** the Inkplate already wires GPIO 36 to its SW3 wake-button net, complete with the R41 pull-up to 3V3. Reusing that net means no new pull-up resistor, no extra GPIO, and the button still works in parallel — both the button and the IMU's INT1 pulse the same line LOW; the firmware reads `WAKE_UP_SRC` after each ext0 wake to disambiguate. In the sealed-frame build the button is unreachable, so practically every IO36 LOW originates from a tap.
+
+**Firmware handling.** For two devices to share the line cleanly, INT1 has to be configured **open-drain, active-low, pulsed** (`CTRL3_C[PP_OD]=1`, `CTRL3_C[H_LACTIVE]=1`, non-latched). The firmware sets this up in `firmware/src/hal/real/RealIMU.cpp` at boot — no manual register pokes needed. Open-drain means INT1 sinks LOW or floats high-Z but never drives HIGH, so it can't fight R41 or the wake-button switch.
+
+Full register-level details and a probe tool (`firmware/src/tap_probe.cpp`) for verifying the solder joint after assembly live in [`firmware/docs/gestures.md`](firmware/docs/gestures.md) under "Wiring."
+
+### 2. Mechanical tap-coupling mount
+
+The LSM6DSO's tap classifier needs a real shock event on its Z axis. The chip's minimum threshold (62.5 mg, set in `kTapThreshold`) is already the floor — there is no "more sensitive" — so the build instead reduces the mechanical impedance between a finger and the chip:
+
+- Glue a wooden **toothpick** to the back of the LSM6DSO breakout (so its long axis sticks out perpendicular to the PCB).
+- Tape the toothpick to the inner wood surface of the RÖDALM frame.
+
+The rigid toothpick acts as a lever: a finger tap on the front of the frame transmits a clean impulse through the wood and the toothpick straight into the breakout, instead of being absorbed by mounting foam or wire-ties. The resulting waveform is amplitude-clean enough for the LSM6DSO's slope-HPF to discriminate from ambient kitchen vibration (refrigerator compressor cycles, door slams), and the firmware's spurious-wake guard catches the remainder.
+
+### 3. Sanity-check the build
+
+After step 1, before sealing the frame:
+
+```sh
+cd firmware
+pio run -e inkplate10 --target upload -t monitor    # flash + tail serial
+# When prompted, switch the firmware build target to tap_probe in
+# platformio.ini and re-upload. The probe prints TAP_SRC on every
+# falling edge of GPIO 36 — a clean tap shows SINGLE_TAP or DOUBLE_TAP
+# bits set within ~10 ms of finger contact.
+```
+
+If the probe sees the GPIO 36 line go LOW but `TAP_SRC=0x00`, the wire is on the right net but the LSM6DSO didn't latch the event — usually a sign the solder joint is on the wrong pad of the breakout, or the breakout's INT1 polarity is still default push-pull (config error, fixable in firmware) rather than open-drain.
 
 ## Architecture (10,000 ft)
 
 ```
                  ┌─────────────┐
-   corpus/  ──▶  │   pairing   │  ──▶  renderer/inputs/{pairing,news}.json
+   corpus/  ──▶  │   pairing   │  ──▶  renderer/inputs/{pairing,smart_pill}.json
   (YAML +        │  (Python,   │       + companion.jpg, gallery.jpg, nocturne.jpg
    binaries)     │   06:00)    │
                  └─────────────┘
@@ -120,16 +201,16 @@ What works end-to-end as of this writing:
 
 - Daily triplet rotation, Summary / Weather / Gallery (visual + text) / Night / Now-Playing faces.
 - Per-tier 3:1 main:weather alternation in HA; both tap kinds drive the same intent (transient flip of the displayed face during schedule; first-wake or peek during Now-Playing).
-- Partial-refresh clock zone every minute (offline) on Summary / Weather / Gallery (split + landscape) / Now-Playing / Gallery-Text.
+- Partial-refresh clock zone every minute (offline) on Summary / Weather / Gallery (split + landscape) / Now-Playing / Gallery-Text, and every 15 min on Night via the baked fuzzy-time phrase set.
 - Sonos override with classical-vs-pop enrichment via Spotify+MusicBrainz, edition-suffix stripping, paused-music linger, per-minute Poll cadence during a session for ~60 s track-change latency.
 - Operator-pushable wake schedule; firmware diag includes EPD power-good, WiFi RSSI, schedule hash, reset reason.
-- Post-OTA recovery, IMU tap detection on the wire-tied frame (with separate `gesture_response` event channel for the in-flight grace window), NTP resync, listen-with-retry on the renderer, EADDRINUSE crash-loop guard.
+- Post-OTA recovery, IMU tap detection on the toothpick-and-tape frame mount (with separate `gesture_response` event channel for the in-flight grace window), NTP resync, listen-with-retry on the renderer, EADDRINUSE crash-loop guard.
 
 Known limitations:
 
 - Renderer is a single point of failure (Mac sleeping = panel doesn't update). Move to a Pi if uptime matters.
 - Battery percentage formula caps at 4.15 V → 100 %, so the meter sits at "100 %" for the first ~10 % of discharge. Cosmetic, not functional.
-- Single-tap and double-tap are unified in HA (the wire-tied frame mount can ring as either depending on tap force; treating them the same eliminates "tap didn't register" cases). If you want them distinct, undo `ha/automations/gesture_override.yaml`.
+- Single-tap and double-tap are unified in HA (the toothpick-and-tape mount can ring as either depending on tap force; treating them the same eliminates "tap didn't register" cases). If you want them distinct, undo `ha/automations/gesture_override.yaml`.
 
 ## Contributing
 
@@ -137,4 +218,6 @@ This is a personal project, but the architecture is generic enough to fork. For 
 
 ## License
 
-No formal license file. Treat as a private build until I decide what to publish under. Third-party libraries (Playwright, Hono, Soldered Inkplate, paho-mqtt, etc.) retain their own licenses — see each area's package manifest.
+MIT — see [`LICENSE`](LICENSE). Third-party libraries (Playwright, Hono, Soldered Inkplate, paho-mqtt, etc.) retain their own licenses — see each area's package manifest.
+
+The `corpus/` directory is **not** covered by this license. Sidecar templates and tooling under `corpus/` are MIT; any actual corpus content (operator-curated images, texts, smart-pill bodies) is gitignored and belongs to its original rights-holders — see `openspec/specs/corpus-schema` for the rights-tier rules each fork must abide by.

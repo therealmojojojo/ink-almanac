@@ -32,12 +32,14 @@ constexpr int kImuWakeGpio = 36;
 // LSM6DSO tap thresholds (driver units; 1 LSB ≈ 62.5 mg at ±2 g full-scale).
 // Tuned to require a deliberate finger tap and reject incidental motion:
 //
-//   * 1 LSB ≈ 0.0625 g — the chip's minimum. Tuned for a frame mount
-//     where the LSM6DSO breakout is wire-tied to the Inkplate (not
-//     glued to the frame back), so taps reach the chip via glass →
-//     mat → PCB → wire-tie. That path absorbs most of the impact,
-//     making the lowest threshold the only one that registers natural
-//     taps. The SLOPE_FDS HPF still rejects static gravity and slow
+//   * 1 LSB ≈ 0.0625 g — the chip's minimum. Tuned for the toothpick-
+//     and-tape frame mount (toothpick glued to the back of the LSM6DSO
+//     breakout, taped to the inner wood surface of the RÖDALM frame),
+//     so taps reach the chip via wood → tape → toothpick → PCB. The
+//     toothpick is a rigid lever and couples well, but the indirect
+//     path still absorbs much of the original finger impulse, making
+//     the lowest threshold the only one that registers natural taps.
+//     The SLOPE_FDS HPF still rejects static gravity and slow
 //     rotations; the spurious-wake guard in tick() catches false ext0
 //     fires that don't latch SINGLE_TAP/DOUBLE_TAP bits, bounding the
 //     cost of a low threshold. On a wall mount the ambient-event rate

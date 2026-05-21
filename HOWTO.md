@@ -155,7 +155,7 @@ To change *what* the tap does:
   Probably you want to drop the offset flip and instead publish
   `active_mode = now-playing` (and an override entry).
 - **Different gesture maps to different action**: re-introduce a
-  distinct single-tap automation. Be aware that on the wire-tied frame
+  distinct single-tap automation. Be aware that on the toothpick-and-tape frame
   mount, the LSM6DSO often latches `double` for what feels like a
   single tap (the frame ring crosses threshold twice). Splitting them
   practically means firm taps go one way and soft taps go the other —
@@ -211,7 +211,7 @@ re-bake per [Re-bake the on-device clock glyphs](#re-bake-the-on-device-clock-gl
 ## Add a new render input
 
 Inputs are JSON files in `renderer/inputs/` that templates consume.
-Existing: `clock.json`, `weather.json`, `pairing.json`, `news.json`,
+Existing: `clock.json`, `weather.json`, `pairing.json`, `smart_pill.json`,
 `sonos.json`, `device.json`. To add `<your-input>`:
 
 1. **Decide on the publisher path**:

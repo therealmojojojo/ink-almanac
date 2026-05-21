@@ -250,7 +250,7 @@ Native HA integrations (weather, sun, moon, Sonos) can stay — they're idempote
 
 ### What to do when the smart pill changes after a redeploy
 
-It shouldn't any more — the live-LLM regen pipeline was removed. If it does, check `renderer/inputs/news.json` mtime; the only thing that should write it is `pairing/publish_today.py` at 06:00 EEST. If something else has touched it, that's the culprit.
+It shouldn't any more — the live-LLM regen pipeline was removed. If it does, check `renderer/inputs/smart_pill.json` mtime; the only thing that should write it is `pairing/publish_today.py` at 06:00 EEST. If something else has touched it, that's the culprit.
 
 ### What to do when the panel sticks at one face
 

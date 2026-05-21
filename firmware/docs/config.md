@@ -34,7 +34,7 @@ pulses landing on a sleeping device's next wakeup window.
 
 | Parameter | Default | Notes |
 | --------- | ------- | ----- |
-| `kTapThreshold` | **1** | LSM6DSO tap threshold in 1/32 g (≈62.5 mg). Lowered from 12 → 1 for the wire-tied frame mount, where mechanical coupling damps shock arrival at the IMU. Cannot go lower. |
+| `kTapThreshold` | **1** | LSM6DSO tap threshold in 1/32 g (≈62.5 mg). Lowered from 12 → 1 for the toothpick-and-tape frame mount (toothpick glued to the back of the breakout, taped to the inner frame surface), where the mechanical coupling damps shock arrival at the IMU. Cannot go lower. |
 | `kTapDurationMs` | 40 | LSM6DSO shock-duration cap. |
 | `kDoubleTapWindowMs` | 350 | Inter-tap window for double-tap latching. The frame's natural ring period sits comfortably inside this window, which is why a single firm tap usually latches `DOUBLE`. |
 | `kGestureGraceMs` | 2000 | After publishing a gesture, the firmware subscribes to `active_mode` for up to this many milliseconds to pick up HA's response before fetching. Almost always satisfied within ~300 ms; the upper bound is a safety net. |

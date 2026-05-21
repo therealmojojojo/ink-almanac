@@ -34,11 +34,12 @@ The renderer is the only mutable-state service of consequence. Every other compo
        │  • idx = (today − epoch).days % len(triplets)               │
        │  • compose pairing.json from items[summary, gallery,        │
        │    anchor, aligned_nocturne], copy companion/gallery/       │
-       │    nocturne binaries, write smart_pill body to news.json    │
+       │    nocturne binaries, write smart_pill body to              │
+       │    smart_pill.json                                          │
        └─────────────────────────────────────────────────────────────┘
                                        │
                                        ▼
-              renderer/inputs/{pairing,news,clock,weather,sonos,device}.json
+              renderer/inputs/{pairing,smart_pill,clock,weather,sonos,device}.json
               renderer/inputs/{companion,gallery,nocturne}.jpg
                                        │
                                        │ read fresh on every render

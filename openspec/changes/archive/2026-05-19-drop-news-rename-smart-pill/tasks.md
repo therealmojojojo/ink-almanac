@@ -91,7 +91,7 @@ Mirrors the layered plan in `design.md` § "Test plan". Each task lists the exac
 ### 6.E Layer 5 — HA deploy
 
 - [ ] 6.E.1 **L5.1** `bash -n ha/deploy.sh` exits 0 (same as 6.A.5; kept here for the layered grouping)
-- [ ] 6.E.2 **L5.2** Run the real deploy: `HA_HOST=192.168.1.212 ./ha/deploy.sh` ends with the "Validating config + restarting HA core" block exiting 0 — covers L5.3 implicitly (HA's `core check` parses every YAML in the package)
+- [ ] 6.E.2 **L5.2** Run the real deploy: `HA_HOST=${HA_HOST} ./ha/deploy.sh` ends with the "Validating config + restarting HA core" block exiting 0 — covers L5.3 implicitly (HA's `core check` parses every YAML in the package)
 
 ### 6.F Layer 6 — Post-deploy device verification
 

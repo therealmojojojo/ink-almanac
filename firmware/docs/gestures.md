@@ -79,9 +79,11 @@ Threshold and double-tap windows live in `firmware/include/config.h`:
 | `kDoubleTapWindowMs` | 350 | unchanged |
 
 The threshold is intentionally low for the unmounted breakout because a
-loose PCB absorbs much of the impact. Once the breakout is rigidly glued
-to the back of the frame, taps couple far better and ambient kitchen
-vibration can latch tap bits at threshold = 2 (slipping past the
+loose PCB absorbs much of the impact. Once the breakout is coupled to
+the inner frame surface — operator's build glues a toothpick to the back
+of the breakout and tapes the toothpick to the wood, which transmits
+taps cleanly via the rigid lever — taps couple far better and ambient
+kitchen vibration can latch tap bits at threshold = 2 (slipping past the
 spurious-wake guard). Raise `kTapThreshold` to 12–20 after the build is
 mounted and observe real-world false-positive rates over a few days.
 
