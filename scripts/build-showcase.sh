@@ -49,8 +49,24 @@ trap cleanup EXIT
 
 mkdir -p "$OUT"
 
-# Base fixtures (clock / device / weather / smart_pill) — unchanged.
-cp "$REPO/renderer/test/fixtures/"{clock,device,weather,smart_pill}.json "$STAGE/"
+# Base fixtures (clock / device / smart_pill) copied as-is; weather gets a
+# nowcast block added so the Summary + Weather showcase faces demonstrate
+# the immediate-forecast line (the test fixture omits it on purpose so the
+# snapshot test exercises the absent-nowcast path).
+cp "$REPO/renderer/test/fixtures/"{clock,device,smart_pill}.json "$STAGE/"
+python3 - <<PY
+import json, pathlib
+src = pathlib.Path("$REPO/renderer/test/fixtures/weather.json")
+w = json.loads(src.read_text())
+nowcasts = [
+  {"label": "CLEARING IN 21 MIN", "minutes_until_change": 21},
+  {"label": "RAIN IN 40 MIN", "minutes_until_change": 40},
+]
+for i, loc in enumerate(w.get("locations", [])):
+  if i < len(nowcasts):
+    loc["nowcast"] = nowcasts[i]
+pathlib.Path("$STAGE/weather.json").write_text(json.dumps(w, indent=2, ensure_ascii=False))
+PY
 
 # Fetch PD photos + album-cover thumbnails into renderer/inputs/ under
 # non-colliding showcase-* names so the prod renderer's /inputs/<file>
@@ -148,6 +164,9 @@ render() {
 echo "=== Summary (test renderer, Marcus Aurelius fixture) ==="
 cp "$STAGE/pairing-summary.json" "$STAGE/pairing.json"
 render "summary" summary
+
+echo "=== Weather ==="
+render "weather" weather
 
 echo "=== Night ==="
 cp "$STAGE/pairing-night.json" "$STAGE/pairing.json"

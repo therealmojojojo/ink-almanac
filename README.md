@@ -24,11 +24,11 @@ All faces rendered at the panel's native 1200 × 825 from the project's test pip
 <tr><th width="50%">Summary (morning main)</th><th width="50%">Weather (alternates in every tier)</th></tr>
 <tr>
 <td width="50%"><img alt="Summary face" src="renderer/test/__golden__/showcase/summary.png"></td>
-<td width="50%"><img alt="Weather face" src="renderer/test/__golden__/weather.png"></td>
+<td width="50%"><img alt="Weather face" src="renderer/test/__golden__/showcase/weather.png"></td>
 </tr>
 <tr>
-<td width="50%">Giant Didone clock, current conditions, 3-day forecast strip, and the delight pair: a 2-line Marcus Aurelius aphorism on the left, and on the right a smart pill that etymologises the Greek <em>baptetai</em> (the root behind "dyed" in the aphorism — and the same root as "baptism"). The smart pill is curated alongside the companion text in the same triplet sidecar, so the gloss is always bound to a word in the text above.</td>
-<td width="50%">Two-location current conditions (here: Cluj + Reykjavík fixtures), per-location 5-day forecast, sun/moon, plus an astronomy "what's happening this week" cell.</td>
+<td width="50%">Giant Didone clock, current conditions with an immediate-horizon nowcast ("CLEARING IN 21 MIN"), 3-day forecast strip, and the delight pair: a 2-line Marcus Aurelius aphorism on the left, and on the right a smart pill that etymologises the Greek <em>baptetai</em> (the root behind "dyed" in the aphorism — and the same root as "baptism"). The smart pill is curated alongside the companion text in the same triplet sidecar, so the gloss is always bound to a word in the text above.</td>
+<td width="50%">Two-location current conditions (here: Cluj + Reykjavík fixtures) with per-location nowcast lines ("clearing in 21 min", "rain in 40 min") sourced from the OpenWeatherMap minutely feed, per-location 5-day forecast, sun/moon, plus an astronomy "what's happening this week" cell.</td>
 </tr>
 </table>
 
@@ -87,6 +87,46 @@ The panel, accelerometer, and battery were all bought from [soldered.com](https:
 | **[IKEA RÖDALM frame](https://www.ikea.com/us/en/p/roedalm-frame-birch-effect-20548895/)** | RÖDALM is a shadow-box frame whose acrylic front can sit flush at the front, leaving the full inner depth empty behind it. The Inkplate PCB + 5000 mAh battery fit behind the panel cleanly. Tap-coupling mount for the LSM6DSO: glue a toothpick to the back of the breakout and tape the toothpick to the inner frame surface — the rigid wooden lever transmits a finger tap on the frame straight into the IMU without damping. The 12×16″ (~30×40 cm) size matches the Inkplate 10's 9.7″ active area with comfortable margin; smaller RÖDALM sizes will not fit. |
 | Mac (always-on) | Hosts the Node renderer (Playwright + Chromium) and runs the daily pairing script. |
 | HAOS VM (e.g. Synology, Pi) | Home Assistant + Mosquitto broker + the Advanced SSH add-on. |
+
+## Home Assistant
+
+The kitchen-side brain runs on Home Assistant. A HAOS install (recommended) needs two add-ons and a handful of HA-side integrations beyond what this repo deploys; everything project-specific gets rsynced into `/config/custom/inkplate/` by `make deploy-ha`.
+
+**Required HAOS add-ons** (Settings → Add-ons):
+
+| Add-on | Why |
+|---|---|
+| **Mosquitto broker** | MQTT broker. The device firmware publishes state to `inkplate/state/*` and subscribes to `inkplate/command/*`; HA sits in the middle. |
+| **Advanced SSH & Web Terminal** | Deploy path. `make deploy-ha` rsyncs into `/config/custom/inkplate/` over SSH and triggers `ha core check && ha core restart`. |
+
+**Required HA integrations** (Settings → Devices & Services → Add Integration):
+
+| Integration | What it powers |
+|---|---|
+| **MQTT** (Mosquitto) | Device wake / state / command channel. |
+| **Sonos** | The Now-Playing face. The renderer reads the active `media_player.<your_sonos>` entity and enriches Spotify tracks via MusicBrainz before laying them out. |
+| **Open-Meteo** | Current conditions and 5-day forecast for both weather locations. Primary weather source. |
+| **OpenWeatherMap (One Call 3.0)** | Minutely-resolution nowcast ("clearing in 21 min", "rain in 40 min"). Free tier covers ~1k calls/day, well within budget. Optional — if absent, the nowcast line is omitted. |
+| **Home Assistant Companion app** *(optional)* | Battery-low and motion alerts via `notify.mobile_app_*`. The deploy aliases this behind `notify.inkplate_operator` so renames don't break automations. |
+
+**External API keys** (set in `ha/secrets.yaml`, template at `ha/secrets.yaml.example`):
+
+- **OpenWeatherMap** — for the One Call 3.0 minutely subscription.
+- **Spotify Client ID + Secret** — Client Credentials flow only, no scopes. Powers the now-playing classical-vs-pop layout enrichment via MusicBrainz lookups keyed off Spotify track ids.
+- **MusicBrainz User-Agent string** — no key, but their politeness policy requires identifying contact info (e.g. `your-project/0.1 ( you@example.com )`).
+- **Home Assistant long-lived access token** — lets the renderer fetch Sonos `entity_picture` URLs via the HA media-player proxy.
+- *(Optional)* **Anthropic API key** — only used by offline corpus tooling (`ha/scripts/generate_astro_event.py`, ad-hoc corpus enrichment). Not used at runtime.
+
+**What this repo deploys into HA** (`ha/` directory, rsynced to `/config/custom/inkplate/`):
+
+- **Automations** — face rotation, Sonos override, gesture handling, wake-schedule republisher, weather / clock / sonos publishers to the renderer.
+- **Sensors** — astronomy events, weather buckets, forecast templates.
+- **Integration packages** — MQTT topic config, weather sensors, REST commands targeting the renderer.
+- **Helpers** — `input_text` / `input_boolean` / `input_number` / `input_datetime` for active-override state, alternation phase, schedule hash, etc.
+- **Scripts** — poetic-line picker, astro event generator.
+- **Config** — `wake_schedule.yaml`, `night_poetic_pool.yaml`, `now_playing_sources.yaml`, all operator-editable.
+
+Full installation walkthrough in [`SETUP.md`](SETUP.md); HA-side deep-dive in [`ha/README.md`](ha/README.md).
 
 ## Build
 
