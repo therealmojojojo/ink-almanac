@@ -6,19 +6,15 @@ A literary kitchen-fridge dashboard on an Inkplate 10 e-ink panel. Each day pick
 
 ## What it does
 
-- **Six faces**, picked by a per-tier 3:1 main:weather alternation engine in Home Assistant. Each tier has a `main` face that fills three of every four slots, with Weather landing on the fourth:
-  - **Summary** (06:30–10:00 main) — giant Didone clock + delight cell (always a short text — poem, aphorism, or fragment, regardless of what the day's gallery is) + smart-pill word study.
-  - **Weather** — current conditions for two locations, 5-day forecast, astronomy events.
-  - **Gallery (visual / text)** (10:00–22:00 main) — full-bleed image OR a typeset poem / aphorism / fragment, with title/attribution caption.
-  - **Night** (22:00–06:30) — natural-language clock ("quarter past two") + nocturne thumbnail + a short poetic weather line picked from a curated bucketed pool.
-  - **Now-Playing** — Sonos album art + track info, takes priority while music plays. The renderer enriches Spotify tracks via MusicBrainz so classical recordings get a composer-anchored layout (work / movement / performers with role chips) instead of the generic artist/title/album.
-- **Daily triplet pipeline**: a curated corpus of images and texts (sidecared YAML, public-domain + personal-library tiers) is paired off-line into ~1000 triplets; one is published each day at 06:00.
-- **Smart pill**: a 400-character word/concept gloss, baked into the summary item's YAML sidecar at curation time — deterministic across the day, no runtime LLM regen.
-- **Operator-pushable wake schedule**: per-tier `full_min` / `poll_min` / `partial_min` lives in `ha/config/wake_schedule.yaml`. HA validates and republishes to retained MQTT on every edit; the firmware picks it up on the next wake.
-- **Partial-refresh clock**: every minute the clock zone updates via an offline 1-bit partial pulse — no WiFi, no full-screen flash. Daytime faces use baked Fraunces digit glyphs; the Night face uses a separate set of 25 baked English fuzzy-time phrase bitmaps so quarter-hour ticks ("half past two") also refresh fully offline.
-- **Pool-only poetic line**: the Night face's weather mood line is picked from a hand-curated 8-line × 14-bucket YAML pool, triggered on bucket change rather than on a clock. No LLM call at runtime.
-- **Tap acknowledgment**: tap the frame, a small dot badge appears next to the battery indicator within ~450 ms — well before the face change lands.
-- **Always-fresh time**: NTP re-syncs on every WiFi-up, so the panel can't drift.
+The panel cycles through five views over the course of a day, each typeset in newspaper-grade serifs and printed in 8-shade greyscale on e-ink:
+
+- **Morning.** A giant Didone clock, the weather at a glance, and a small literary delight — a short poem, aphorism, or fragment — paired with a 400-character "smart pill": a gloss on one word from the text above. An etymology, a translator's note, the cultural ripple behind a phrase. Something worth a sip of attention with the morning coffee.
+- **Daytime.** The day's curated artwork takes over: some days a photograph, some days a hand-typeset poem, always with title and attribution. About a thousand of these are queued and one surfaces each day at 06:00 — same view all day, so it has time to settle in the room.
+- **Weather, on the off-beat.** A slower look at conditions: two locations (home, and somewhere else you care about), five-day forecast, sunrise and sunset, the current moon phase, and whatever astronomical event is happening that week. Rotates in throughout the day so you check it without thinking about it.
+- **Night.** The panel goes quiet. A natural-language clock ("quarter to ten"), the weekday, the night's weather in three words, and a moonlit woodblock print on the right.
+- **Now-Playing.** Whenever music starts on the kitchen speaker, the panel automatically switches to album art and track info. Classical recordings get a different layout — composer on top, work title in the big slot, performers listed by instrument — while pop tracks keep the familiar artist / title / album / year stack.
+
+Tap the frame to flip between the day's current view and the weather; a small dot near the battery icon confirms the tap before the next image actually paints, so you know it registered. The battery lasts about three months between charges, the clock updates every minute without going on WiFi, and the daily rotation runs at 06:00 each morning — so you wake up to a fresh view.
 
 ## Faces
 
