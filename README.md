@@ -77,7 +77,7 @@ Two physical steps go beyond plug-in assembly: a single solder joint to wire the
 
 ### 1. Solder the IMU INT1 pin to GPIO 36
 
-**What:** run a thin wire from the **INT1** pad on the [LSM6DSO breakout](https://soldered.com/product/accelerometer-gyroscope-lsm6dso-6-dof-breakout/) to the inboard side of the **SW3** wake-button footprint on the Inkplate 10 PCB (that net is ESP32 **GPIO 36**, with the on-board R41 pull-up to 3V3).
+**What:** run a thin wire from the **INT1** pad on the [LSM6DSO breakout](https://soldered.com/product/accelerometer-gyroscope-lsm6dso-6-dof-breakout/) to the inboard side of the **SW3** wake-button footprint on the Inkplate 10 PCB (that net is ESP32 **GPIO 36**, with the on-board R41 pull-up to 3V3). Pinout reference: Soldered's [Inkplate 10 free GPIO](https://oldshop.soldered.com/documentation/inkplate/10/hardware/free-gpio/) page lists the GPIOs exposed on the board and which are usable for external interrupts.
 
 **Why this can't be skipped:** the easyC / Qwiic connector carries only `SDA`, `SCL`, `3V3`, `GND` — fine for reading and writing the LSM6DSO's registers over I²C, but the chip's tap-detection *interrupt output* (INT1) isn't on that bus. The ESP32 in deep sleep can't poll I²C; it can only wake on a physical level change on a designated GPIO (`esp_sleep_enable_ext0_wakeup`). Without an INT1 → GPIO wire, every tap would have to wait for the next scheduled timer wake to be noticed — minutes of latency, defeating the whole point.
 
