@@ -367,7 +367,8 @@ The renderer repository SHALL ship `renderer/src/tools/bake-night-phrases.ts`, a
 - For each phrase: render via Playwright (headless Chromium, deviceScaleFactor 1), threshold to 1-bit (luminance > 240 → white, else black), tight-bounding-box crop.
 - Emit `firmware/src/generated/night_phrases.h` (struct decl + `phraseForMinute` decl) and `firmware/src/generated/night_phrases.cpp` (constexpr `uint8_t` arrays for the 25 bitmaps + a switch-statement lookup keyed by minute-of-day).
 - Bitmap data SHALL live in `.rodata` (constexpr) so it's flash, not RAM.
-- Total flash footprint SHALL be ≤ 200 KB. Empirical bake on 2026-05-20: ~150 KB (max bitmap 684×94 px, ~6 KB/phrase).
+- The baker SHALL constrain each phrase to the Night face's left-column content width (504 px = 600 px column − 2×48 u padding) so the bitmap wraps to two lines when needed and never exceeds the on-panel column. Without this cap, long phrases (e.g. "quarter past twelve" at 684 px wide) bake to a single oversized line that the firmware blits past the column edge into the nocturne image area on partial-cadence wakes.
+- Total flash footprint SHALL be ≤ 200 KB. Empirical bake on 2026-05-26: ~171 KB (max bitmap 498×173 px; widest phrases wrap to two lines, shortest single-line bitmaps unchanged at 452×94 px).
 
 The tool SHALL accept a `--smoke` flag that emits a single contact-sheet PNG at `/tmp/night_phrases_preview.png` for the operator to eyeball before committing to a flash. The smoke path SHALL NOT emit the C++ output.
 

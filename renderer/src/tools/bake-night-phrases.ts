@@ -100,9 +100,17 @@ async function bakePhrase(
   fontUrl: string,
 ): Promise<BakedPhrase> {
   // Stylesheet mirrors `.night-phrase` from renderer/templates/night/night.css
-  // EXCEPT we render the phrase as an inline-block span (no flex/centering)
-  // so the screenshot bounds tight to the ink. The firmware does the
-  // vertical-centering math at blit time using the cached clock-zone height.
+  // EXCEPT we render the phrase as a block with no flex/centering so the
+  // screenshot bounds tight to the ink — the firmware does the vertical-
+  // centering math at blit time using the cached clock-zone height.
+  //
+  // Width must match the renderer's column content area so long phrases wrap
+  // the same way as the Full PNG. The Night face's `.night-left` is 1fr of
+  // a 1200px 2-column grid (600px) with 48u padding on each side → 504px
+  // content. Without this cap, phrases like "quarter past twelve" bake to a
+  // single 684px-wide bitmap that the firmware blits past the column edge
+  // and into the nocturne image area on partial-cadence wakes.
+  const PHRASE_MAX_WIDTH = 504;
   const stylesheet = `
     @font-face {
       font-family: 'Fraunces';
@@ -122,14 +130,14 @@ async function bakePhrase(
       background: white;
     }
     #zone {
-      display: inline-block;
+      display: block;
+      width: ${PHRASE_MAX_WIDTH}px;
       font-family: 'Fraunces';
       font-variation-settings: 'opsz' 144, 'wght' 400;
       font-style: italic;
       font-size: 96px;
       line-height: 1.05;
       color: black;
-      white-space: nowrap;
     }
   `;
   const html = `<!DOCTYPE html>
