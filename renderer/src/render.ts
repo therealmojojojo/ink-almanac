@@ -1,7 +1,22 @@
 import sharp from 'sharp';
-import { ensureBrowser } from './browser.js';
+import { closeBrowser, ensureBrowser } from './browser.js';
 import { VIEWPORT } from './config.js';
+import { log } from './logger.js';
 import type { DitherMask } from './image/dither.js';
+
+// Errors thrown by Playwright when the cached Chromium has died between
+// `ensureBrowser()` returning and the actual call. Catching these lets us
+// trigger one relaunch+retry per request instead of 500'ing — without that,
+// a Chromium crash leaves every subsequent render failing until the renderer
+// process itself is restarted.
+function isDeadContextError(err: unknown): boolean {
+  const m = err instanceof Error ? err.message : String(err);
+  return (
+    m.includes('Target page, context or browser has been closed') ||
+    m.includes('Browser has been closed') ||
+    m.includes('Target closed')
+  );
+}
 
 export interface RenderRequest {
   /** Fully-qualified URL to load (http://localhost:PORT/internal/template/... or file://...) */
@@ -44,7 +59,18 @@ export interface RenderResult {
  * device firmware can place its 1-bit partial-update digits at the exact
  * pixel coordinates the full render painted.
  */
-export async function renderToPng(_req: RenderRequest & { url: string }): Promise<RenderResult> {
+export async function renderToPng(req: RenderRequest & { url: string }): Promise<RenderResult> {
+  try {
+    return await renderOnce(req);
+  } catch (err) {
+    if (!isDeadContextError(err)) throw err;
+    log.warn({ err: (err as Error).message }, 'dead chromium context — relaunching and retrying once');
+    await closeBrowser();
+    return renderOnce(req);
+  }
+}
+
+async function renderOnce(_req: RenderRequest & { url: string }): Promise<RenderResult> {
   const ctx = await ensureBrowser();
   const page = await ctx.newPage();
   try {
