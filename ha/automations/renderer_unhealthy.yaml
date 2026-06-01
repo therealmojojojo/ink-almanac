@@ -1,0 +1,43 @@
+# Notify the operator when the renderer goes unhealthy.
+#
+# Triggers on the binary_sensor from `ha/integrations/renderer_health.yaml`.
+# A 2-minute `for:` debounce filters transient slow loads (cold-boot
+# Chromium launch takes ~3 s; the sensor's 8 s timeout shouldn't flap
+# but a noisy network might). Rate-limited to one notification every 4 h
+# so a sustained outage doesn't pageflood — the operator only needs to
+# know once that intervention is required.
+#
+# Without this, a dead renderer is invisible: the device keeps fetching,
+# the panel keeps showing the last good render, and nothing surfaces the
+# failure until someone looks at the display. (2026-06-01 incident:
+# 3 days unnoticed.)
+
+- id: inkplate_renderer_unhealthy_notify
+  alias: "Inkplate: renderer unhealthy notification"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.inkplate_renderer_healthy
+      to:
+        - "off"
+        - "unavailable"
+      for: "00:02:00"
+  condition:
+    # Rate-limit: at most one notification per 4 h. Note the entity_id below
+    # is the alias-slugified form HA actually registers — `id:` above is the
+    # automation-registry identifier, NOT the entity_id, so referencing
+    # `automation.inkplate_renderer_unhealthy_notify` here silently returns
+    # None and the limit becomes a no-op.
+    - condition: template
+      value_template: >-
+        {% set last = state_attr('automation.inkplate_renderer_unhealthy_notification','last_triggered') %}
+        {{ last is none or (now() - last).total_seconds() > 4*3600 }}
+  action:
+    - service: notify.inkplate_operator
+      data:
+        title: "Inkplate renderer unhealthy"
+        message: >-
+          Renderer at 192.168.1.131:8575 is
+          {{ states('binary_sensor.inkplate_renderer_healthy') }}.
+          Device will keep showing the last successful render until
+          recovery. Check /tmp/inkplate-renderer.log on .131 and
+          `npm start` if the process is down.

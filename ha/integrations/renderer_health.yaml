@@ -1,0 +1,32 @@
+# Renderer health probe.
+#
+# Polls the renderer's /healthz endpoint on .131:8575 every 30 s. The
+# endpoint returns `{"status":"ok","playwright_ready":<bool>}`, where
+# `playwright_ready` reflects `browser.isConnected()` in real time (per
+# renderer/src/browser.ts) — so when Chromium dies, this sensor flips
+# within one poll cycle.
+#
+# Background: on 2026-06-01 the renderer's Chromium process died and the
+# cached browser handle was never re-launched, returning HTTP 500 on every
+# /display/*.png request for ~3 days. The panel stayed stuck on the last
+# successful render until the operator looked at it. With this sensor
+# wired to `ha/automations/renderer_unhealthy.yaml`, the operator gets
+# pinged within ~2 min of a similar failure.
+#
+# Failure modes covered:
+#   - Chromium process dies (handle disconnected → playwright_ready=false)
+#   - Renderer Node process dies (REST sensor → unavailable)
+#   - Renderer host (.131) unreachable (REST sensor → unavailable)
+#   - Port 8575 not listening (connection refused → unavailable)
+
+rest:
+  - scan_interval: 30
+    resource: http://192.168.1.131:8575/healthz
+    timeout: 8
+    binary_sensor:
+      - name: "Inkplate renderer healthy"
+        unique_id: inkplate_renderer_healthy
+        # ON = healthy. OFF = browser dead but server still up.
+        # Unavailable = Node process down, host unreachable, or timeout.
+        value_template: >-
+          {{ value_json.status == 'ok' and value_json.playwright_ready == true }}

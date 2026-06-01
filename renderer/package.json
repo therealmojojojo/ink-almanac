@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "start": "tsx src/server.ts",
+    "postinstall": "playwright install chromium",
     "build": "tsc -p .",
     "test": "vitest run",
     "test:snapshot": "vitest run test/snapshot.test.ts",
