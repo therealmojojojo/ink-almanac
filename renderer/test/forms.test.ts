@@ -22,6 +22,13 @@ const FORMS = ['haiku', 'sonnet', 'free-verse', 'fragment', 'aphorism', 'quote']
 let server: ReturnType<typeof serve>;
 
 beforeAll(async () => {
+  // Pin the render instant so goldens stay valid across runs.
+  process.env.INKPLATE_RENDER_NOW = '2026-08-10T14:00:00+03:00';
+  // These are typography goldens for gallery-text, which has no photo zone;
+  // the only thing dither placement changes here is palette quantization,
+  // covered by `dither.test.ts`. Pin it so the goldens hold under either
+  // ambient setting rather than needing a second set.
+  process.env.RENDERER_DITHER = 'device';
   await fs.mkdir(GOLDEN_DIR, { recursive: true });
   server = serve({ fetch: app.fetch, port: PORT, hostname: '127.0.0.1' });
 });

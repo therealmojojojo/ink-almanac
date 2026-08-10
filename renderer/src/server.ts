@@ -5,7 +5,10 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { closeBrowser, ensureBrowser, isBrowserReady } from './browser.js';
-import { MODES, PORT, HOST, ROOT, TEMPLATES_DIR, inputsDir, isMode, type Mode } from './config.js';
+import {
+  MODES, PORT, HOST, ROOT, TEMPLATES_DIR, inputsDir, isMode,
+  ditherPlacement, type Mode,
+} from './config.js';
 import { log } from './logger.js';
 import { MissingInputError, prepareMode } from './modes/index.js';
 import {
@@ -65,7 +68,10 @@ app.get('/healthz', (c) =>
 // --- Static assets (CSS + fonts + inputs dir) --------------------------------
 
 async function serveFile(rel: string): Promise<Response> {
-  const full = path.join(ROOT, rel);
+  return serveAbsolute(path.join(ROOT, rel));
+}
+
+async function serveAbsolute(full: string): Promise<Response> {
   try {
     const data = await fs.readFile(full);
     const ext = path.extname(full).toLowerCase();
@@ -115,8 +121,13 @@ app.get('/static/fonts/:file', (c) =>
 app.get('/static/img/:mode/:file', (c) =>
   serveFile(path.join('templates', c.req.param('mode'), c.req.param('file'))),
 );
+// Resolved against `inputsDir()`, not a hardcoded `ROOT/inputs`. The JSON
+// inputs already honour RENDERER_INPUTS_DIR; when the image route did not,
+// pointing the renderer at a fixture directory silently served production
+// images alongside fixture JSON — which is exactly the kind of mismatch a
+// test harness must not produce. Unset env → same path as before.
 app.get('/inputs/:file', (c) =>
-  serveFile(path.join('inputs', c.req.param('file'))),
+  serveAbsolute(path.join(inputsDir(), c.req.param('file'))),
 );
 
 // --- HA proxy (narrow, safe): /ha-proxy/api/media_player_proxy/... -----------
@@ -1082,7 +1093,15 @@ async function listenWithRetry(): Promise<ReturnType<typeof serve>> {
       return await new Promise<ReturnType<typeof serve>>((resolve, reject) => {
         const s = serve({ fetch: app.fetch, hostname: HOST, port: PORT }, (info) => {
           log.info(
-            { port: info.port, host: HOST, templates: TEMPLATES_DIR, attempt },
+            {
+              port: info.port,
+              host: HOST,
+              templates: TEMPLATES_DIR,
+              attempt,
+              // Must match the firmware's drawImage dither flag: `server`
+              // pairs with dither=false, `device` with dither=true.
+              dither: ditherPlacement(),
+            },
             'renderer listening',
           );
           resolve(s);

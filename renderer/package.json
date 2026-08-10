@@ -20,8 +20,10 @@
     "bake:clock-glyphs": "tsx src/tools/bake-clock-glyphs.ts",
     "bake:night-phrases": "tsx src/tools/bake-night-phrases.ts",
     "validate:corpus-fit": "tsx src/tools/validate-corpus-fit.ts",
-    "verify": "npm run lint:templates && npm run lint:fonts && npm run check-zones && npm run validate:corpus-fit",
-    "format": "prettier --write ."
+    "verify": "npm run check-dither-masks && npm run lint:templates && npm run lint:fonts && npm run check-zones && npm run validate:corpus-fit",
+    "format": "prettier --write .",
+    "check-dither-masks": "tsx src/tools/check-dither-masks.ts",
+    "bake:blue-noise": "tsx src/tools/bake-blue-noise.ts"
   },
   "dependencies": {
     "hono": "4.6.14",

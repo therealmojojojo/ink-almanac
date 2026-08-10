@@ -1,4 +1,4 @@
-import type { DitherMask } from '../image/dither.js';
+import { rectMask, type DitherMask } from '../image/dither.js';
 import {
   attributionLine,
   batteryIndicator,
@@ -328,19 +328,20 @@ function buildSmartPill(input: SummaryInput, _variant: SummaryVariant): string {
 </section>`;
 }
 
+/**
+ * Delight-cell image box, matching `.summary-delight.image .body` in
+ * `summary.css`. Verified against the laid-out element by
+ * `npm run check-dither-masks`; the previous constants were written while the
+ * mask was dead code and were never checked against a render.
+ */
+const DELIGHT_CELL = { x: 48, y: 385, w: 548, h: 376 } as const;
+
 export function ditherMask(input: SummaryInput): boolean | DitherMask {
-  const g = input.pairing.gallery;
-  const hasImage = g.flavor === 'text';
-  if (!hasImage) return false;
-  const W = 1200;
-  const H = 825;
-  const x0 = 48;
-  const y0 = 500;
-  const x1 = 650;
-  const y1 = 770;
-  const data = new Uint8Array(W * H);
-  for (let y = y0; y < y1; y++) {
-    for (let x = x0; x < x1; x++) data[y * W + x] = 1;
-  }
-  return { width: W, height: H, data };
+  // Keyed on the companion's own kind, not on `gallery.flavor`. The two are
+  // meant to be opposite modalities, but they are derived independently in
+  // `pairing_inputs.py`, and the companion can be absent entirely — in which
+  // case the flavor check would mask a cell that has no image in it.
+  const c = input.pairing.gallery.companion;
+  if (c?.kind !== 'visual' || !c.image_path) return false;
+  return rectMask(DELIGHT_CELL.x, DELIGHT_CELL.y, DELIGHT_CELL.w, DELIGHT_CELL.h);
 }

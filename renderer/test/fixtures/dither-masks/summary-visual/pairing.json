@@ -1,0 +1,21 @@
+{
+  "date": "2026-08-10",
+  "theme": "solitude",
+  "gallery": {
+    "flavor": "text",
+    "companion": {
+      "kind": "visual",
+      "image_path": "/inputs/portrait.jpg",
+      "title": "Portrait Companion",
+      "artist": "Fixture",
+      "year": "1900"
+    },
+    "text": {
+      "form": "haiku",
+      "body": "an old silent pond\na frog jumps in\nsplash, then silence",
+      "poet": "Basho",
+      "language": "en"
+    }
+  },
+  "night": {}
+}

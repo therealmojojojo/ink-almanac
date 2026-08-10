@@ -27,10 +27,27 @@ class RealDisplay : public hal::IDisplay {
   // example uses. The earlier buffer-based call matched a raw-pixel overload
   // (not PNG decode), so PNG bytes were splatted as palette values and
   // dithered to white noise.
+  //
+  // dither=false: the renderer already delivers palette-constrained pixels
+  // (0, 36, 73, 109, 146, 182, 219, 255), and with dithering off the library
+  // reduces to RGB3BIT(v,v,v) = (256*v) >> 13 = floor(v/32), which maps those
+  // eight values exactly onto panel levels 0-7. One lossless lookup.
+  //
+  // The library's own dither must stay off. ditherGetPixelBmp (ImageDither.cpp)
+  // diffuses quantization error against `oldPixel & 0xE0`, whose range tops out
+  // at 224, while the panel emits up to 255 — a 255/224 gain the error term
+  // never sees. Measured against a real face it renders +19/255 bright with
+  // 7.5x the error of a correct pass. It also truncates rather than rounds,
+  // drops diffusion terms below 16 to zero via per-term >>4, and accumulates
+  // error in a uint8_t that cannot hold a negative value.
+  //
+  // Must match the renderer's RENDERER_DITHER setting: this pairs with
+  // `server`. Against `device` the panel bands heavily — see
+  // openspec/changes/move-dither-server-side/design.md D4/D5.
   bool drawImageFromUrl(const std::string& url, bool full, hal::Rect rect) override {
     const bool ok = panel_.drawImage(url.c_str(),
                                      rect.x, rect.y,
-                                     /*dither=*/true, /*invert=*/false);
+                                     /*dither=*/false, /*invert=*/false);
     if (!ok) {
       Serial.printf("[RealDisplay] drawImage(url) FAILED: %s\n", url.c_str());
       return false;

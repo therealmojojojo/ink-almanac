@@ -1,4 +1,4 @@
-import type { DitherMask } from '../image/dither.js';
+import { rectMask, FACE_W, FACE_H, type DitherMask } from '../image/dither.js';
 import { weekdayLabel } from '../templateMacros.js';
 import { applyZone } from '../zoneApply.js';
 import { escapeHtml, htmlShell } from './shell.js';
@@ -128,17 +128,11 @@ export function buildHtml(input: NightInput): string {
 
 export function ditherMask(input: NightInput): boolean | DitherMask {
   if (!input.pairing.night?.image_path) return false;
-  const W = 1200;
-  const H = 825;
-  const data = new Uint8Array(W * H);
-  // Nocturne column is the right ~1.3/2.3 share of the content area, so
-  // roughly x ∈ [576, 1152]; plus padding reach to full-height.
-  const x0 = 576;
-  const x1 = 1200;
-  const y0 = 0;
-  const y1 = H;
-  for (let y = y0; y < y1; y++) {
-    for (let x = x0; x < x1; x++) data[y * W + x] = 1;
-  }
-  return { width: W, height: H, data };
+  // `.night-root.with-image` is `grid-template-columns: 1fr 1fr` at zero
+  // padding, so the nocturne occupies exactly the right half, full height.
+  // The image uses `object-fit: cover`, so it paints the whole column with no
+  // letterbox. The previous 576 came from a 1.3/2.3 split that the layout no
+  // longer uses; it reached 24px into the text column. `check-dither-masks`
+  // now fails if this drifts again.
+  return rectMask(FACE_W / 2, 0, FACE_W / 2, FACE_H);
 }

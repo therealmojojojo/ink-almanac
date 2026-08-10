@@ -69,7 +69,14 @@ static void drawRef(const char* path) {
   Serial.println(url);
   uint32_t t0 = millis();
   display.clearDisplay();
-  bool ok = display.drawImage(url, 0, 0, /*invert=*/INKPLATE_SMOKETEST_INVERT, /*dither=*/true);
+  // Signature is drawImage(path, x, y, dither, invert) — the previous call
+  // had these two labelled the other way round, so it was passing
+  // dither=INKPLATE_SMOKETEST_INVERT and invert=true.
+  //
+  // dither=false matches the production path in RealDisplay: the renderer
+  // ships palette-constrained pixels and the library maps them 1:1.
+  bool ok = display.drawImage(url, 0, 0, /*dither=*/false,
+                              /*invert=*/INKPLATE_SMOKETEST_INVERT);
   if (!ok) {
     Serial.println("[smoke] drawImage FAILED");
     showStatus("drawImage FAILED");

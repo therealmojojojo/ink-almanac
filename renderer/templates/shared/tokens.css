@@ -5,7 +5,16 @@
 :root {
   /* Palette — Inkplate 10 greyscale. NO other colors permitted in templates. */
   --ink: #000;
-  --paper: #ececec;
+  /* Pure white, because that is what the panel has always actually shown.
+   * The previous #ececec (236) never rendered as 236: the Inkplate library
+   * quantized with `oldPixel & 0xE0`, pushing 236 to level 7 = 255. With the
+   * dither moved server-side and quantization honest, 236 lands on 219 —
+   * one level darker, and visibly so against photo highlights that dither
+   * around their true value, which shows up as a seam at the image border.
+   * #ffffff sits exactly on level 7, so the paper matches what was on the
+   * panel before and the seam goes away. Only token whose panel output
+   * changes under the new path. */
+  --paper: #fff;
   /* EXPERIMENT (improve-text-crispness phase 2): greys for small text fray at
    * 150 dpi on physical e-paper even after supersample + Lanczos. Collapsing
    * --mid and --faint onto --ink for text. --rule-faint retained separately

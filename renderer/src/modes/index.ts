@@ -31,7 +31,12 @@ export interface ModePrepared {
  */
 function serverClock(): { time: string; date: string } {
   const tz = process.env.INKPLATE_RENDER_TZ || undefined;
-  const now = new Date();
+  // `INKPLATE_RENDER_NOW` pins the render instant to a fixed ISO timestamp.
+  // Unset in production, so the wall clock is used exactly as before. Snapshot
+  // goldens otherwise bake in the minute they were generated and fail on every
+  // subsequent run — which is why that suite was already red at HEAD.
+  const pinned = process.env.INKPLATE_RENDER_NOW;
+  const now = pinned ? new Date(pinned) : new Date();
   const time = new Intl.DateTimeFormat('en-GB', {
     hour: '2-digit',
     minute: '2-digit',

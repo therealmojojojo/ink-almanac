@@ -18,6 +18,36 @@ export const VIEWPORT = { width: 1200, height: 825 } as const;
 // (proven crisp on hardware) uses a plain 1× screenshot; we match that.
 export const DEVICE_SCALE_FACTOR: number = 1;
 
+/**
+ * Where Floyd-Steinberg error diffusion happens.
+ *
+ * - `server` — the renderer dithers within each mode's photo mask and emits
+ *   palette-constrained output; firmware must draw with `dither=false`.
+ * - `device` — the renderer emits full-range greyscale and the Inkplate
+ *   library dithers on decode; firmware must draw with `dither=true`.
+ *
+ * The two must agree. Old firmware + `server` double-diffuses (smudge); new
+ * firmware + `device` hard-truncates to 3 bits (banding). This is a switch
+ * rather than a constant so rollback is a restart instead of an OTA cycle —
+ * see `openspec/changes/move-dither-server-side/design.md` D4.
+ *
+ * Defaults to `device` until hardware validation confirms the server path.
+ */
+export type DitherPlacement = 'server' | 'device';
+
+/**
+ * Read per call, like `inputsDir()`, so tests can exercise both paths.
+ *
+ * Defaults to `server` since 2026-08-10, when the A/B probe confirmed on the
+ * physical panel that the device-side dither renders washed out and ~2.7 s
+ * slower per draw. See `firmware/docs/dither-hardware-validation.md`.
+ * Set `RENDERER_DITHER=device` to fall back — but only alongside firmware
+ * built with `dither=true`, or the panel bands.
+ */
+export function ditherPlacement(): DitherPlacement {
+  return process.env.RENDERER_DITHER === 'device' ? 'device' : 'server';
+}
+
 export function inputsDir(): string {
   return process.env.RENDERER_INPUTS_DIR ?? path.join(ROOT, 'inputs');
 }

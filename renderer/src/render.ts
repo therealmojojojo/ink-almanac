@@ -1,8 +1,9 @@
 import sharp from 'sharp';
 import { closeBrowser, ensureBrowser } from './browser.js';
-import { VIEWPORT } from './config.js';
+import { VIEWPORT, ditherPlacement } from './config.js';
 import { log } from './logger.js';
-import type { DitherMask } from './image/dither.js';
+import { blueNoiseDither, quantizeToPalette, type DitherMask } from './image/dither.js';
+import { assertPaletteOnly } from './image/palette.js';
 
 // Errors thrown by Playwright when the cached Chromium has died between
 // `ensureBrowser()` returning and the actual call. Catching these lets us
@@ -21,10 +22,16 @@ function isDeadContextError(err: unknown): boolean {
 export interface RenderRequest {
   /** Fully-qualified URL to load (http://localhost:PORT/internal/template/... or file://...) */
   url: string;
-  /** Retained for API compatibility; currently ignored. The device's Inkplate
-   *  library dithers the 8-bit greyscale PNG we emit here onto the 3-bit panel
-   *  palette, so a second server-side Floyd-Steinberg pass would just add
-   *  noise. Reconsider if we ever drive a non-Inkplate target. */
+  /**
+   * Which pixels get error diffusion, from the mode's `ditherMask()`.
+   *
+   * Honoured when placement is `server`: masked pixels are blue-noise
+   * dithered onto the Inkplate palette, unmasked pixels are hard-quantized to
+   * the nearest palette value so text keeps clean edges.
+   * `false` means the face has no photographic zone and quantizes throughout.
+   *
+   * Ignored under `'device'`, where the Inkplate library dithers on decode.
+   */
   dither: boolean | DitherMask;
 }
 
@@ -50,10 +57,13 @@ export interface RenderResult {
 
 /**
  * Load a template URL in the shared Playwright context, screenshot at 1200×825,
- * convert to single-channel 8-bit greyscale, and return a lossless PNG.
- * No supersample, no server-side quantize, no server-side dither. The device's
- * Inkplate library handles palette mapping — proven crisp on the panel (v.
- * MagInkDash, which follows the same one-pass flow).
+ * convert to single-channel 8-bit greyscale, and return a PNG.
+ *
+ * No supersample, no resample, no tonal manipulation — one screenshot, one
+ * colourspace conversion. Under `RENDERER_DITHER=server` a palette-mapping
+ * pass is added: Floyd-Steinberg inside the mode's photo mask, nearest-palette
+ * outside it. Under `device` the bytes go out at full range and the Inkplate
+ * library maps them, which is the historical path.
  *
  * Also extracts the clock zone from the rendered DOM (when present) so the
  * device firmware can place its 1-bit partial-update digits at the exact
@@ -108,8 +118,42 @@ async function renderOnce(_req: RenderRequest & { url: string }): Promise<Render
       clip: { x: 0, y: 0, width: VIEWPORT.width, height: VIEWPORT.height },
       omitBackground: false,
     });
-    const png = await sharp(screenshot)
-      .greyscale()
+    // `.greyscale()` desaturates but leaves three identical channels;
+    // `.toColourspace('b-w')` is what actually makes the PNG single-channel.
+    // pngle decodes colour-type 0 by expanding v[1] = v[2] = v[0], so the
+    // device sees identical pixel values either way — just fewer bytes.
+    const grey = sharp(screenshot).greyscale().toColourspace('b-w');
+
+    if (ditherPlacement() !== 'server') {
+      const png = await grey.png({ compressionLevel: 9 }).toBuffer();
+      return { png, clockZone };
+    }
+
+    const { data, info } = await grey.raw().toBuffer({ resolveWithObject: true });
+    if (info.channels !== 1) {
+      throw new Error(`render: expected 1-channel greyscale, got ${info.channels}`);
+    }
+    const src = new Uint8Array(data.buffer, data.byteOffset, data.length);
+    const quantized =
+      _req.dither === false
+        ? quantizeToPalette(src)
+        : blueNoiseDither(
+            src,
+            info.width,
+            info.height,
+            _req.dither === true ? undefined : _req.dither,
+          );
+    // The device maps palette values onto panel levels with a bare
+    // `floor(v/32)`; an out-of-palette byte would land on the wrong level
+    // silently, so fail the render instead of shipping it.
+    assertPaletteOnly(quantized);
+    const png = await sharp(quantized, {
+      raw: { width: info.width, height: info.height, channels: 1 },
+    })
+      // Sharp promotes a 1-channel raw buffer back to sRGB on PNG encode
+      // unless the output colourspace is pinned, which silently tripled the
+      // payload the device downloads.
+      .toColourspace('b-w')
       .png({ compressionLevel: 9 })
       .toBuffer();
     return { png, clockZone };

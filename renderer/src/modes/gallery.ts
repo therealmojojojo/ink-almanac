@@ -1,4 +1,4 @@
-import type { DitherMask } from '../image/dither.js';
+import { rectMask, FACE_W, FACE_H, type DitherMask } from '../image/dither.js';
 import { attributionLine, batteryIndicator } from '../templateMacros.js';
 import { fitGalleryText, fitGalleryTitle, fitShortFormTitle, titleOpsz, type Form } from '../typography.js';
 import { applyZone } from '../zoneApply.js';
@@ -209,24 +209,57 @@ function buildText(input: GalleryInput): string {
   });
 }
 
+/**
+ * Height of the caption band on the landscape layouts. Mirrors
+ * `.gv-root { grid-template-rows: 1fr 108px }` in `gallery-visual.css`;
+ * `check-dither-masks` fails if the two drift apart.
+ */
+const CAPTION_BAND_H = 108;
+
+/**
+ * The rectangle the gallery image actually paints into, for either layout.
+ *
+ * Both layouts use `object-fit: contain`, so the painted rect is the image's
+ * aspect ratio fitted inside its cell — not the cell itself. Returns the cell
+ * when dimensions are unknown, which is the safe direction: it over-covers
+ * rather than leaving photo edges unmasked.
+ */
+function imageRect(v: NonNullable<GalleryInput['pairing']['gallery']['visual']>): {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+} {
+  const isSplit = !!(v.pixel_width && v.pixel_height && v.pixel_height >= v.pixel_width);
+  // Cell: split puts the image in the left column at full height; landscape
+  // gives it the full width above the caption band.
+  const cell = isSplit
+    ? { x: 0, y: 0, w: Math.min(825, Math.round((825 * v.pixel_width!) / v.pixel_height!)), h: FACE_H }
+    : { x: 0, y: 0, w: FACE_W, h: FACE_H - CAPTION_BAND_H };
+
+  if (!v.pixel_width || !v.pixel_height) return cell;
+
+  const s = Math.min(cell.w / v.pixel_width, cell.h / v.pixel_height);
+  const w = Math.round(v.pixel_width * s);
+  const h = Math.round(v.pixel_height * s);
+  return {
+    x: cell.x + Math.round((cell.w - w) / 2),
+    y: cell.y + Math.round((cell.h - h) / 2),
+    w,
+    h,
+  };
+}
+
 export function ditherMask(input: GalleryInput): boolean | DitherMask {
   const g = input.pairing.gallery;
   if (g.flavor !== 'visual') return false;
 
   const v = g.visual;
-  // Split layout: mask only the left image column — text column should
-  // stay crisp (Floyd–Steinberg dithering blurs small type).
-  if (v?.pixel_width && v?.pixel_height && v.pixel_height >= v.pixel_width) {
-    const W = 1200;
-    const H = 825;
-    const imgW = Math.min(825, Math.round((825 * v.pixel_width) / v.pixel_height));
-    const data = new Uint8Array(W * H);
-    for (let y = 0; y < H; y++) {
-      for (let x = 0; x < imgW; x++) data[y * W + x] = 1;
-    }
-    return { width: W, height: H, data };
-  }
+  if (!v?.image_path) return false;
 
-  // Full-frame landscape: dither the whole face (unchanged behavior).
-  return true;
+  // Only the painted image is dithered. Everything else — caption band, split
+  // text column, the mat around a letterboxed image — hard-quantizes, so small
+  // type keeps its edges instead of picking up error-diffusion speckle.
+  const r = imageRect(v);
+  return rectMask(r.x, r.y, r.w, r.h);
 }

@@ -1,0 +1,16 @@
+{
+  "date": "2026-08-10",
+  "theme": "solitude",
+  "gallery": {
+    "flavor": "visual",
+    "visual": {
+      "image_path": "/inputs/native.jpg",
+      "title": "Native Hero",
+      "artist": "Fixture",
+      "year": "1900",
+      "pixel_width": 383,
+      "pixel_height": 250
+    }
+  },
+  "night": {}
+}

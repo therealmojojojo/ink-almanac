@@ -1,4 +1,4 @@
-import type { DitherMask } from '../image/dither.js';
+import { rectMask, FACE_H, type DitherMask } from '../image/dither.js';
 import { cleanSpotifyTitle, workBucket } from '../enrichment/classify.js';
 import { batteryIndicator } from '../templateMacros.js';
 import { escapeHtml, htmlShell } from './shell.js';
@@ -104,14 +104,20 @@ export function buildHtml(input: NowPlayingInput): string {
   });
 }
 
-export function ditherMask(input: NowPlayingInput): boolean | DitherMask {
-  if (!input.sonos.art_path && !input.sonos.art_url) return false;
-  const W = 1200;
-  const H = 825;
-  const data = new Uint8Array(W * H);
-  // Album art occupies the left 825 columns (the square art zone).
-  for (let y = 0; y < H; y++) {
-    for (let x = 0; x < 825; x++) data[y * W + x] = 1;
-  }
-  return { width: W, height: H, data };
+/** `.np-root { grid-template-columns: 825px minmax(0, 1fr) }` — the square art zone. */
+const ART_ZONE = 825;
+
+export function ditherMask(_input: NowPlayingInput): boolean | DitherMask {
+  // Unconditional: the art zone always paints an image. When Sonos supplies
+  // neither `art_url` nor `art_path`, `buildHtml` falls back to
+  // `/static/img/now-playing/fallback.jpg` — a 1200×1200 photograph, not a
+  // flat placeholder. Gating the mask on the Sonos fields left that fallback
+  // hard-quantized and banded.
+  //
+  // Masks the whole art cell rather than the painted image: the art arrives as
+  // a URL, so its aspect ratio is unknown here and any letterbox can't be
+  // computed. Album art is square in practice, so the slack is a few px of
+  // paper at the cell edge — harmless, and it guarantees no photo edge is left
+  // unmasked, which would band.
+  return rectMask(0, 0, ART_ZONE, FACE_H);
 }
